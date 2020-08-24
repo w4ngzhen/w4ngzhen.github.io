@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Linux Bash命令杂记(cut sort uniq wc tee) | CompileMind</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Linux,bash," />
+  
+
+  <meta name="description" content="数据流重定向 1234标准输入（stdin）：代码为0，使用&lt;或&lt;&lt;；标准输出（stdout）：代码为1，使用&gt;或&gt;&gt;；标准错误输出（stderr）：代码为2，使用2&gt;或2&gt;&gt;；&gt;：覆盖的方式，&gt;&gt;：追加的方式 如果想要一般输出与错误输出同时输入到某一个文件，如果采取如下的方式进行输出是错误的： 1输出数据  1&gt; li">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Bash命令杂记(cut sort uniq wc tee)">
+<meta property="og:url" content="http://compilemind.com/2018/03/12/2018-03-12-Linux%20Bash%E5%91%BD%E4%BB%A4%E6%9D%82%E8%AE%B0(cut%20sort%20uniq%20wc%20tee)/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="数据流重定向 1234标准输入（stdin）：代码为0，使用&lt;或&lt;&lt;；标准输出（stdout）：代码为1，使用&gt;或&gt;&gt;；标准错误输出（stderr）：代码为2，使用2&gt;或2&gt;&gt;；&gt;：覆盖的方式，&gt;&gt;：追加的方式 如果想要一般输出与错误输出同时输入到某一个文件，如果采取如下的方式进行输出是错误的： 1输出数据  1&gt; li">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-03-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-24T11:05:26.466Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="bash">
+<meta name="twitter:card" content="summary">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+<meta name="generator" content="Hexo 5.1.0"></head>
+
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-2018-03-12-Linux Bash命令杂记(cut sort uniq wc tee)" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Linux Bash命令杂记(cut sort uniq wc tee)</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.03.12</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>w4ngzhen</span>
+        </span>
+      
+
+      
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p><strong>数据流重定向</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">标准输入（stdin）：代码为0，使用&lt;或&lt;&lt;；</span><br><span class="line">标准输出（stdout）：代码为1，使用&gt;或&gt;&gt;；</span><br><span class="line">标准错误输出（stderr）：代码为2，使用2&gt;或2&gt;&gt;；</span><br><span class="line">&gt;：覆盖的方式，&gt;&gt;：追加的方式</span><br></pre></td></tr></table></figure>
+<p>如果想要一般输出与错误输出同时输入到某一个文件，如果采取如下的方式进行输出是错误的：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">输出数据  1&gt; list 2&gt; list</span><br></pre></td></tr></table></figure>
+<p>如果按照上面的方式输出到list文件中时而没有采用特殊的语法，会因为两个输出进程的同步问题，导致正确的数据与错误的数据可能会交叉的输入到list文件中。正确的方式应该如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">输出数据 &gt; list 2&gt;&amp;1</span><br><span class="line"><span class="meta">#</span><span class="bash"> 或者是</span></span><br><span class="line">输出数据 &amp;&gt; list</span><br></pre></td></tr></table></figure>
+<p><strong>命令执行&amp;&amp; ||</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cmd1 &amp;&amp; cmd2</span><br><span class="line">若cmd1执行完毕且正确执行($?&#x3D;&#x3D;0)，则执行cmd2</span><br><span class="line">若cmd1执行完毕且错误执行($?!&#x3D;0)，则不执行cmd2</span><br><span class="line"></span><br><span class="line">cmd1 || cmd2</span><br><span class="line">若cmd1执行完毕且执行正确($?&#x3D;&#x3D;0)，则不执行cmd2</span><br><span class="line">若cmd1执行完毕且执行错误($?!&#x3D;0)，则执行cmd2</span><br></pre></td></tr></table></figure>
+<p><strong>cut命令</strong></p>
+<p>cut命令按行数据进行处理，常用的方式如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">参数 -d -f（组合使用）</span></span><br><span class="line">输出数据 | cut -d &#x27;分个字符&#x27; -f fields</span><br><span class="line"><span class="meta">#</span><span class="bash"> 例</span></span><br><span class="line">str=ni:hao:ma:?</span><br><span class="line">echo $str | cut -d &#x27;:&#x27; -f 2</span><br><span class="line">表示将echo出的str字符串按照&#x27;:&#x27;字符分割，且取第2个字段</span><br><span class="line">得到的结果是</span><br><span class="line">hao</span><br><span class="line"><span class="meta">#</span><span class="bash"> 补充</span></span><br><span class="line">-f 1,3 代表取第1和第3字段，输出 ni:man</span><br><span class="line">-f 1-3 取1到3字段，输出 ni:hao:ma</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 参数 -c</span></span><br><span class="line">输出数据 | cut -c 字符范围</span><br><span class="line"><span class="meta">#</span><span class="bash"> 例</span></span><br><span class="line">str=hello</span><br><span class="line">echo $str | cut -c 1</span><br><span class="line">输出</span><br><span class="line">h</span><br><span class="line"><span class="meta">#</span><span class="bash"> 补充</span></span><br><span class="line">-c 1-，输出 hello</span><br><span class="line">-c 1-3，输出 hel</span><br></pre></td></tr></table></figure>
+<p><strong>sort命令</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">head -4 /etc/passswd</span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">bin:x:1:1:bin:/bin:/sbin/nologin</span><br><span class="line">daemon:x:2:2:daemon:/sbin:/sbin/nologin</span><br><span class="line">adm:x:3:4:adm:/var/adm:/sbin/nologin</span><br><span class="line">我们可以看到并没有按照首字母排序</span><br><span class="line"></span><br><span class="line">head -4 /etc/passwd | sort</span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line">adm:x:3:4:adm:/var/adm:/sbin/nologin</span><br><span class="line">bin:x:1:1:bin:/bin:/sbin/nologin</span><br><span class="line">daemon:x:2:2:daemon:/sbin:/sbin/nologin</span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">我们可以看到已经按照首字母排序了</span><br><span class="line"></span><br><span class="line">同样，我们可以指定想按照哪一个字段来排序，</span><br><span class="line">head /etc/passwd | sort -t &#x27;:&#x27; -k 3</span><br><span class="line"><span class="meta">#</span><span class="bash"> 不看前4行了，准备输出所有行</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 将输出按照类型<span class="string">&#x27;:&#x27;</span>分割(-t <span class="string">&#x27;:&#x27;</span>)，并且取第3个字段(-k 3)</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 然而此时的字段依然是按照字符进行，如本测试机上输出的结果注意看第二行：</span></span><br><span class="line">root:x:0:0:root:/root:/bin/bash</span><br><span class="line">operator:x:11:0:operator:/root:/sbin/nologin</span><br><span class="line">bin:x:1:1:bin:/bin:/sbin/nologin</span><br><span class="line">daemon:x:2:2:daemon:/sbin:/sbin/nologin</span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意第三个字段，11跑到了2前面去了，因为字符串11排在2前面</span></span><br><span class="line">此时我们需要加上 -n 参数提示按照数字进行</span><br><span class="line">head /etc/passwd | sort -t &#x27;:&#x27; -k 3 -n</span><br></pre></td></tr></table></figure>
+<p><strong>last命令</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 该命令用来列出目前与过去登录系统的用户相关信息</span></span><br><span class="line">last</span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line">root     tty1                          Mon Mar 12 18:33   still logged in   </span><br><span class="line">reboot   system boot  3.10.0-693.17.1. Mon Mar 12 18:33 - 19:02  (00:29)    </span><br><span class="line">root     tty1                          Sat Mar 10 20:18 - 20:18  (00:00)    </span><br><span class="line">reboot   system boot  3.10.0-693.17.1. Sat Mar 10 20:18 - 20:18  (00:00)    </span><br><span class="line">root     tty1                          Fri Mar  9 19:10 - 20:50  (01:40)    </span><br><span class="line">...</span><br><span class="line">其中：</span><br><span class="line">第一列：用户名</span><br><span class="line">第二列：终端位置。(pts/0通过ssh或者telnet远程连接的用户，tty：直接连接到计算机或者本地用户)</span><br><span class="line">第三列：登陆IP或者内核（看到0.0或者什么都没有，意味着用户通过本地终端连接，除了重启，内核版本会显示在状态中）</span><br><span class="line"></span><br><span class="line">第四列：开始时间(如：sun apr 3 ：四月三号星期天)</span><br><span class="line">第五列：结束时间（still login in 还未退出，down：直到正常关机，crash：直到强制关机）</span><br><span class="line">第六列:持续时间</span><br></pre></td></tr></table></figure>
+<p><strong>uniq命令</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">last | cut -d &#x27; &#x27; -f 1 | sort | uniq</span><br><span class="line"><span class="meta">#</span><span class="bash"> 先取用户名，然后排序，最后去重</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line">reboot</span><br><span class="line">root</span><br><span class="line">wtmp</span><br><span class="line">zhen</span><br><span class="line"><span class="meta">#</span><span class="bash"> 加上 -c 显示统计</span></span><br><span class="line">last | cut -d &#x27; &#x27; -f 1 | sort | uniq -c</span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line">1</span><br><span class="line">27 reboot</span><br><span class="line">26 root</span><br><span class="line">1 wtmp</span><br><span class="line">3 zhen</span><br></pre></td></tr></table></figure>
+<p>务必注意，uniq命令是通过叠加去重<strong>相邻</strong>的字符串，如果你不首先进行排序，那么会出现下面的情况：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">      1 root</span><br><span class="line">      1 reboot</span><br><span class="line">      1 root</span><br><span class="line">      1 reboot</span><br><span class="line">      1 root</span><br><span class="line">      1 reboot</span><br><span class="line">      1 root</span><br><span class="line">      1 reboot</span><br><span class="line">      1 zhen</span><br><span class="line">      1 root</span><br><span class="line">      1 reboot</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p><strong>wc命令</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">wc [-lwm]</span><br><span class="line">-l: 仅列出行</span><br><span class="line">-w: 仅列出多少个英文单词</span><br><span class="line">-m: 仅列出多少个字符</span><br><span class="line">head /etc/passwd | wc</span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line">  10  10  385</span><br><span class="line"><span class="meta">#</span><span class="bash"> 分别代表行数，词数，字符数（这里10个“词”应该是因为每一行没有空格的原因，wc统计是按空格来分词的）</span></span><br></pre></td></tr></table></figure>
+<p><strong>tee双向重定向</strong></p>
+<p>由前面的数据流我们可以知道，我们在将数据定向时，如果不采取特殊的操作，数据要么输出到屏幕，要么输出到文件或者是设备中，没有办法，既输出到屏幕有输出到文件中；又或者是，我们想要对数据进行处理存放到一个文件中，但是同时对原始数据又存到另一个文件中。使用tee命令，我们就可以做到。</p>
+<p>例如，我们使用last命令首先要把数据存放到last.log中，同时要对用户去重并输出到屏幕上：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">last | tee [-a 追加] last.log | cut -d &#x27; &#x27; -f 1 | sort | uniq</span><br><span class="line"><span class="meta">#</span><span class="bash"> output</span></span><br><span class="line"></span><br><span class="line">reboot</span><br><span class="line">root</span><br><span class="line">wtmp</span><br><span class="line">zhen</span><br><span class="line"><span class="meta">#</span><span class="bash"> 同时我们打开last.log文件可以看到没有做任何处理的原始数据</span></span><br><span class="line">root     tty1                          Mon Mar 12 18:33   still logged in   </span><br><span class="line">reboot   system boot  3.10.0-693.17.1. Mon Mar 12 18:33 - 19:29  (00:56)    </span><br><span class="line">root     tty1                          Sat Mar 10 20:18 - 20:18  (00:00)    </span><br><span class="line">reboot   system boot  3.10.0-693.17.1. Sat Mar 10 20:18 - 20:18  (00:00)    </span><br><span class="line">root     tty1                          Fri Mar  9 19:10 - 20:50  (01:40)    </span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+    
+  </div>
+
+</article>
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

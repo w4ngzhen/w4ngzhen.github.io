@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>CefSharp基于.Net Framework 4.0 框架编译 | CompileMind</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="CefSharp," />
+  
+
+  <meta name="description" content="本次源码使用的是Github上CefSharp官方的79版本源码 准备IDEVisual Studio 2017 Enterprise EnvironmentWindows10 SDK VC2013 Redistributale Package x86\x64 组件清单以下组件按照顺序进行编译最佳 基础层 CefSharp（C#） CefSharp.Core（C++） CefSharp.Brows">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CefSharp基于.Net Framework 4.0 框架编译">
+<meta property="og:url" content="http://compilemind.com/2020/06/06/2020-06-06-CefSharp%E5%9F%BA%E4%BA%8E.Net%20Framework%204.0%20%E6%A1%86%E6%9E%B6%E7%BC%96%E8%AF%91/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="本次源码使用的是Github上CefSharp官方的79版本源码 准备IDEVisual Studio 2017 Enterprise EnvironmentWindows10 SDK VC2013 Redistributale Package x86\x64 组件清单以下组件按照顺序进行编译最佳 基础层 CefSharp（C#） CefSharp.Core（C++） CefSharp.Brows">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/2.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/3.png">
+<meta property="article:published_time" content="2020-06-05T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-24T11:05:26.494Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="CefSharp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/1.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+<meta name="generator" content="Hexo 5.1.0"></head>
+
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87"><span class="toc-text">准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#IDE"><span class="toc-text">IDE</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Environment"><span class="toc-text">Environment</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E6%B8%85%E5%8D%95"><span class="toc-text">组件清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%B1%82"><span class="toc-text">基础层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#UI%E5%B1%82"><span class="toc-text">UI层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Example"><span class="toc-text">Example</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%A7%8B"><span class="toc-text">开始</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp"><span class="toc-text">CefSharp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp-Core"><span class="toc-text">CefSharp.Core</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp-BrowserSubprocess-Core"><span class="toc-text">CefSharp.BrowserSubprocess.Core</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp-BrowserSubprocess"><span class="toc-text">CefSharp.BrowserSubprocess</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp-WinForm"><span class="toc-text">CefSharp.WinForm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp-Example"><span class="toc-text">CefSharp.Example</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CefSharp-WinForm-Example"><span class="toc-text">CefSharp.WinForm.Example</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%B6%E5%93%81%E6%A2%B3%E7%90%86"><span class="toc-text">制品梳理</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-2020-06-06-CefSharp基于.Net Framework 4.0 框架编译" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">CefSharp基于.Net Framework 4.0 框架编译</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2020.06.06</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>w4ngzhen</span>
+        </span>
+      
+
+      
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>本次源码使用的是Github上CefSharp官方的79版本源码</p>
+<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><h3 id="IDE"><a href="#IDE" class="headerlink" title="IDE"></a>IDE</h3><p>Visual Studio 2017 Enterprise</p>
+<h3 id="Environment"><a href="#Environment" class="headerlink" title="Environment"></a>Environment</h3><p>Windows10 SDK</p>
+<p>VC2013 Redistributale Package x86\x64</p>
+<h3 id="组件清单"><a href="#组件清单" class="headerlink" title="组件清单"></a>组件清单</h3><p>以下组件按照顺序进行编译最佳</p>
+<h4 id="基础层"><a href="#基础层" class="headerlink" title="基础层"></a>基础层</h4><ul>
+<li>CefSharp（C#）</li>
+<li>CefSharp.Core（C++）</li>
+<li>CefSharp.BrowserSubprocess.Core（C++）</li>
+<li>CefSharp.BrowserSubprocess（C#）</li>
+</ul>
+<h4 id="UI层"><a href="#UI层" class="headerlink" title="UI层"></a>UI层</h4><ul>
+<li>CefSharp.WinForms（C#）</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h4><ul>
+<li><p>CefSharp.Example</p>
+</li>
+<li><p>CefSharp.WinForms.Example</p>
+</li>
+</ul>
+<h2 id="开始"><a href="#开始" class="headerlink" title="开始"></a>开始</h2><p>建立一个名为CefSharp-DotNet4.0的空的解决方案（下文简称sln哈），咱们就开始吧！</p>
+<h3 id="CefSharp"><a href="#CefSharp" class="headerlink" title="CefSharp"></a>CefSharp</h3><p>首先把79版本的源码中的CefSharp库加入到sln中，形成如下的结构：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/1.png"></p>
+<p>先不将框架切换为4.0尝试编译一下，出现报错提示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1&gt;------ Rebuild All started: Project: CefSharp, Configuration: Debug x64 ------</span><br><span class="line">1&gt;CSC : error CS7027: Error signing output with public key from file &#39;..\CefSharp.snk&#39; -- File not found.</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Rebuild All: 0 succeeded, 1 failed, 0 skipped &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br></pre></td></tr></table></figure>
+
+<p>检查79版本的源码发现，需要将CefSharp.snk文件放置到sln根目录下，这里照做，然后编译通过。</p>
+<p>接着切换为4.0尝试编译，编译出现大量错误，仔细检查发现有如下几种：</p>
+<p><strong>1、CefSharp.Web.JsonString.FromObject函数的参数DataContractJsonSerializerSettings并不存在</strong></p>
+<p><strong>原因</strong>：4.0还不存在该种形式的调用</p>
+<p><strong>解决办法</strong>：移除该方法的settings参数，移除DataContractJsonSerializerSettings构造函数的settings参数</p>
+<p><strong>2、CefSharp.Internals.ConcurrentMethodRunnerQueue.Enqueue方法中，调用了PropertyInfo.GetValue方法报错</strong></p>
+<p><strong>原因</strong>：该PropertyInfo.GetValue方法在4.5及以上可以不传入第二个参数object[] index</p>
+<p><strong>解决办法</strong>：GetValue函数传入第二个参数为null即可</p>
+<p><strong>3、CefSharp.SchemeHandler.FolderSchemeHandlerFactory.ISchemeHandlerFactory.Create中WebUtility.UrlDecode报错</strong></p>
+<p><strong>原因</strong>：该方法是对一般字符串编码为Url的实现，在4.5及以上中才有</p>
+<p><strong>解决办法</strong>：实现一个相同的功能的方法替换之，因为后续还有些处理转为4.0后的兼容问题的代码，所以本人在CefSharp增加了一个ExHelper命名空间，用于存放后续的扩展处理代码的Helper，这里首先增加一个WebUtilityHelper的处理类，该类有一个静态方法UrlDecode，其实现本人直接拷贝的.NET 4.7.2的实现，代码如下：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">namespace</span> <span class="title">CefSharp.ExHelper</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> https://referencesource.microsoft.com/#System/net/System/Net/HttpListenerRequest.cs,80a5cbf6a66fa610</span></span><br><span class="line">    <span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">class</span> <span class="title">WebUtilityHelper</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> _bufferSize;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Accumulate characters in a special array</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> _numChars;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">char</span>[] _charBuffer;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Accumulate bytes for decoding into characters in a special array</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> _numBytes;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">byte</span>[] _byteBuffer;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Encoding to convert chars to bytes</span></span><br><span class="line">        <span class="keyword">private</span> Encoding _encoding;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">internal</span> <span class="title">WebUtilityHelper</span>(<span class="params"><span class="keyword">int</span> bufferSize, Encoding encoding</span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            _bufferSize = bufferSize;</span><br><span class="line">            _encoding = encoding;</span><br><span class="line"></span><br><span class="line">            _charBuffer = <span class="keyword">new</span> <span class="keyword">char</span>[bufferSize];</span><br><span class="line">            <span class="comment">// byte buffer created on demand</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">string</span> <span class="title">UrlDecode</span>(<span class="params"><span class="keyword">string</span> encodedValue</span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">if</span> (encodedValue == <span class="literal">null</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> UrlDecodeInternal(encodedValue, Encoding.UTF8);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">string</span> <span class="title">UrlDecodeInternal</span>(<span class="params"><span class="keyword">string</span> <span class="keyword">value</span>, Encoding encoding</span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">value</span> == <span class="literal">null</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">int</span> count = <span class="keyword">value</span>.Length;</span><br><span class="line">            WebUtilityHelper helper = <span class="keyword">new</span> WebUtilityHelper(count, encoding);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// go through the string&#x27;s chars collapsing %XX and</span></span><br><span class="line">            <span class="comment">// appending each char as char, with exception of %XX constructs</span></span><br><span class="line">            <span class="comment">// that are appended as bytes</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> pos = <span class="number">0</span>; pos &lt; count; pos++)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">char</span> ch = <span class="keyword">value</span>[pos];</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (ch == <span class="string">&#x27;+&#x27;</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    ch = <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span> (ch == <span class="string">&#x27;%&#x27;</span> &amp;&amp; pos &lt; count - <span class="number">2</span>)</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="keyword">int</span> h1 = HexToInt(<span class="keyword">value</span>[pos + <span class="number">1</span>]);</span><br><span class="line">                    <span class="keyword">int</span> h2 = HexToInt(<span class="keyword">value</span>[pos + <span class="number">2</span>]);</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (h1 &gt;= <span class="number">0</span> &amp;&amp; h2 &gt;= <span class="number">0</span>)</span><br><span class="line">                    &#123;     <span class="comment">// valid 2 hex chars</span></span><br><span class="line">                        <span class="keyword">byte</span> b = (<span class="keyword">byte</span>)((h1 &lt;&lt; <span class="number">4</span>) | h2);</span><br><span class="line">                        pos += <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">                        <span class="comment">// don&#x27;t add as char</span></span><br><span class="line">                        helper.AddByte(b);</span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> ((ch &amp; <span class="number">0xFF80</span>) == <span class="number">0</span>)</span><br><span class="line">                    helper.AddByte((<span class="keyword">byte</span>)ch); <span class="comment">// 7 bit have to go as bytes because of Unicode</span></span><br><span class="line">                <span class="keyword">else</span></span><br><span class="line">                    helper.AddChar(ch);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> helper.GetString();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">HexToInt</span>(<span class="params"><span class="keyword">char</span> h</span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">return</span> (h &gt;= <span class="string">&#x27;0&#x27;</span> &amp;&amp; h &lt;= <span class="string">&#x27;9&#x27;</span>) ? h - <span class="string">&#x27;0&#x27;</span> :</span><br><span class="line">            (h &gt;= <span class="string">&#x27;a&#x27;</span> &amp;&amp; h &lt;= <span class="string">&#x27;f&#x27;</span>) ? h - <span class="string">&#x27;a&#x27;</span> + <span class="number">10</span> :</span><br><span class="line">            (h &gt;= <span class="string">&#x27;A&#x27;</span> &amp;&amp; h &lt;= <span class="string">&#x27;F&#x27;</span>) ? h - <span class="string">&#x27;A&#x27;</span> + <span class="number">10</span> :</span><br><span class="line">            <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">FlushBytes</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">if</span> (_numBytes &gt; <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                _numChars += _encoding.GetChars(_byteBuffer, <span class="number">0</span>, _numBytes, _charBuffer, _numChars);</span><br><span class="line">                _numBytes = <span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">internal</span> <span class="keyword">void</span> <span class="title">AddChar</span>(<span class="params"><span class="keyword">char</span> ch</span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">if</span> (_numBytes &gt; <span class="number">0</span>)</span><br><span class="line">                FlushBytes();</span><br><span class="line"></span><br><span class="line">            _charBuffer[_numChars++] = ch;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">internal</span> <span class="keyword">void</span> <span class="title">AddByte</span>(<span class="params"><span class="keyword">byte</span> b</span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">if</span> (_byteBuffer == <span class="literal">null</span>)</span><br><span class="line">                _byteBuffer = <span class="keyword">new</span> <span class="keyword">byte</span>[_bufferSize];</span><br><span class="line"></span><br><span class="line">            _byteBuffer[_numBytes++] = b;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">internal</span> String <span class="title">GetString</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>        &#123;</span><br><span class="line">            <span class="keyword">if</span> (_numBytes &gt; <span class="number">0</span>)</span><br><span class="line">                FlushBytes();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (_numChars &gt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> String(_charBuffer, <span class="number">0</span>, _numChars);</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">return</span> String.Empty;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后在报错地方进行如下调用：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> filePath = ExHelper.WebUtilityHelper.UrlDecode(Path.GetFullPath(Path.Combine(rootFolder, asbolutePath)));</span><br></pre></td></tr></table></figure>
+
+<p><strong>4、Type.GetTypeInfo报错</strong></p>
+<p><strong>原因</strong>：4.0中没有将Type的信息（TypeInfo）从Type中抽离，所以4.0种的Type并没有GetTypeInfo的方法</p>
+<p><strong>解决办法</strong>：4.0访问Type的BaseType、IsGenericType等属性，直接从Type对象调用即可，即如下的形式：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Type type = XXX;</span><br><span class="line"><span class="comment">// 4.0版本</span></span><br><span class="line"><span class="keyword">bool</span> val = type.IsGenericType;</span><br><span class="line">Type baseType = type.BaseType;</span><br><span class="line"><span class="comment">// 4.5以及以上版本</span></span><br><span class="line"><span class="keyword">bool</span> val = type.GetTypeInfo().IsGenericType;</span><br><span class="line">Type baseType = type.GetTypeInfo().BaseType;</span><br></pre></td></tr></table></figure>
+
+<p>这里本人将代码抽离到ExHelper.ReflecionHelper中方便统一调用</p>
+<p><strong>5、Task.Run、Task.FromResult以及Task.Delay报错</strong></p>
+<p><strong>原因</strong>：在4.0中都不支持上述的几种方式进行调用</p>
+<p><strong>解决方案</strong>：通过Nuget加入Microsoft.Bcl、Microsoft.Bcl.Build以及Microsoft.Bcl.Async三个库到本项目中，然后将上述的所有地方的调用都替换为Microsoft.Threading.Tasks.TaskEx，如下：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 4.5之后</span></span><br><span class="line">Task.Run</span><br><span class="line">Task.FromResult</span><br><span class="line">Task.Delay</span><br><span class="line"><span class="comment">// 4.0，加入了Bcl之后</span></span><br><span class="line">TaskEx.Run</span><br><span class="line">TaskEx.FromResult</span><br><span class="line">TaskEx.Delay</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里讲一下背景，微软发布了Microsoft.Bcl.Async的最终版本，参看博客<a target="_blank" rel="noopener" href="http://blogs.msdn.com/b/bclteam/archive/2013/04/17/microsoft-bcl-async-is-now-stable.aspx">Microsoft.Bcl.Async is Now Stable</a>。该包允许开发者在.NET 4、Silverlight 4和Windows Phone 7.5使用C# 5和VB中的异步特性。该包由三个库组成：Microsoft.Bcl、Microsoft.Bcl.Async和Microsoft.Bcl.Build。<strong>由于使用了<a target="_blank" rel="noopener" href="http://msdn.microsoft.com/en-us/library/db7849ey.aspx">程序集统一</a>的方式，解决方案中的所有工程都必须引用这三个库</strong>。</p>
+<p>C#发展至今，已经从最初的1.0到了5.0版本：</p>
+<ol>
+<li>1.0版本 - 基本C#语法。</li>
+<li>2.0版本 - 泛型的支持，CLR进行了升级，从根本上支持了运行时泛型。</li>
+<li>3.0版本 - LINQ，添加了<code>from</code> / <code>join</code>等类SQL关键字，添加了扩展函数，添加了编译期动态类型var关键字。</li>
+<li>4.0版本 - dynamic关键字，CLR进行升级，加入DLR，开始对动态进行友好的支持。同时加入动态参数、参数默认值、泛型协变等特性。</li>
+<li>5.0版本 - async/await关键字，将异步变得更为简单。</li>
+</ol>
+<p>async/await 将异步的编程模型统一为同步模型，简化开发复杂度，提升生产效率。微软正式发布了Microsoft.Bcl.Async的最终版本，这让.NET4里头也可以用上async/await，而不需要把项目更改为.net 4.5。</p>
+</blockquote>
+<p>这里为了统一入口，本人把这几个TaskEx的调用收口到ExHelper.TaskHelper中便于查找改动点。</p>
+<p>目前为止，我们应该解决了CefSharp库所有的问题，再次Rebuild该项目，Succeeded！</p>
+<h3 id="CefSharp-Core"><a href="#CefSharp-Core" class="headerlink" title="CefSharp.Core"></a>CefSharp.Core</h3><p>CefSharp.Core是一个C++的库，但是由于该C++库里面调用了一些C#代码，所以跟.Net Framework版本出现了相关性。这里我们同上一样，把79版本的CefSharp.Core源码加入到sln中，右键该项目，打开菜单最下面的properties：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/2.png"></p>
+<p>这里我们修改3个点：</p>
+<p>1、选择Windows SDK Version。点击Windows SDK Version右边的下拉框，选择我们安装的Windos10 SDK，如果你和我的SDK版本安装的是一样的，应该就是10.0.17763.0，但是理论上Windows8以上的SDK都应该没啥问题；</p>
+<p>2、选择Platform Toolset为我们安装的IDE的版本，这里我的就是Visual Studio 2017；</p>
+<p>3、手动填入.NET Target Framework Version 为：”v4.0”。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-06-06-build-cefsharp/3.png"></p>
+<p>完成上述修改后，我们还需要进行如下的操作：</p>
+<p>拷贝79版本源码解决方案根目录下的CefSharp.props文件到本sln根目录下</p>
+<p>这么做的原因是在CefSharp.Core的vcxproj文件中（VC++项目编译文件），有一处Import（自行搜索）：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Import</span> <span class="attr">Project</span>=<span class="string">&quot;..\CefSharp.props&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们进行编译Rebuild，不出意外应该还是有大量的错误，乍一看出现的错误似乎让人摸不着头脑，什么” ‘AssmblyInfo’ : is not a class or namesapce name”等C#问题，可是明显在这些.NET 4.0上没有问题。本人突然想起以前在学校学习C/C++的时候，老师告诉我们处理C/C++编译处理一定要从最上面看，仔细看命令行编译最开始的地方有两处warning：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">warning MSB3268: The primary reference &quot;E:\Projects\CefSharp-DotNet4.0\CefSharp\bin\x64\Debug\CefSharp.dll&quot; could not be resolved because it has an indirect dependency on the framework assembly &quot;System.Runtime, Version&#x3D;1.5.11.0, Culture&#x3D;neutral, PublicKeyToken&#x3D;b03f5f7f11d50a3a&quot; which could not be resolved in the currently targeted framework. &quot;.NETFramework,Version&#x3D;v4.0&quot;. To resolve this problem, either remove the reference &quot;E:\Projects\CefSharp-DotNet4.0\CefSharp\bin\x64\Debug\CefSharp.dll&quot; or retarget your application to a framework version which contains &quot;System.Runtime, Version&#x3D;1.5.11.0, Culture&#x3D;neutral, PublicKeyToken&#x3D;b03f5f7f11d50a3a&quot;.</span><br><span class="line"></span><br><span class="line">warning MSB3268: The primary reference &quot;E:\Projects\CefSharp-DotNet4.0\CefSharp\bin\x64\Debug\CefSharp.dll&quot; could not be resolved because it has an indirect dependency on the framework assembly &quot;System.Threading.Tasks, Version&#x3D;1.5.11.0, Culture&#x3D;neutral, PublicKeyToken&#x3D;b03f5f7f11d50a3a&quot; which could not be resolved in the currently targeted framework. &quot;.NETFramework,Version&#x3D;v4.0&quot;. To resolve this problem, either remove the reference &quot;E:\Projects\CefSharp-DotNet4.0\CefSharp\bin\x64\Debug\CefSharp.dll&quot; or retarget your application to a framework version which contains &quot;System.Threading.Tasks, Version&#x3D;1.5.11.0, Culture&#x3D;neutral, PublicKeyToken&#x3D;b03f5f7f11d50a3a&quot;.</span><br></pre></td></tr></table></figure>
+
+<p>这两个warning说我们的CefSharp因为Tasks相关动态库的版本不对无法编译，但是我们之前CefSharp已经完成了编译，似乎没有什么问题。实际上，我们CefSharp为了兼容使用了Bcl相关组件，上面我们提到：</p>
+<blockquote>
+<p><strong>由于使用了<a target="_blank" rel="noopener" href="http://msdn.microsoft.com/en-us/library/db7849ey.aspx">程序集统一</a>的方式，解决方案中的所有工程都必须引用这三个库</strong>。</p>
+</blockquote>
+<p>实际上C++的工程代码也不例外，所以我们添加Bcl库代码到工程中，由于nuget似乎无法为C++工程添加包，所以本人采用手工的方式添加：</p>
+<p>1、在vcxproj文件的适当位置添加如下的节点引入Bcl包里面的组件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">......</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">Reference</span> <span class="attr">Include</span>=<span class="string">&quot;System.ServiceModel&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Reference</span> <span class="attr">Include</span>=<span class="string">&quot;System.Runtime&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">HintPath</span>&gt;</span>..\packages\Microsoft.Bcl.1.1.10\lib\net40\System.Runtime.dll<span class="tag">&lt;/<span class="name">HintPath</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">Reference</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Reference</span> <span class="attr">Include</span>=<span class="string">&quot;System.Threading.Tasks&quot;</span>&gt;</span>           	       <span class="tag">&lt;<span class="name">HintPath</span>&gt;</span>..\packages\Microsoft.Bcl.1.1.10\lib\net40\System.Threading.Tasks.dll<span class="tag">&lt;/<span class="name">HintPath</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">Reference</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">ItemGroup</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">ClCompile</span> <span class="attr">Include</span>=<span class="string">&quot;AssemblyInfo.cpp&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">......</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>2、让编译的时候识别到该Nuget包，vcxproj文件末尾添加：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"> <span class="tag">&lt;<span class="name">......</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">ImportGroup</span> <span class="attr">Label</span>=<span class="string">&quot;ExtensionTargets&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Import</span> <span class="attr">Project</span>=<span class="string">&quot;..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets&quot;</span> <span class="attr">Condition</span>=<span class="string">&quot;Exists(&#x27;..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets&#x27;)&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">ImportGroup</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Target</span> <span class="attr">Name</span>=<span class="string">&quot;EnsureNuGetPackageBuildImports&quot;</span> <span class="attr">BeforeTargets</span>=<span class="string">&quot;PrepareForBuild&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">ErrorText</span>&gt;</span>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is &#123;0&#125;.<span class="tag">&lt;/<span class="name">ErrorText</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">PropertyGroup</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Error</span> <span class="attr">Condition</span>=<span class="string">&quot;!Exists(&#x27;..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets&#x27;)&quot;</span> <span class="attr">Text</span>=<span class="string">&quot;$([System.String]::Format(&#x27;$(ErrorText)&#x27;, &#x27;..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets&#x27;))&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">Target</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>3、修改packge.config文件（没有则新增）</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">packages</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- cef.sdk是需要的依赖包 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;cef.sdk&quot;</span> <span class="attr">version</span>=<span class="string">&quot;79.1.36&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;native&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;Microsoft.Bcl&quot;</span> <span class="attr">version</span>=<span class="string">&quot;1.1.10&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;net40&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;Microsoft.Bcl.Async&quot;</span> <span class="attr">version</span>=<span class="string">&quot;1.0.168&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;net40&quot;</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;Microsoft.Bcl.Build&quot;</span> <span class="attr">version</span>=<span class="string">&quot;1.0.21&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;net40&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">packages</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>上述操作完成后需要进行Restore还原一下cef.sdk的NuGet包，然后再次进行编译，发现warning已经消除，但是还是编译失败，还是有很多“报错”，本人一开始找问题也找了很久以为全都是error，后来发现很多都是warning，最后发现2处关键点error（你们可以先自行搜索这两个地方，双击就可以跳转到对应的报错处）：</p>
+<p><strong>1、</strong>在CefSharp::Internals::Serialization中的SerializeV8SimpleObject有一处GetValue调用报错：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">error C2661: &#39;System::Reflection::PropertyInfo::GetValue&#39;: no overloaded function takes 1 arguments</span><br></pre></td></tr></table></figure>
+
+<p><strong>2、</strong>在CefSharp::Internals::JavascriptCallbackProxy中的ExecuteWithTimeoutAsync有一处调用报错：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">error C2039: &#39;FromResult&#39;: is not a member of &#39;System::Threading::Tasks::Task&#39;</span><br></pre></td></tr></table></figure>
+
+<p>这两处很明显是使用了C#的代码，且该代码是 .Net4.0不支持的，原因以及解决方法在上面的CefSharp中已经说了。这里我们修改按照C++语法改写下代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>、</span><br><span class="line"><span class="keyword">auto</span> propertyValue = properties[i]-&gt;GetValue(obj); <span class="comment">// 4.5.2</span></span><br><span class="line"><span class="keyword">auto</span> propertyValue = properties[i]-&gt;GetValue(obj, <span class="literal">nullptr</span>); <span class="comment">// 4.0</span></span><br><span class="line"><span class="number">2</span>、</span><br><span class="line"><span class="built_in">Task</span>::FromResult(invalidFrameResponse); <span class="comment">// 4.5.2</span></span><br><span class="line">ExHelper::TaskHelper::FromResult(invalidFrameResponse); <span class="comment">// 4.0 命名空间就对应的CefSharp里面的Helper</span></span><br></pre></td></tr></table></figure>
+
+<p>完成操作后，Rebuild sln，Succeeded！</p>
+<h3 id="CefSharp-BrowserSubprocess-Core"><a href="#CefSharp-BrowserSubprocess-Core" class="headerlink" title="CefSharp.BrowserSubprocess.Core"></a>CefSharp.BrowserSubprocess.Core</h3><p>同上操作，将4.5.2源码加入到sln中，和上述CefSharp.Core相同方式：</p>
+<p>1、修改properties；</p>
+<p><strong>2、增加Bcl包的依赖到vsxproj中。</strong></p>
+<p>完成操作后，直接进行Rebuild操作，因为该C++库并不涉及到C#的代码，所以只需要做上述增加Bcl库的相关操作，编译成功！</p>
+<h3 id="CefSharp-BrowserSubprocess"><a href="#CefSharp-BrowserSubprocess" class="headerlink" title="CefSharp.BrowserSubprocess"></a>CefSharp.BrowserSubprocess</h3><p>同上操作，将4.5.2源码加入到sln中，然后：<strong>1、切换版本为.NET 4.0；2、增加Bcl相关依赖包。</strong>因为是C#项目我们终于不用手工给csproj添加节点了，可以使用nuget添加Bcl三个包。</p>
+<p>添加完成后我们尝试编译该组件，不知道为什么，在我的机器上编译过程会出现如下的错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">找不到命令的错误提示</span><br></pre></td></tr></table></figure>
+
+<p>但是查看编译结果还有输出目录能够看到是编译成功的，我也索性没有继续看下去了</p>
+<h3 id="CefSharp-WinForm"><a href="#CefSharp-WinForm" class="headerlink" title="CefSharp.WinForm"></a>CefSharp.WinForm</h3><p>终于到我们的UI层了，如上方式添加源码到项目里，然后：<strong>1、切换版本为.NET 4.0；2、增加Bcl相关依赖包。</strong>（如果你切换了框架后，右键该项目-Manage NuGet Packages出现报错nuget is invalid，请尝试关闭解决方案重新打开）。编译该项目，不出意外，编译成功～</p>
+<p>至此，跟.NET Framework绑定的代码已经全部编译通过，本来到此步骤，我们的编译工作已经完成了，但是官方提供了Example让我们可以调用看看样例，本人索性把Example和WinForm.Example两个工程也一并.NET 4.0化了。</p>
+<h3 id="CefSharp-Example"><a href="#CefSharp-Example" class="headerlink" title="CefSharp.Example"></a>CefSharp.Example</h3><p>该组件并非是必须组件，但是后续无论是Wpf还是WinForm的Example运行，都需要该组件，所以我们还是把它也.NET 4.0化。</p>
+<p>还是上述方式，添加到项目，然后：<strong>1、切换版本为.NET 4.0；2、增加Bcl相关依赖包。</strong>最后尝试进行编译，出现编译错误：</p>
+<p><strong>1、在CefSharp.Example.Handlers.DownloadHandler.OnBeforeDownloadFired函数中，定义的Eventhandler的泛型参数DownloadItem并不是EventArgs子类</strong></p>
+<p><strong>原因</strong>：在4.5之后，EventHandler的泛型参数可以不是EventArgs的子类，而在.Net 4.0必须是继承自EventArgs</p>
+<p><strong>解决办法</strong>：因为DownloadItem较为公共，我们不方便将其继承EventArgs，所以我们单独写一个自己的EventHandler，让其泛型参数接收任意类型：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">delegate</span> <span class="keyword">void</span> <span class="title">DownloadEventHandler</span>&lt;<span class="keyword">in</span> <span class="title">T</span>&gt;(<span class="params"><span class="keyword">object</span> sender, T args</span>)</span>;</span><br><span class="line"><span class="comment">// 改成我们的自己的下载事件</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">event</span> DownloadEventHandler&lt;DownloadItem&gt; OnBeforeDownloadFired;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">event</span> DownloadEventHandler&lt;DownloadItem&gt; OnDownloadUpdatedFired;</span><br></pre></td></tr></table></figure>
+
+<p>再次编译，还会有一些剩下的和Task相关的编译报错问题，上文已经解释了原因和提供了解决方案，Do It！完成修改后，编译成功！</p>
+<h3 id="CefSharp-WinForm-Example"><a href="#CefSharp-WinForm-Example" class="headerlink" title="CefSharp.WinForm.Example"></a>CefSharp.WinForm.Example</h3><p>我们依然如上的方式进行工程的添加，添加的过程会弹出提示框报如下的错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">---------------------------</span><br><span class="line">Microsoft Visual Studio</span><br><span class="line">---------------------------</span><br><span class="line">The imported project &quot;E:\Projects\CefSharp-DotNet4.0\CefSharp.Native.props&quot; was not found. Confirm that the path in the &lt;Import&gt; declaration is correct, and that the file exists on disk.  E:\Projects\CefSharp-DotNet4.0\CefSharp.WinForms.Example\CefSharp.WinForms.Example.csproj</span><br><span class="line">---------------------------</span><br><span class="line">确定   </span><br><span class="line">---------------------------</span><br></pre></td></tr></table></figure>
+
+<p>上述提示表明，我们缺少CefSharp.Native.props，在官方源码中的解决方案根目录下找到对应的文件拷贝到我们的目录下。拷贝完成后，<strong>我们先不进行切换Framework和添加Bcl依赖包的操作</strong>，我们首先打开该项目的package.config文件，可以看到有如下的内容：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;cef.redist.x64&quot;</span> <span class="attr">version</span>=<span class="string">&quot;79.1.36&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;net462&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;cef.redist.x86&quot;</span> <span class="attr">version</span>=<span class="string">&quot;79.1.36&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;net462&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">package</span> <span class="attr">id</span>=<span class="string">&quot;Microsoft.Net.Compilers&quot;</span> <span class="attr">version</span>=<span class="string">&quot;2.9.0&quot;</span> <span class="attr">targetFramework</span>=<span class="string">&quot;net462&quot;</span> <span class="attr">developmentDependency</span>=<span class="string">&quot;true&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>很明显和我们即将要切换的.NET4.0不符合，接下来我们再进行如下操作：</p>
+<p>1、先Restore这些NuGet包，然后卸载掉，最后再切换为4.0；</p>
+<p>2、<strong>只安装Bcl相关组件包，不安装上述卸载的cef.redist和Compiler</strong></p>
+<p>进行编译，不出意外会出现如下的几个编译错误：</p>
+<p><strong>1、error CS0117: ‘TaskContinuationOptions’ does not contain a definition for ‘HideScheduler’</strong></p>
+<p><strong>原因</strong>：Net4.0中没有这个定义</p>
+<p><strong>解决办法</strong>：因为是Demo，我们使用的TaskContinuationOptions.None的枚举暂时避过编译</p>
+<p><strong>2、error CS0103: The name ‘AppContext’ does not exist in the current context</strong></p>
+<p><strong>原因</strong>：Net4.0中没有这个定义</p>
+<p><strong>解决办法</strong>：这里的目的是获取CefSharp.Example\Extensions里面的文件，我们使用System.AppDomain.CurrentDomain.BaseDirectory即可</p>
+<p>剩下的几个编译问题还是Task的问题，不在赘述。</p>
+<p>完成编译以后，我们尝试运行该WinForm.Example，提示：</p>
+<blockquote>
+<p>未能加载文件或程序集“CefSharp.Core.dll”或它的某一个依赖项。找不到指定的模块</p>
+</blockquote>
+<p>检查Bin目录下的，发现已经有了该dll，那么就是缺少了CefSharp.Core.dll需要的组件。实际上，刚才我们移除了2个NuGet依赖包：</p>
+<p>cef.redist.x64、cef.redist.x86，这里面是Cef的核心资源与类库，就包含了CefSharp.Core所需要的所有资源。</p>
+<p>重新安装这两个组件包，但需要注意的是对应版本一定要对应当前的版本（79.1.36）。安装完成后，我们检查packages里面的cef.redist组件包，可以看到CEF文件夹下面有我们需要的ceflib.dll等类库和资源：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">locales(dir)</span><br><span class="line">swiftshader(dir)</span><br><span class="line">cef.pak</span><br><span class="line">cef_100_percent.pak</span><br><span class="line">cef_200_percent.pak</span><br><span class="line">cef_extensions.pak</span><br><span class="line">chrome_elf.dll</span><br><span class="line">d3dcompiler_47.dll</span><br><span class="line">devtools_resources.pak</span><br><span class="line">icudtl.dat</span><br><span class="line">libcef.dll</span><br><span class="line">libEGL.dll</span><br><span class="line">libGLESv2.dll</span><br><span class="line">natives_blob.bin</span><br><span class="line">README.txt</span><br><span class="line">snapshot_blob.bin</span><br><span class="line">v8_context_snapshot.bin</span><br></pre></td></tr></table></figure>
+
+<p>我们再次运行，终于出现关于WinForm的Example！</p>
+<h2 id="制品梳理"><a href="#制品梳理" class="headerlink" title="制品梳理"></a>制品梳理</h2><ul>
+<li>NuGet引用Microsoft.Bcl、Microsoft.Bcl.Build以及Microsoft.Bcl.Async</li>
+</ul>
+<p>引入上述3个依赖库组件是因为我们为了将CefSharp代码使用.NET 4.0进行编译，兼容async/await等Task相关的特性而引入的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Miscrosoft.Threading.Tasks.dll</span><br><span class="line">Miscrosoft.Threading.Tasks.Extensions.dll</span><br><span class="line">Miscrosoft.Threading.Tasks.Extensions.Desktop.dll</span><br><span class="line">System.IO.dll</span><br><span class="line">System.Runtime.dll</span><br><span class="line">System.Threading.Tasks.dll</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>NuGet引用cef.redist. x86/x64</li>
+</ul>
+<p>该NuGet包中包含Cef原生需要的组件和资源包，包括核心的ceflib.dll，具体内容请查看packages/cef.redist. x86/x64/CEF中的所有。</p>
+<ul>
+<li>基于DotNet 4.0编译的CefSharp核心依赖库</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CefSharp（C#）</span><br><span class="line">CefSharp.Core（C++）</span><br><span class="line">CefSharp.BrowserSubprocess.Core（C++）</span><br><span class="line">CefSharp.BrowserSubprocess（C#）</span><br><span class="line">CefSharp.WinForms（C#）</span><br></pre></td></tr></table></figure>
+
+    
+  </div>
+
+</article>
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

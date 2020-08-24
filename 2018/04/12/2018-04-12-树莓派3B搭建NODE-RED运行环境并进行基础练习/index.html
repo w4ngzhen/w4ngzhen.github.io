@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>树莓派3B搭建NODE-RED运行环境并构建数据流 | CompileMind</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Raspberry,Nodejs,NODE-RED," />
+  
+
+  <meta name="description" content="树莓派搭建Node-RED环境 树莓派自2015年开始是默认就带NODE-RED的，但是如今已是2018年：）自带的版本已经很老了，可通过下面的命令进行自动升级NODE.JS和NODE-RED 123456789101112131415161718bash &lt;(curl -sL https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;node-red&#x2F;raspbian-deb-p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="树莓派3B搭建NODE-RED运行环境并构建数据流">
+<meta property="og:url" content="http://compilemind.com/2018/04/12/2018-04-12-%E6%A0%91%E8%8E%93%E6%B4%BE3B%E6%90%AD%E5%BB%BANODE-RED%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E5%B9%B6%E8%BF%9B%E8%A1%8C%E5%9F%BA%E7%A1%80%E7%BB%83%E4%B9%A0/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="树莓派搭建Node-RED环境 树莓派自2015年开始是默认就带NODE-RED的，但是如今已是2018年：）自带的版本已经很老了，可通过下面的命令进行自动升级NODE.JS和NODE-RED 123456789101112131415161718bash &lt;(curl -sL https:&#x2F;&#x2F;raw.githubusercontent.com&#x2F;node-red&#x2F;raspbian-deb-p">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/node-red-web.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/inject-timestamp.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/inject-detail.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/debug-node-info.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/node-linked.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/clickit.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/successinject.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/completeinfo.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/change2String.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/injecthw.png">
+<meta property="article:published_time" content="2018-04-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-24T11:05:26.471Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Raspberry">
+<meta property="article:tag" content="Nodejs">
+<meta property="article:tag" content="NODE-RED">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/node-red-web.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+<meta name="generator" content="Hexo 5.1.0"></head>
+
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-2018-04-12-树莓派3B搭建NODE-RED运行环境并进行基础练习" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">树莓派3B搭建NODE-RED运行环境并构建数据流</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.04.12</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>w4ngzhen</span>
+        </span>
+      
+
+      
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p><strong>树莓派搭建Node-RED环境</strong></p>
+<p>树莓派自2015年开始是默认就带NODE-RED的，但是如今已是2018年：）自带的版本已经很老了，可通过下面的命令进行自动升级NODE.JS和NODE-RED</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sL https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/update-nodejs-and-nodered)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 如果出现失败请多尝试几次</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 之后进入如下界面，展示更新进度</span></span><br><span class="line">  Stop Node-RED                       ✔</span><br><span class="line">  Remove old version of Node-RED      ✔</span><br><span class="line">  Remove old version of Node.js</span><br><span class="line">  Install Node.js</span><br><span class="line">  Clean npm cache</span><br><span class="line">  Install Node-RED core</span><br><span class="line">  Move global nodes to local</span><br><span class="line">  Install extra Pi nodes</span><br><span class="line">  Npm rebuild existing nodes</span><br><span class="line">  Add menu shortcut</span><br><span class="line">  Update systemd script</span><br><span class="line">  Update update script</span><br><span class="line"></span><br><span class="line">Any errors will be logged to   /var/log/nodered-install.log</span><br></pre></td></tr></table></figure>
+<p>一段时间过后，升级完毕：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">All done.</span><br><span class="line">  You can now start Node-RED with the command  node-red-start</span><br><span class="line">  or using the icon under   Menu / Programming / Node-RED</span><br><span class="line">  Then point your browser to localhost:1880 or http://&#123;your_pi_ip-address&#125;:1880</span><br></pre></td></tr></table></figure>
+<p>根据提示我么可以知道，通过如下的命令启用NODE-RED服务，并且访问树莓派地址并加上1880端口访问WEB下的NODE-RED：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> node-red-start</span></span><br><span class="line">Start Node-RED</span><br><span class="line"></span><br><span class="line">Once Node-RED has started, point a browser at http://192.168.2.7:1880 # 这里是树莓派分配到IP地址</span><br><span class="line">On Pi Node-RED works better with the Firefox or Chrome browser</span><br><span class="line"></span><br><span class="line">Use   node-red-stop                          to stop Node-RED</span><br><span class="line">Use   node-red-start                         to start Node-RED again</span><br><span class="line">Use   node-red-log                           to view the recent log output</span><br><span class="line">Use   sudo systemctl enable nodered.service  to autostart Node-RED at every boot</span><br><span class="line">Use   sudo systemctl disable nodered.service to disable autostart on boot</span><br><span class="line"></span><br><span class="line">To find more nodes and example flows - go to http://flows.nodered.org</span><br><span class="line"></span><br><span class="line">Starting as a systemd service.</span><br><span class="line">Started Node-RED graphical event wiring tool..</span><br><span class="line">12 Apr 04:33:27 - [info]</span><br><span class="line">Welcome to Node-RED</span><br></pre></td></tr></table></figure>
+<p>然后我们打开浏览器访问web网页，能够看到如下的界面：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/node-red-web.png" alt="node-red-web"><br>Node-RED  UI——显示节点选择板（左）、流的编辑界面（中心）和输出窗格（右）</p>
+<p>左侧里面全是node-red包含的节点，而节点就是node-red的基本单位，它包含了生成数据的节点、处理数据的节点以及最终输出的节点。</p>
+<p>中间是我们的工作区，在该区域内，我们按照正确的形式构建节点，来形成一套数据流生成、处理过程。</p>
+<p>右侧是输出窗格可以切换信息和调试选项卡等。选择信息后，将显示所选节点的文档。当调试被选中时，它将显示调试节点的信息、错误和警告。</p>
+<p>作为Node-red最基本的单位：节点。在Node-red中主要分为3类：</p>
+<p>1、输入节点（例如inject）<br>2、处理节点（例如function）<br>3、输出节点（例如debug）</p>
+<p>输入节点</p>
+<p>输入节点允许数据输入到整个流工作空间中。它们至少有一个输出（端点由右边的小灰色方块表示）。同时也可以将其他服务数据连接到输入节点，例如TCP、WebSockets、UDP等节点，或利用手动输入数据到一个流之中。</p>
+<p>处理节点</p>
+<p>处理节点主要功能是处理数据。它们有一个输入端点和一个或多个输出端点。我们通常使用function节点来处理收到的数据。当然它页可以转换数据类型（例如：JSON、CSV、XML）节点。</p>
+<p>输出节点</p>
+<p>输出节点允许在Node-RED的流之外发送数据。它们的左侧有一个输入端点。使用输出节点将数据发送到其他服务，TCP等或者使用调试节点输出到调试窗进行观察。</p>
+<p>而对于各种数据来说，其本质的最简单的数据结构如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">msg=&#123;</span><br><span class="line">  payload:”负载数据”</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>即每一条数据都会有其本身的负载数据。</p>
+<p>讲完了基础的知识，我们来通过动手实践来更加直观的了解node-red</p>
+<p><strong>构建时间戳流</strong></p>
+<p>这个例子十分简单，我们不需要任何的处理节点，只需要一个输入和一个输出就可以了：</p>
+<p>我们首先从左侧拉取一个inject输入节点，放置到工作空间中，它会自动变为默认的时间戳节点，单击这个时间戳节点，查看右侧信息栏，我们能看到这个节点的描述：这个时间戳节点能够生成自1970年1月1号以来的所过的毫秒数<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/inject-timestamp.png" alt="inject-timestamp"><br>通过双击该节点我们还可以看到更加具体的细节：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/inject-detail.png" alt="inject-detail"></p>
+<p>接下来我们拉取一个debug节点到工作空间中，它会自动转变为msg.payload节点，这个节点就是会将数据直接输出：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/debug-node-info.png" alt="debug-node-info"><br>接下来我们连接两个节点，同时可以看到每个节点上面都有一个小蓝点，意味着我们的节点只放置到了工作空间中，但是并没有部署：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/node-linked.png" alt="node-linked"><br>点击右上角的部署之后，我们发现小蓝点消失了。接下来我们让时间戳节点产生时间数据并输出查看。首先点击右侧的调试窗口，然后点击时间戳节点左侧的蓝色矩形按钮：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/clickit.png" alt="clickit"><br>点击过程中我们可以看到提示我们注入成功，并且在右侧的还能看到输出的数据：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/successinject.png" alt="successinject"><br>此外，当我们双击debug节点，然后在输出那一栏选择“完整消息”，我们发现输出节点变成了“msg”即整个msg消息体，同时再次部署并点击时间戳产生数据，我们发现输出的信息变得更加完整：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/completeinfo.png" alt="completeinfo"></p>
+<p>最后，让我们产生编程界的经典输出：Hello, World!</p>
+<p>首先双击“注入节点”，我们不选时间戳类型了，而是替换为文字列：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/change2String.png" alt="change2String"><br>再次部署并点击消息注入按钮（就是蓝色矩形）<br>得到如下的结果：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-nodered/injecthw.png" alt="injecthw"></p>
+<p>至此，我们成功的使用Node-RED构建了我们的第一条简单的流。</p>
+
+    
+  </div>
+
+</article>
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

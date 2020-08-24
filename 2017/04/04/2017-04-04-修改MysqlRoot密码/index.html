@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>修改MySql Root密码（包含忘记密码的方式） | CompileMind</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Mysql," />
+  
+
+  <meta name="description" content="曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 终极 第一种：在MySQL中修改：mysql&gt; set password for root@localhost &#x3D; password(‘新密码’);当然，你也可以在root账户下去修改其他账户的密码，只需要将ro">
+<meta property="og:type" content="article">
+<meta property="og:title" content="修改MySql Root密码（包含忘记密码的方式）">
+<meta property="og:url" content="http://compilemind.com/2017/04/04/2017-04-04-%E4%BF%AE%E6%94%B9MysqlRoot%E5%AF%86%E7%A0%81/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 终极 第一种：在MySQL中修改：mysql&gt; set password for root@localhost &#x3D; password(‘新密码’);当然，你也可以在root账户下去修改其他账户的密码，只需要将ro">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2017-04-03T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-24T11:05:26.455Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+<meta name="generator" content="Hexo 5.1.0"></head>
+
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-2017-04-04-修改MysqlRoot密码" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">修改MySql Root密码（包含忘记密码的方式）</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.04.04</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>w4ngzhen</span>
+        </span>
+      
+
+      
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 <strong>终极</strong></p>
+<p><strong>第一种：</strong><br>在MySQL中修改：mysql&gt; set password for root@localhost = password(‘新密码’);<br>当然，你也可以在root账户下去修改其他账户的密码，只需要将root换为其他账户即可<br>（注意：后面的localhost是指只能在本地登陆的账户，在修改其他账户密码时一定要对应其可登录范围修改@后面的字段属性）</p>
+<p><strong>第二种：</strong><br>直接进入mysql数据库中，修改user表中的root的password。<br>mysql&gt; use mysql;<br>mysql&gt; update user set password = password(‘新密码’) where user = ‘root’ and host = ‘localhost’;<br>(注意：这个host后面的东西的意义和上面一样)<br>mysql&gt; flush privileges; （记得刷新权限）</p>
+<p><strong>第三种：</strong><br>不要忘了mysqladmin</p>
+<figure class="highlight plain"><figcaption><span>-u root -p 123456 password 123``` 就行了</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">然而重点来了，在以上的几种方法，都是针对于我们还记得root用户密码。可是一开始就忘了root密码了怎么办？</span><br><span class="line">**终极：**</span><br><span class="line">1．首先确认服务器出于安全的状态，也就是没有人能够任意地连接MySQL数据库。</span><br><span class="line"></span><br><span class="line">2．修改MySQL的登录设置：</span><br><span class="line">&#96;&#96;&#96;# vi &#x2F;etc&#x2F;my.cnf&#96;&#96;&#96;</span><br><span class="line"></span><br><span class="line">在[mysqld]的段中加上一句：skip-grant-tables （这一句话表示，绕过所有的用户权限）</span><br><span class="line">例如：</span><br></pre></td></tr></table></figure>
+<p>[mysqld]<br>datadir=/var/lib/mysql<br>socket=/var/lib/mysql/mysql.sock<br>skip-grant-tables</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">保存并且退出vi。</span><br><span class="line"></span><br><span class="line">3．重新启动mysqld</span><br><span class="line">&#96;&#96;&#96;service mysqld restart&#96;&#96;&#96;</span><br><span class="line">好了，在此基础上，你就可以直接mysql进入数据库了</span><br><span class="line"></span><br><span class="line">4．登录并修改MySQL的root密码</span><br></pre></td></tr></table></figure>
+<p>mysql<br>mysql&gt; USE mysql ;<br>mysql&gt; UPDATE user SET Password = password ( ‘新密码’ ) WHERE User = ‘root’ ;<br>mysql&gt; flush privileges ;<br>mysql&gt; quit<br>Bye</p>
+<p><code>5．将MySQL的登录设置修改回来</code># vi /etc/my.cnf```</p>
+<p>将刚才在[mysqld]的段中加上的skip-grant-tables删除<br>保存并且退出vi。</p>
+<p>6．重新启动mysqld<br><code>service mysqld restart</code></p>
+<p>好了，重新使用新密码的root账户吧</p>
+
+    
+  </div>
+
+</article>
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

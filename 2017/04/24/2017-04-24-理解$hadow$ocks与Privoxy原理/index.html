@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>理解$hadow$ocks与Privoxy原理 | CompileMind</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="shadowsocks,privoxy," />
+  
+
+  <meta name="description" content="以下所有提到$hadow$ocks的均以ss指代 为什么要用ss呢？在早期（如今绝大多数也是），对于互联网的访问流程是及其简单的：浏览器（或其他客户端）向互联网服务器提出一个请求（request），然后等待互联网服务器回应（response），最后在本地解析渲染。麻烦一点的，中间会有多个代理帮助我们进行数据的请求。 后来，墙出现了，我们不能再愉快的访问外网了。因为墙相当于一个巨大的墙阻挡着我们和外">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解$hadow$ocks与Privoxy原理">
+<meta property="og:url" content="http://compilemind.com/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EPrivoxy%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="以下所有提到$hadow$ocks的均以ss指代 为什么要用ss呢？在早期（如今绝大多数也是），对于互联网的访问流程是及其简单的：浏览器（或其他客户端）向互联网服务器提出一个请求（request），然后等待互联网服务器回应（response），最后在本地解析渲染。麻烦一点的，中间会有多个代理帮助我们进行数据的请求。 后来，墙出现了，我们不能再愉快的访问外网了。因为墙相当于一个巨大的墙阻挡着我们和外">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/requestresponse.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/checkbyw.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/byssh.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/bysock.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/flow.png">
+<meta property="article:published_time" content="2017-04-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-24T11:05:26.457Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="shadowsocks">
+<meta property="article:tag" content="privoxy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/requestresponse.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+<meta name="generator" content="Hexo 5.1.0"></head>
+
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8ss%E5%91%A2%EF%BC%9F"><span class="toc-text">为什么要用ss呢？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Privoxy%E4%BD%9C%E7%94%A8"><span class="toc-text">Privoxy作用</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-2017-04-24-理解$hadow$ocks与Privoxy原理" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">理解$hadow$ocks与Privoxy原理</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.04.24</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>w4ngzhen</span>
+        </span>
+      
+
+      
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p><strong>以下所有提到$hadow$ocks的均以ss指代</strong></p>
+<h3 id="为什么要用ss呢？"><a href="#为什么要用ss呢？" class="headerlink" title="为什么要用ss呢？"></a>为什么要用ss呢？</h3><p>在早期（如今绝大多数也是），对于互联网的访问流程是及其简单的：浏览器（或其他客户端）向互联网服务器提出一个请求（request），然后等待互联网服务器回应（response），最后在本地解析渲染。麻烦一点的，中间会有多个代理帮助我们进行数据的请求。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/requestresponse.png" alt="requestresponse"></p>
+<p>后来，墙出现了，我们不能再愉快的访问外网了。因为墙相当于一个巨大的墙阻挡着我们和外界，当我们想要访问外网的时候，这个请求数据包必然会经过墙的检查：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/checkbyw.png" alt="checkbyw"><br>当检查到被墙禁止访问的内容请求的时候，自然会被“过滤”或被“忽视”掉。但，有人还是想要往墙外看看。怎么办呢？有人想出了一个方法，如同最上面图中右边的拓扑，但是中间代理服务器本身就在国外，当我们想要访问外部内容的时候，首先和这个在国外的代理服务器进行ssh通信，告诉它，我想要请求xx资源，再让这台代理服务器去访问目标服务器，得到回应之后，再把我们想要的数据通过ssh传递给我们：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/byssh.png" alt="byssh"></p>
+<p>刚开始这样还不错。因为ssh本身基于RSA加密，所以首先，墙无法查看其请求内容（ip、内容等），所以也就无法分析你的请求关键词（用于筛选连接），避免了被重置链接的问题，但由于创建隧道和数据传输的过程中，ssh本身的特征是明显的，我们的墙研发人员根据相关的如连接频率、连接时间等进行分析，再通过一定的手段干预连接，于是后来墙愈来越强了。使用ssh tunnel的方式不太灵了！ </p>
+<p>既然ssh你还能看出连接时间、频率等特征值。那我干脆不用了，转换一下，我往外界发送合法的TCP数据包该没有问题吧？好，每次我访问某个资源的时候，首先将请求在本地转换为（拆分、加密等手段）一个个非常规端口的TCP数据包，里面的内容也是加密过的。当我发送给外部服务器的时候，墙只能知道你发送的是合法TCP数据包，它也不敢妄自丢弃和查看特征值，因为他没法保证这个TCP数据包究竟是要请求什么，外面看来本身就是个普通的数据包。等发到外部的代理服务器的时候，我运用相关的协议进行重组解密，得到原始请求。后面就和ssh tunnel有异曲同工之妙。于是，如下的拓扑出现了：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/bysock.png" alt="bysock"></p>
+<p>理解了这个之后，搭建服务器就是一件很简单的事情了。网上资源很多，这里不再赘述。</p>
+<h3 id="Privoxy作用"><a href="#Privoxy作用" class="headerlink" title="Privoxy作用"></a>Privoxy作用</h3><p>当我们搭建好了ss服务器之后，我们本地需要使用ss客户端监听1080（通常的默认端口），配置相关的命令，从而实现当我们本地机器访问外部网络的时候，请求数据首先经过本的1080端口进行加密拆分为原始的TCP数据包。然而需要注意的是，当我们监听了默认的1080端口之后，并不意味着，我们访问数据的时候，所有网络数据就走1080这个ss客户端监听的端口了。由于Windows和macOS客户端通常包含了相关的代理转发功能，所以我们在进行HTTP或者是HTTPS的时候，会默认的启动一个代理转发的模块，来替我们监听HTTP和HTTPS请求，并将这些请求数据送入1080端口应用（即ss客户端）。</p>
+<p>然而，在Linux下的ss客户端，并没有包含这个功能，所以，但我们进行HTTP(s)请求的时候，需要设置代理，当我们使用Privoxy的时候，安装Privoxy：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install epel-release</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install privoxy</span></span><br></pre></td></tr></table></figure>
+<p>第一步的安装epel这是因为像centos这类衍生出来的发行版，他们的源有时候内容更新的比较滞后，或者说有时候一些扩展的源根本就没有。EPEL(<a target="_blank" rel="noopener" href="http://fedoraproject.org/wiki/EPEL">http://fedoraproject.org/wiki/EPEL</a>) 是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。</p>
+<p>默认的配置文件地址在 /etc/privoxy/config 目录下。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 把本地HTTP流量转发到本地1080 SOCKS5代理</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 即当我们发出HTTP(S)请求的时候，会将请求转为Socks5</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意最后的 <span class="string">&quot;.&quot;</span></span></span><br><span class="line">forward-socks5 / 127.0.0.1:1080 .</span><br><span class="line"><span class="meta">#</span><span class="bash"> 可选，默认监听本地连接端口为8118</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> listen-address 127.0.0.1:8118</span></span><br></pre></td></tr></table></figure>
+<p>接下里启动：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start privoxy</span><br></pre></td></tr></table></figure>
+<p>配置完成以后还没有结束！请考虑一下，目前我们只是设定了如果有对于所有HTTP(S)的访问（即foward-sock5后面的“/”）都将转为socks5送入被ss客户端监听的1080端口中去，但是并没有设定HTTP(S)代理服务器！，所以，最后你还需要在.bash_profile（或者是.bashrc）中设定代理服务器的环境变量：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export http_proxy=http://127.0.0.1:8118</span><br><span class="line">export https_proxy=https://127.0.0.1:8118</span><br><span class="line"><span class="meta">#</span><span class="bash"> 最后再<span class="built_in">source</span>一下</span></span><br></pre></td></tr></table></figure>
+<p>最后，我们再以一个整体拓扑来表达一下我们的访问流程：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/flow.png" alt="flow"></p>
+
+    
+  </div>
+
+</article>
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

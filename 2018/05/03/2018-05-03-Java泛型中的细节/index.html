@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java泛型中的细节 | CompileMind</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Java,generic," />
+  
+
+  <meta name="description" content="如果没有泛型学习Java，必不可少的一个过程就是需要掌握泛型。泛型起源于JDK1.5，为什么我们要使用泛型呢？泛型可以使编译器知道一个对象的限定类型是什么，这样编译器就可以在一个高的程度上验证这个类型消除了强制类型转换，使得代码可读性好，而这个过程是发生在编译时期的，即在编译时期发现代码中类型转换的错误所在，及时发现，而不必等到运行时期抛出运行时期的类型转换异常。 泛型主要运用在譬如Java中的容">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java泛型中的细节">
+<meta property="og:url" content="http://compilemind.com/2018/05/03/2018-05-03-Java%E6%B3%9B%E5%9E%8B%E4%B8%AD%E7%9A%84%E7%BB%86%E8%8A%82/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="如果没有泛型学习Java，必不可少的一个过程就是需要掌握泛型。泛型起源于JDK1.5，为什么我们要使用泛型呢？泛型可以使编译器知道一个对象的限定类型是什么，这样编译器就可以在一个高的程度上验证这个类型消除了强制类型转换，使得代码可读性好，而这个过程是发生在编译时期的，即在编译时期发现代码中类型转换的错误所在，及时发现，而不必等到运行时期抛出运行时期的类型转换异常。 泛型主要运用在譬如Java中的容">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-05-02T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-24T11:05:26.475Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="generic">
+<meta name="twitter:card" content="summary">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+<meta name="generator" content="Hexo 5.1.0"></head>
+
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">Posts List</strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E6%B2%A1%E6%9C%89%E6%B3%9B%E5%9E%8B"><span class="toc-text">如果没有泛型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E6%B3%9B%E5%9E%8B"><span class="toc-text">使用泛型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E6%B3%9B%E5%9E%8B%E7%B1%BB"><span class="toc-text">定义泛型类</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E4%B8%80%E8%88%AC%E7%9A%84%E6%B3%9B%E5%9E%8B%E7%B1%BB"><span class="toc-text">定义一般的泛型类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E6%9C%89%E8%BE%B9%E7%95%8C%E7%9A%84%E6%B3%9B%E5%9E%8B%E7%B1%BB"><span class="toc-text">定义有边界的泛型类</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B3%9B%E5%9E%8B%E7%B1%BB%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-text">泛型类的本质</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E4%B9%89%E6%B3%9B%E5%9E%8B%E6%96%B9%E6%B3%95"><span class="toc-text">定义泛型方法</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E-lt-gt-%E7%9A%84%E4%B8%80%E4%BA%8C"><span class="toc-text">关于 &lt;?&gt; 的一二</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E-lt-extends-SomeClass-gt-%E4%B8%8E-lt-super-SomeClass-gt-%E7%9A%84%E4%B8%80%E4%BA%8C"><span class="toc-text">关于 &lt;? extends SomeClass&gt; 与 &lt;? super SomeClass&gt; 的一二</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6-lt-extends-T-gt-%E4%B8%8E-lt-super-T-gt"><span class="toc-text">进阶 &lt;? extends T&gt; 与 &lt;? super T&gt;</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#PECS%E5%8E%9F%E5%88%99"><span class="toc-text">PECS原则</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E6%B3%A8%E6%84%8F%EF%BC%9A%E6%98%8E%E7%A1%AE%E6%B3%9B%E5%9E%8B%E5%8F%91%E7%94%9F%E5%9C%A8%E7%BC%96%E8%AF%91%E6%97%B6%E6%9C%9F%EF%BC%8C%E8%AF%B7%E7%89%A2%E8%AE%B0Java%E7%9A%84%E6%B3%9B%E5%9E%8B%E6%93%A6%E9%99%A4"><span class="toc-text">最后注意：明确泛型发生在编译时期，请牢记Java的泛型擦除</span></a></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-2018-05-03-Java泛型中的细节" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Java泛型中的细节</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.05.03</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>w4ngzhen</span>
+        </span>
+      
+
+      
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h3 id="如果没有泛型"><a href="#如果没有泛型" class="headerlink" title="如果没有泛型"></a>如果没有泛型</h3><p>学习Java，必不可少的一个过程就是需要掌握泛型。泛型起源于JDK1.5，为什么我们要使用泛型呢？泛型可以使编译器知道一个对象的限定类型是什么，这样编译器就可以在一个高的程度上验证这个类型消除了强制类型转换，使得代码可读性好，而这个过程是发生在编译时期的，即在编译时期发现代码中类型转换的错误所在，及时发现，而不必等到运行时期抛出运行时期的类型转换异常。</p>
+<p>泛型主要运用在譬如Java中的容器API等需要对多个对象进行管理的部分。</p>
+<p>早期（不支持泛型的时期）的Java代码，我们在使用容器的时候，需要在类型转换前手动的进行类型转换验证工作来防止异常。假设目前我们定义了一个Apple类，含有一个pare（削皮）方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Apple</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pare</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Apple is pared&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下里，我们定义了一个方法void pareAll(List apples);传入包含有多个Apple实例的List，并逐一对每一个Apple进行pare操作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">pareAll</span><span class="params">(List apples)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (Object a : apples) &#123;</span><br><span class="line">            Apple aa = (Apple)a;</span><br><span class="line">            aa.pare();</span><br><span class="line">            <span class="comment">// 为了清晰认识出错的地方，我没有采用下面的代码</span></span><br><span class="line">            <span class="comment">// ((Apple)a).pare();</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        List apples = <span class="keyword">new</span> ArrayList();</span><br><span class="line">        apples.add(<span class="keyword">new</span> Apple());</span><br><span class="line">        apples.add(<span class="keyword">new</span> Apple());</span><br><span class="line">        pareAll(apples);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先明确一点，List、Set、Map等早期只能默认其实是Object类型的集合，即由于类型转换，像上面的List能够存放Object及其子类的对象，所以你当然可以添加多个Apple对象实例（上转型）。而在pareAll方法体中，由于我们刚刚说过，List存放的是上转型后的Object类型的对象，所以当我们获取List的对象的时候，自然只能拿到Object类型的对象，之后需要我们手动的进行下转型：((Apple)a).pare()。这段代码我们运行一下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Apple is pared</span><br><span class="line">Apple is pared</span><br></pre></td></tr></table></figure>
+<p>似乎没有问题，然而，由于容器能够接受的是Object对象，所以，我们再定一个譬如Banana类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Banana</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pare</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Banana is pared&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后将这个类也添加List中去，由于上转型，这里完全没有编译的错误：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">List apples = <span class="keyword">new</span> ArrayList();</span><br><span class="line">apples.add(<span class="keyword">new</span> Apple());</span><br><span class="line">apples.add(<span class="keyword">new</span> Apple());</span><br><span class="line">apples.add(<span class="keyword">new</span> Banana()); <span class="comment">// 编译通过！</span></span><br><span class="line">pareAll(apples);</span><br></pre></td></tr></table></figure>
+<p>然而在运行的时候，去出现了错误：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Apple is pared</span><br><span class="line">Apple is pared</span><br><span class="line">Exception in thread <span class="string">&quot;main&quot;</span> java.lang.ClassCastException: Banana cannot be cast to Apple</span><br><span class="line"><span class="comment">// 编译器告诉我们 Apple aa = (Apple)a;这里一段代码出错了</span></span><br></pre></td></tr></table></figure>
+<p>首先，将List中的所有Object对象转换为Apple对象的时候，并没有出错，同时还正确输出了。但是，我们上面曾添加过Banana对象，在进行转换的过程中，却发生了类型转化的运行时异常。怎样解决这个问题？我们可以使用instanceof关键字，这个关键字可以判断一个对象是否是某一个类的实例化，所以我们修改pareAll方法，添加上实例判断：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果对象是Apple类的实例化，才进行转换</span></span><br><span class="line"><span class="keyword">if</span> (a <span class="keyword">instanceof</span> Apple) &#123;</span><br><span class="line">    ((Apple)a).pare();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>既然用这种方式就可以解决类型转换异常，那么为什么还要有泛型呢？首先，有了泛型进行麻烦的类型判断了；其次，通过编译器的支持，当我们使用泛型的时候，编译器会在编译时期就为我们解决好类型的问题，这样一来，可以保证，在运行时期，肯定不会因为类型转换出现异常。</p>
+<h3 id="使用泛型"><a href="#使用泛型" class="headerlink" title="使用泛型"></a>使用泛型</h3><p>JDK1.5给我们带来了泛型，当我们使用容器类的时候，自然更加推荐使用带有泛型的容器类，那么为什么那些不具备泛型的容器类还存在呢？因为早期还有很多遗留代，为了考虑兼容问题，所以才需要保留它们。</p>
+<p>说了这么多，我们来看如何在刚刚的情境中，使用泛型来为我们带来便利与类型安全：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 使用泛型</span></span><br><span class="line">    List&lt;Apple&gt; apples = <span class="keyword">new</span> ArrayList&lt;Apple&gt;();</span><br><span class="line">    apples.add(<span class="keyword">new</span> Apple());</span><br><span class="line">    apples.add(<span class="keyword">new</span> Apple());</span><br><span class="line">    apples.add(<span class="keyword">new</span> Banana()); <span class="comment">// 这一句话就会出现编译错误</span></span><br><span class="line">    pareAll(apples);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在Java中，在jdk自带的容器类加上尖括号&lt;&gt;，里面加上我们要明确的类名即可。而在pareAll方法，我们首先修改形参为List&lt;Apple&gt; apples，这样一来明确告诉编译器，我传入的是只能装Apple类型对象的List，如此一来，类型的判断就可以不用出现了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">pareAll</span><span class="params">(List&lt;Apple&gt; apples)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 首先形参改变了，其次for中的类型发生了变化，注意与原来的区分和理解</span></span><br><span class="line">    <span class="keyword">for</span> (Apple a : apples) &#123;</span><br><span class="line">        a.pare();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="定义泛型类"><a href="#定义泛型类" class="headerlink" title="定义泛型类"></a>定义泛型类</h4><h5 id="定义一般的泛型类"><a href="#定义一般的泛型类" class="headerlink" title="定义一般的泛型类"></a>定义一般的泛型类</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Gen</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    T x;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Gen</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(x);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就像我们在使用泛型容器一样，在类的后面加上尖括号，并且使用一个合法定义符号，表明Gen是一个泛型类，对于T来说，到底是什么类型，目前还不知道，只有当我需要使用的时候才确定的下来：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 注意：jdk1.7之后类型推断的加入，使得我们可以省略后面的类型定义</span></span><br><span class="line">    <span class="comment">// 这里我明确定义Gen的类型是String</span></span><br><span class="line">    <span class="comment">// 所以当我想要传入一个int类型的数字时，编译会不通过</span></span><br><span class="line">    Gen&lt;String&gt; x = <span class="keyword">new</span> Gen&lt;&gt;(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    <span class="comment">// Gen&lt;String&gt; x = new Gen&lt;&gt;(2); 编译不通过</span></span><br><span class="line">    x.print(); <span class="comment">// 输出“hello”</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="定义有边界的泛型类"><a href="#定义有边界的泛型类" class="headerlink" title="定义有边界的泛型类"></a>定义有边界的泛型类</h5><p>有的时候，即使是我们想要定义一个泛型的类，但并不意味着我们就想要任何一个类型都可以作为我们想要定义的泛型类的参数，这个时候怎么办？这就需要我们定义起边界，即这个泛型类能容许你能够定义具体的什么类型。首先我们定义三个基础的类：分别为Father、Son、MrWang。Father类是Sun超类，MrWang类与这两个类无关：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Father</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">extends</span> <span class="title">Father</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MrWang</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来我们定义具有边界的泛型类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 语法为&lt;泛型符号 extends 已存在类型&gt;</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Gen</span>&lt;<span class="title">T</span> <span class="keyword">extends</span> <span class="title">Father</span>&gt; </span>&#123;</span><br><span class="line">    T x;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Gen</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>于是，我们在使用我们定义的泛型类的时候，就会有所限制了：我们只能定义类型为Father以及Father子类的泛型类，除此之外都不行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Gen&lt;Son&gt; g1;</span><br><span class="line">    Gen&lt;Father&gt; g2;</span><br><span class="line">    Gen&lt;MrWang&gt; g3; <span class="comment">// 编译出错！</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="泛型类的本质"><a href="#泛型类的本质" class="headerlink" title="泛型类的本质"></a>泛型类的本质</h5><p>在上面我们提到了两种泛型，一种是原始泛型类（&lt;T&gt;），另一种是为了对泛型参数进行限制而使用的边界（&lt;T extends BorderClass&gt;）；我们通过相关的定义可以知道，泛型只在编译阶段起作用，他只对编译阶段进行类型的限制，从而实现类型安全。实际上，任何的泛型类到运行的时候，都会将其泛型类型<strong>擦除</strong>到边界。对于一般的泛型类来说，在运行阶段会擦除到Object类型为止；而进行限制的使用extends的泛型则会擦除到其边界为止。综合来说就是，一般泛型类与限制了边界的泛型类都可以统一为&lt;T extends BorderClass&gt;。只是前者的BorderClass就是Object（因为任何对象都继承自Object），而后者是特定的边界类。再具体一点：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 首先这里有一个Father类，其定义如下：</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Father</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">fatherMethod</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Father&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Son继承自Father类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Son</span> <span class="keyword">extends</span> <span class="title">Father</span> </span>&#123;&#125;</span><br><span class="line"><span class="comment">// 定义一个有边界的类以及一个没有边界的泛型类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HasBorder</span>&lt;<span class="title">T</span> <span class="keyword">extends</span> <span class="title">Father</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 尽管是泛型T，但是由于制定了边界</span></span><br><span class="line">        <span class="comment">// 所以我们可以确定知道运行时，其类型会擦除到Father类</span></span><br><span class="line">        <span class="comment">// 所以x一定有fatherMethod方法</span></span><br><span class="line">        x.fatherMethod();</span><br><span class="line">        <span class="comment">// 此外还有Object类中的譬如toString、hashCode等方法</span></span><br><span class="line">        x.toString();</span><br><span class="line">        x.hashCode();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">NoBorder</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 由于没有指定泛型的边界，T在运行时会擦除到Object</span></span><br><span class="line">        <span class="comment">// 所以只能看到Object中的一些方法</span></span><br><span class="line">        x.toString();</span><br><span class="line">        x.hashCode();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="定义泛型方法"><a href="#定义泛型方法" class="headerlink" title="定义泛型方法"></a>定义泛型方法</h4><p>泛型方法的定义则是在方法的返回值前添加&lt;T&gt;来定义的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 注意&lt;K&gt;是紧跟返回类型的</span></span><br><span class="line">[<span class="keyword">public</span> | ...] [<span class="keyword">static</span>] [<span class="keyword">final</span>] [<span class="keyword">synchronized</span>] &lt;K&gt; <span class="function"><span class="keyword">void</span> <span class="title">f</span><span class="params">(K x)</span> </span>&#123;</span><br><span class="line">    System.out.println(x);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 返回类型同样可以是泛型</span></span><br><span class="line">[<span class="keyword">public</span> | ...] [<span class="keyword">static</span>] [<span class="keyword">final</span>] [<span class="keyword">synchronized</span>] &lt;K&gt; <span class="function">K <span class="title">f</span><span class="params">(K x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用泛型方法的时候，我们可以在方法前来定义具体的类型来确定：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">obj.&lt;Apple&gt;f(<span class="keyword">new</span> Apple())</span><br><span class="line"><span class="comment">// 由于类型推到，当我们传入一个Apple对象的时候，Java会为我们自动推导其类型，所以可以省略：</span></span><br><span class="line">obj.f(<span class="keyword">new</span> Apple());</span><br></pre></td></tr></table></figure>
+<p>但是请注意，在一个泛型类中再定义泛型方法，它们是没有联系的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Gen</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    T x;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Gen</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> T <span class="title">f</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> t;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">g</span><span class="params">(T t)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> t;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面的泛型类中，我们定义了两个方法：f、g，注意前者并没有在返回类型前添加<T>，后者有&lt;T&gt;，尽管这两个方法都使用了T这个泛型符号，但是，其含义截然不同。前者的T是跟随泛型类的T来确定的，而后者是根据具体方法来确定的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Gen&lt;Father&gt; gen = <span class="keyword">new</span> Gen&lt;&gt;(<span class="keyword">new</span> Father());</span><br><span class="line">    <span class="comment">// 泛型类中的方法</span></span><br><span class="line">    gen.f(<span class="keyword">new</span> Father());</span><br><span class="line">    <span class="comment">// 泛型方法</span></span><br><span class="line">    gen.g(<span class="keyword">new</span> MrWang());</span><br><span class="line">    <span class="comment">// 互不相关</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="关于-lt-gt-的一二"><a href="#关于-lt-gt-的一二" class="headerlink" title="关于 &lt;?&gt; 的一二"></a>关于 &lt;?&gt; 的一二</h3><p>&lt;?&gt;其实和&lt;T&gt;非常的类似，都表示一种不确定性，都是告诉编译器，我现在有一个泛型，但是这个东西的具体类型我不确定到底是什么。但是，它们还是有一定的区别的。首先说一个最基础的，&lt;?&gt;无界通配符是不能用做声明泛型类的或者是泛型方法的；而&lt;T&gt;可以，不再赘述。<strong>在理解&lt;?&gt;的时候，请暂时不要和&lt;T&gt;联系起来，这二者的使用没有必然的联系</strong>! 它们之外的差别这里使用一个情景：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">f0</span><span class="params">(List&lt;T&gt; lists)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (Object o : lists) &#123;</span><br><span class="line">            System.out.println(o);</span><br><span class="line">        &#125;</span><br><span class="line">        Object o = lists.size() &gt; <span class="number">0</span> ? lists.get(<span class="number">0</span>) : <span class="keyword">null</span>;</span><br><span class="line">        lists.add((T) <span class="keyword">new</span> Object());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">f1</span><span class="params">(List&lt;?&gt; lists)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (Object o : lists) &#123;</span><br><span class="line">            System.out.println(o);</span><br><span class="line">        &#125;</span><br><span class="line">        Object o = lists.size() &gt; <span class="number">0</span> ? lists.get(<span class="number">0</span>) : <span class="keyword">null</span>;</span><br><span class="line">        lists.add(<span class="keyword">new</span> Object()); <span class="comment">// 编译出错！！！</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先上面的f0方法接收List<T>对象，而f1方法接收List&lt;?&gt;对象。首先我们来看共同点，我们看到两个方法均可以遍历其List中的对象并且上转型为Object类型，当然，这是完全没有问题的，无论你的list中存放的是什么对象，你再不确定，但你始终可以将其上转型为Object类型，因为一切类都继承自Object这个类。</p>
+<p>上面来两个方法的不同点在于，最后一句向lists中添加一个Object对象。首先看f0，这里将Object对象往lists中添加的时候，需要我们转型为T，这里没有问题，因为既然我们定义的这个方法已经告诉了编译器，我们传入的是一个某种类型T的List，自然，往里面的添加的对象必须要上转型为T，否则如果不进行转型，那么任何的类都往里面的添加岂不是违背了类型安全。也许你有些疑问：不是说在运行时候会擦出到边界（这里就是Object），那为什么我添加Object对象都需要类型转换呢？其实不管你添加什么类型的对象，都需要类型转换，其理由在我看来是这样：在使用的泛型<strong>定义</strong>的某些类功能，尤其是添加或获取容器类中的元素，如果在一开始往里面添加的时候类型转换就失败了，肯定可以确定一点，你往里面添加的类是不正确的！是不符合我到时候（真正在使用确定了泛型类型的容器的时候）想要添加的类型的。所以这里强制需要你进行转型，以在添加的时候就保证其类型的安全。</p>
+<p>看完f0，在看f1。f1中最后一句add一个Object对象的时候始终编译不通过，其原因就是&lt;?&gt;无界通配符只告诉编译器，我这里要使用一个带有泛型的List，但是其具体类型我不知道，也不想知道！所以为了保证你到时候使用的时候的多样性（你有可能会传入List&lt;String&gt;，也有可能会传入List&lt;Integer&gt;），这里我就不支持转型操作了，请你进行一些与类型无关的操作。</p>
+<h4 id="关于-lt-extends-SomeClass-gt-与-lt-super-SomeClass-gt-的一二"><a href="#关于-lt-extends-SomeClass-gt-与-lt-super-SomeClass-gt-的一二" class="headerlink" title="关于 &lt;? extends SomeClass&gt; 与 &lt;? super SomeClass&gt; 的一二"></a>关于 &lt;? extends SomeClass&gt; 与 &lt;? super SomeClass&gt; 的一二</h4><p>在上面实例中我们使用了&lt;?&gt;这样的无界通配符，但是它太宽泛了，甚至可以说它与List无差别。于是，我们需要一种限定方式，来限定我们的容器类的类型有一定的边界。我们首先定义是那个类从上到下依次继承：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Top</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Mid</span> <span class="keyword">extends</span> <span class="title">Top</span> </span>&#123;&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Bottom</span> <span class="keyword">extends</span> <span class="title">Mid</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来我们定义带有有界通配符的相关参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">f</span><span class="params">(List&lt;? extends Mid&gt; ls)</span> </span>&#123;&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">g</span><span class="params">(List&lt;? <span class="keyword">super</span> Mid&gt; ls)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>这里解读一下：对于方法f来说，他接受一个List，但是这个List需要满足泛型？必须是extends于Mid，即定义了目标List的泛型的上界是Mid，就是说我们传入的泛型List的其类型必须是Mid的子类；而对于g方法来说，则是必须满足泛型？必须是super于Mid，即定义了其List的泛型的下界是Mid，即我们传入的List的泛型必须是Mid的超类，所有也就有了下面的编译中的细节：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Object&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">List&lt;Top&gt; topList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">List&lt;Mid&gt; midList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">List&lt;Bottom&gt; bottomList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">f(list); <span class="comment">// 1、编译出错</span></span><br><span class="line">f(topList); <span class="comment">// 2、编译出错</span></span><br><span class="line">f(midList); <span class="comment">// 3、编译通过</span></span><br><span class="line">f(bottomList); <span class="comment">// 4、编译通过</span></span><br><span class="line">g(list); <span class="comment">// 5、编译通过</span></span><br><span class="line">g(topList); <span class="comment">// 6、编译通过</span></span><br><span class="line">g(midList); <span class="comment">// 7、编译通过</span></span><br><span class="line">g(bottomList); <span class="comment">// 8、编译出错</span></span><br></pre></td></tr></table></figure>
+<p>1与2编译出错的原因很显然就是因为分别不满足 Object extends Mid 和 Top extends Mid；3与4通过编译的原因也就显而易见了（Mid本身是本身的子类）；5、6和7同样满足其对应的类型是Mid的超类（Mid本身也可以是本身的超类），故通过编译，而8中的Bottom不是Mid的超类，故不通过编译。</p>
+<h4 id="进阶-lt-extends-T-gt-与-lt-super-T-gt"><a href="#进阶-lt-extends-T-gt-与-lt-super-T-gt" class="headerlink" title="进阶 &lt;? extends T&gt; 与 &lt;? super T&gt;"></a>进阶 &lt;? extends T&gt; 与 &lt;? super T&gt;</h4><p>在上面的讨论中，我们都是用一个特定的类来限定了？的边界（上面就是Mid类），但是泛型同样适用于此，就像下面：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">genF</span><span class="params">(List&lt;? extends T&gt; ls)</span> </span>&#123;&#125;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">genG</span><span class="params">(List&lt;? <span class="keyword">super</span> T&gt; ls)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>当我们指定了泛型的类型为特定的类型的时候，比如：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GenericTest.&lt;Mid&gt;genF(midList);</span><br></pre></td></tr></table></figure>
+<p>他其实等同于上面的3中的方法，因为就是直接将对应的泛型替换为具体的类。那么genF方法与genG方法究竟有什么区别呢？答案就是PECS原则。</p>
+<h4 id="PECS原则"><a href="#PECS原则" class="headerlink" title="PECS原则"></a>PECS原则</h4><p>什么是PECS？PECS指“Producer Extends，Consumer Super”。换句话说，如果参数化类型表示一个生产者，就使用&lt;? extends T&gt;；如果它表示一个消费者，就使用&lt;? super T&gt;。</p>
+<p>这里一定要明确一点，我们在使用这两种的时候，通常是在使用容器（绝大多数）；其次，生产者和消费者的概念是针对容器的。怎么理解呢？先用一段代码来表达这个场景：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">genF</span><span class="params">(List&lt;? extends T&gt; ls)</span> </span>&#123;</span><br><span class="line">    T o = ls.get(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们先看PE（Producer Extends）部分，这里我们通过方法，可以知道，我们定义了一个genF方法，接收一个泛型List，其具体类型我们还不知道，但至少可以确定的是，它的上界是T，也就是说，我传入的List中的存放的对象一定是T的子类，由于如此，我可以在这个方法中，定义T类型的对象，然后从List中取得对象，由于上面的描述，我们一定可以确定，无论你传入的List去具体的类型到底是什么，但一定可以上转型为T，这里List是一个生产者（Producer），它生产出来的（get(0)）的对象（某个类型，但一定是T的子类），一定可以传给T的引用（上转型）。这就是PE部分。</p>
+<p>而CS（Consumer Super）也很好理解，下面的代码不够严谨，但是可以让我们清楚其中的意义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">genG</span><span class="params">(List&lt;? <span class="keyword">super</span> T&gt; ls)</span> </span>&#123;</span><br><span class="line">    ls.add((T)<span class="keyword">new</span> Object());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的方法接收一个List&lt;? super T&gt;参数，意味着，ls虽然我不知道到底会有什么样的类型的List传入，但是我一定知道，这个类型一定是T类型的超类，也就是说，ls.add方法能够存放的对象，是某个类型，而这个类型是T的超类（或本身），那么，T类型的对象我一定能够放进去（通过上转型到“？”，而这个“？”到底是什么我不知道，只知道是T的超类，T当然能够上转型到T的某个超类）。这里的List就是一个消费者，它消费（add）T类型，凭什么能够add，因为ls本身的类型是T的超类。</p>
+<h5 id="最后注意：明确泛型发生在编译时期，请牢记Java的泛型擦除"><a href="#最后注意：明确泛型发生在编译时期，请牢记Java的泛型擦除" class="headerlink" title="最后注意：明确泛型发生在编译时期，请牢记Java的泛型擦除"></a>最后注意：明确泛型发生在编译时期，请牢记Java的泛型擦除</h5>
+    
+  </div>
+
+</article>
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>
