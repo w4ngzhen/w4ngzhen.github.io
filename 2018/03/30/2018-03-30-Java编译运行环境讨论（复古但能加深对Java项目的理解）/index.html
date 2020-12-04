@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Java编译运行环境讨论（复古但能加深对Java项目的理解） | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Java,Javac," />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="如今我们大多数情况都会使用IDE来进行Java项目的开发，而一个如今众多优秀的IDE已经能够帮助我们自动的部署并调试运行我们的Java程序。然而在早期我们进行Java开始需要手动的建立逻辑包（package）与目录来管理我们的Java项目或是更高级一点的则是使用ant这样的构建工具。作为Javaer，对于Java的编译过程应当是熟悉的，这样即使脱离了IDE我们依然能够很好的理解Java的构建过程。">
 <meta property="og:type" content="article">
@@ -23,159 +28,392 @@
 <meta property="og:description" content="如今我们大多数情况都会使用IDE来进行Java项目的开发，而一个如今众多优秀的IDE已经能够帮助我们自动的部署并调试运行我们的Java程序。然而在早期我们进行Java开始需要手动的建立逻辑包（package）与目录来管理我们的Java项目或是更高级一点的则是使用ant这样的构建工具。作为Javaer，对于Java的编译过程应当是熟悉的，这样即使脱离了IDE我们依然能够很好的理解Java的构建过程。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-03-29T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.469Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.192Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Javac">
 <meta name="twitter:card" content="summary">
 
+<link rel="canonical" href="http://compilemind.com/2018/03/30/2018-03-30-Java%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E8%AE%A8%E8%AE%BA%EF%BC%88%E5%A4%8D%E5%8F%A4%E4%BD%86%E8%83%BD%E5%8A%A0%E6%B7%B1%E5%AF%B9Java%E9%A1%B9%E7%9B%AE%E7%9A%84%E7%90%86%E8%A7%A3%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Java编译运行环境讨论（复古但能加深对Java项目的理解） | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
-
-
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
-
-
-  
-
-  <div class="post-header">
-   
-
-</div>
 
 
 
 
-<div class="content content-post CENTER">
-   <article id="post-2018-03-30-Java编译运行环境讨论（复古但能加深对Java项目的理解）" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Java编译运行环境讨论（复古但能加深对Java项目的理解）</h1>
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.03.30</span>
-      </span>
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
-
-      
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
-    
-      <p>如今我们大多数情况都会使用IDE来进行Java项目的开发，而一个如今众多优秀的IDE已经能够帮助我们自动的部署并调试运行我们的Java程序。然而在早期我们进行Java开始需要手动的建立逻辑包（package）与目录来管理我们的Java项目或是更高级一点的则是使用ant这样的构建工具。作为Javaer，对于Java的编译过程应当是熟悉的，这样即使脱离了IDE我们依然能够很好的理解Java的构建过程。</p>
-<p>初级</p>
-<p>我们首先建立一个基础的项目文件夹java-demo，并在其中建立Main.java文件：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vim Main.java</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">tips:</span><br><span class="line">在Java中，.java文件中至多有一个共有类，并且文件名和改共有类相同，如果没有共有类，则任选一个类名作为文件名即可。</span><br></pre></td></tr></table></figure>
-<p>完成了我们的编辑工作之后，我们使用javac命令进行编译工作：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> javac -d . ./Main.java</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">Main.class Main.java</span><br><span class="line">tips:上述的-d .表示在当前目录下生成class文件</span><br></pre></td></tr></table></figure>
-<p>之后我们可以使用java命令运行得到的.class文件（不需要带.class文件后缀）</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> java Main</span></span><br><span class="line">Hello</span><br></pre></td></tr></table></figure>
-<p>初级++</p>
-<p>在上述的示例中，我们并没有在代码中对我们的Java程序打包（package xxx;），我们知道Java中对程序进行package有很重要的意义：能够模块化程序，通过定义不同的包来实现模块化的开发，同时也能够帮助其他接手或者学习代码的人能够有很好的引导作用，能够明白整个Java项目模块的分布。</p>
-<p>所以我们现在需要在代码中定义包，从而模块化我们的代码，这里我们在Main.java代码的第一句加上这样一句代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.main;</span><br><span class="line">tips: 这句话代表了我先要把该Main类定义在包src包中的main包中</span><br></pre></td></tr></table></figure>
-<p>然后我们删除刚刚编译过的class文件，为了之后的生成class文件的删除方便，我们在java-demo文件夹下创建一个target文件夹，为以后的class文件的生成目标文件夹。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">当前工作目录以及文件结构如下：</span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">pwd</span></span></span><br><span class="line">xxx/java-demo</span><br><span class="line"><span class="meta">#</span><span class="bash"> 目录结构</span></span><br><span class="line">./</span><br><span class="line">├── Main.java</span><br><span class="line">└── target</span><br></pre></td></tr></table></figure>
-<p>接着我们重新编译</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> javac -d ./target Main.java</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">Main.java target</span><br><span class="line">进入target目录之后，我们可以看到如下的结构：</span><br><span class="line">./</span><br><span class="line">└── src</span><br><span class="line">    └── main</span><br><span class="line">        └── Main.class</span><br></pre></td></tr></table></figure>
-<p>我们可以看到，即使我们并没在原先的工作目录下创建src/main/Main.java这样的源码结构，只是在代码中定义了逻辑上的src.main，在javac之后，java会为我们自动生成这样的目录结构。</p>
-<p>接下来我们通过java命令运行Main.class。这里有很重要的一点，通过我们上面的代码定义，<strong>我们最终生成的是一个名为src.main.Main类，不是单纯的名为Main类</strong>，不能像上面java Main那样去直接运行这个Java程序，同时我们应当在目标类生成的根目录下去运行java命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 在target目录下</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> java src.main.Main(或者java src/main/Main)</span></span><br><span class="line">Hello</span><br></pre></td></tr></table></figure>
-<p>即使我们进入到了target/src/main目录中（只要不是target/这样的目标根目录），直接使用java Main或者是java src.main.Main都是不行的。前者会提示：“错误: 找不到或无法加载主类 Main”， 原因就是我们定义是一个src.main.Main的类，很显然这里没有类名为Main的类；后者会提示：“错误: 找不到或无法加载主类 src.main.Main”，原因则是当我们使用java命令去运行譬如src.main.Main等在非默认包下的类时，java命令会自动将src.main.Main转换为 <strong>$classpath/</strong> src/main/Main这样路径下的类文件，而你有没有定义classpath，那么java会在当前（这个例子就是main目录类），再找src/main/Main类，这里当然没有，所以报错。诚然，你可以在使用java命令时通过-classpath来指定类加载根路径，但是这样显然没有直接在类编译根目录下来的直接。</p>
-<p>（初级++）++</p>
-<p>目前为止，我们只讨论了只有一个类的情况，当我们在一个类中通过import来引入其他类的时候，又该注意什么呢？</p>
-<p>首先我们重构整个文件目录结构如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">xxx/java-demo</span><br><span class="line">    ├── dir1</span><br><span class="line">    │   └── Main.java</span><br><span class="line">    ├── dir2</span><br><span class="line">    │   └── Sub.java</span><br><span class="line">    └── target</span><br></pre></td></tr></table></figure>
-<p>首先在Sub.java中我们编写如下的代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> myutil;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Sub</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态工具方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printWithFormat</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;&gt;&gt;&gt;&quot;</span> + str + <span class="string">&quot;&lt;&lt;&lt;&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>然后编写Main.java中的代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main;</span><br><span class="line"><span class="comment">// 引入Sub类</span></span><br><span class="line"><span class="keyword">import</span> myutil.Sub;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 调用Sub类中的静态方法</span></span><br><span class="line">        Sub.printWithFormat(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里我们定义了dir1、2两个文件加，虽然和Main类与Sub类中package的包名不同，但是，当我们在编译时，只要指定了正确目录下的对应的java类即可，就像我们可以进入dir1类中使用如下命令：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">pwd</span></span></span><br><span class="line">xxx/java-demo/dir1</span><br><span class="line"><span class="meta">$</span><span class="bash"> javac -d ../target/ ./Main.java ../dir2/Sub.java <span class="comment"># 自行理解对应文件的位置关系</span></span></span><br></pre></td></tr></table></figure>
-<p>接着我们查看对应的target下生成的class文件：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">target/</span><br><span class="line">├── main</span><br><span class="line">│   └── Main.class</span><br><span class="line">└── myutil</span><br><span class="line">    └── Sub.class</span><br></pre></td></tr></table></figure>
-<p>同样的，我们按照**初级++**中提到的，在根目录下，使用java main.Main命令，可以看到，没有问题：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> java main.Main</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;Hello&lt;&lt;&lt;</span></span><br></pre></td></tr></table></figure>
-<p>关于java编译运行的路径相关的注意点大致就讲这些，以后会继续补充相关的更多的注意点。</p>
-
-    
-  </div>
-
-</article>
-
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
-
-
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
-
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
-    }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
   }
 
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/30/2018-03-30-Java%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E8%AE%A8%E8%AE%BA%EF%BC%88%E5%A4%8D%E5%8F%A4%E4%BD%86%E8%83%BD%E5%8A%A0%E6%B7%B1%E5%AF%B9Java%E9%A1%B9%E7%9B%AE%E7%9A%84%E7%90%86%E8%A7%A3%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java编译运行环境讨论（复古但能加深对Java项目的理解）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-30 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-30T00:00:00+08:00">2018-03-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>如今我们大多数情况都会使用IDE来进行Java项目的开发，而一个如今众多优秀的IDE已经能够帮助我们自动的部署并调试运行我们的Java程序。然而在早期我们进行Java开始需要手动的建立逻辑包（package）与目录来管理我们的Java项目或是更高级一点的则是使用ant这样的构建工具。作为Javaer，对于Java的编译过程应当是熟悉的，这样即使脱离了IDE我们依然能够很好的理解Java的构建过程。</p>
+<p>初级</p>
+<p>我们首先建立一个基础的项目文件夹java-demo，并在其中建立Main.java文件：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ vim Main.java</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">tips:</span><br><span class="line">在Java中，.java文件中至多有一个共有类，并且文件名和改共有类相同，如果没有共有类，则任选一个类名作为文件名即可。</span><br></pre></td></tr></table></figure><br>完成了我们的编辑工作之后，我们使用javac命令进行编译工作：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> javac -d . ./Main.java</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">Main.class Main.java</span><br><span class="line">tips:上述的-d .表示在当前目录下生成class文件</span><br></pre></td></tr></table></figure><br>之后我们可以使用java命令运行得到的.class文件（不需要带.class文件后缀）<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> java Main</span></span><br><span class="line">Hello</span><br></pre></td></tr></table></figure><br>初级++</p>
+<p>在上述的示例中，我们并没有在代码中对我们的Java程序打包（package xxx;），我们知道Java中对程序进行package有很重要的意义：能够模块化程序，通过定义不同的包来实现模块化的开发，同时也能够帮助其他接手或者学习代码的人能够有很好的引导作用，能够明白整个Java项目模块的分布。</p>
+<p>所以我们现在需要在代码中定义包，从而模块化我们的代码，这里我们在Main.java代码的第一句加上这样一句代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> src.main;</span><br><span class="line">tips: 这句话代表了我先要把该Main类定义在包src包中的main包中</span><br></pre></td></tr></table></figure><br>然后我们删除刚刚编译过的class文件，为了之后的生成class文件的删除方便，我们在java-demo文件夹下创建一个target文件夹，为以后的class文件的生成目标文件夹。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">当前工作目录以及文件结构如下：</span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">pwd</span></span></span><br><span class="line">xxx/java-demo</span><br><span class="line"><span class="meta">#</span><span class="bash"> 目录结构</span></span><br><span class="line">./</span><br><span class="line">├── Main.java</span><br><span class="line">└── target</span><br></pre></td></tr></table></figure><br>接着我们重新编译<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> javac -d ./target Main.java</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">Main.java target</span><br><span class="line">进入target目录之后，我们可以看到如下的结构：</span><br><span class="line">./</span><br><span class="line">└── src</span><br><span class="line">    └── main</span><br><span class="line">        └── Main.class</span><br></pre></td></tr></table></figure><br>我们可以看到，即使我们并没在原先的工作目录下创建src/main/Main.java这样的源码结构，只是在代码中定义了逻辑上的src.main，在javac之后，java会为我们自动生成这样的目录结构。</p>
+<p>接下来我们通过java命令运行Main.class。这里有很重要的一点，通过我们上面的代码定义，<strong>我们最终生成的是一个名为src.main.Main类，不是单纯的名为Main类</strong>，不能像上面java Main那样去直接运行这个Java程序，同时我们应当在目标类生成的根目录下去运行java命令：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 在target目录下</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> java src.main.Main(或者java src/main/Main)</span></span><br><span class="line">Hello</span><br></pre></td></tr></table></figure><br>即使我们进入到了target/src/main目录中（只要不是target/这样的目标根目录），直接使用java Main或者是java src.main.Main都是不行的。前者会提示：“错误: 找不到或无法加载主类 Main”， 原因就是我们定义是一个src.main.Main的类，很显然这里没有类名为Main的类；后者会提示：“错误: 找不到或无法加载主类 src.main.Main”，原因则是当我们使用java命令去运行譬如src.main.Main等在非默认包下的类时，java命令会自动将src.main.Main转换为 <strong>$classpath/</strong> src/main/Main这样路径下的类文件，而你有没有定义classpath，那么java会在当前（这个例子就是main目录类），再找src/main/Main类，这里当然没有，所以报错。诚然，你可以在使用java命令时通过-classpath来指定类加载根路径，但是这样显然没有直接在类编译根目录下来的直接。</p>
+<p>（初级++）++</p>
+<p>目前为止，我们只讨论了只有一个类的情况，当我们在一个类中通过import来引入其他类的时候，又该注意什么呢？</p>
+<p>首先我们重构整个文件目录结构如下：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">xxx/java-demo</span><br><span class="line">    ├── dir1</span><br><span class="line">    │   └── Main.java</span><br><span class="line">    ├── dir2</span><br><span class="line">    │   └── Sub.java</span><br><span class="line">    └── target</span><br></pre></td></tr></table></figure><br>首先在Sub.java中我们编写如下的代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> myutil;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Sub</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 静态工具方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printWithFormat</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;&gt;&gt;&gt;&quot;</span> + str + <span class="string">&quot;&lt;&lt;&lt;&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>然后编写Main.java中的代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main;</span><br><span class="line"><span class="comment">// 引入Sub类</span></span><br><span class="line"><span class="keyword">import</span> myutil.Sub;</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 调用Sub类中的静态方法</span></span><br><span class="line">        Sub.printWithFormat(<span class="string">&quot;Hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>这里我们定义了dir1、2两个文件加，虽然和Main类与Sub类中package的包名不同，但是，当我们在编译时，只要指定了正确目录下的对应的java类即可，就像我们可以进入dir1类中使用如下命令：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">pwd</span></span></span><br><span class="line">xxx/java-demo/dir1</span><br><span class="line"><span class="meta">$</span><span class="bash"> javac -d ../target/ ./Main.java ../dir2/Sub.java <span class="comment"># 自行理解对应文件的位置关系</span></span></span><br></pre></td></tr></table></figure><br>接着我们查看对应的target下生成的class文件：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">target/</span><br><span class="line">├── main</span><br><span class="line">│   └── Main.class</span><br><span class="line">└── myutil</span><br><span class="line">    └── Sub.class</span><br></pre></td></tr></table></figure><br>同样的，我们按照<strong>初级++</strong>中提到的，在根目录下，使用java main.Main命令，可以看到，没有问题：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> java main.Main</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt;Hello&lt;&lt;&lt;</span></span><br></pre></td></tr></table></figure><br>关于java编译运行的路径相关的注意点大致就讲这些，以后会继续补充相关的更多的注意点。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/Javac/" rel="tag"># Javac</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/15/2018-03-15-macOS%E4%B8%8BJava%E4%B8%8EJDK%E5%85%B3%E7%B3%BB%E4%B8%8E%E7%9B%B8%E5%85%B3%E8%B7%AF%E5%BE%84/" rel="prev" title="macOS下Java与JDK关系与相关路径">
+      <i class="fa fa-chevron-left"></i> macOS下Java与JDK关系与相关路径
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/08/2018-04-08-Linux%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%8Einode%E3%80%81Block%E7%AC%94%E8%AE%B0/" rel="next" title="Linux文件系统与inode、Block笔记">
+      Linux文件系统与inode、Block笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

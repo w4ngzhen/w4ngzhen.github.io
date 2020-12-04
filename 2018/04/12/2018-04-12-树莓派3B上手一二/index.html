@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>树莓派3B上手一二 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Linux,Raspberry," />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="早些时间心血来潮买过一个树莓派，但是当时只是玩一玩，买来按照网上的教程摆弄了一下就闲置了。最近毕业设计，做时序数据分析的相关的工作，刚好想起能够用到树莓派+Node-RED来生成模拟的时序数据。于是开始搭建相关的环境。特此记录一下。 系统镜像下载 树莓派如今已是一个状态的生态圈。其本身有Linux定制的发行版树莓派系统。首先官网去下载系统系统镜像：上面有两个版本左边是带有图形界面的，右边是没有图形">
 <meta property="og:type" content="article">
@@ -30,81 +35,186 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/netgate.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/twowifi.png">
 <meta property="article:published_time" content="2018-04-11T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.470Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.193Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="Raspberry">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/officialwebsite.png">
 
+<link rel="canonical" href="http://compilemind.com/2018/04/12/2018-04-12-%E6%A0%91%E8%8E%93%E6%B4%BE3B%E4%B8%8A%E6%89%8B%E4%B8%80%E4%BA%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>树莓派3B上手一二 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
 
 
-<div class="content content-post CENTER">
-   <article id="post-2018-04-12-树莓派3B上手一二" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">树莓派3B上手一二</h1>
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.04.12</span>
-      </span>
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
 
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
+  </li>
+        <li class="menu-item menu-item-archives">
 
-      
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
 
 
-      
 
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
 
-  <div class="article-content">
+</div>
+    </header>
+
     
-      <p>早些时间心血来潮买过一个树莓派，但是当时只是玩一玩，买来按照网上的教程摆弄了一下就闲置了。最近毕业设计，做时序数据分析的相关的工作，刚好想起能够用到树莓派+Node-RED来生成模拟的时序数据。于是开始搭建相关的环境。特此记录一下。</p>
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/04/12/2018-04-12-%E6%A0%91%E8%8E%93%E6%B4%BE3B%E4%B8%8A%E6%89%8B%E4%B8%80%E4%BA%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          树莓派3B上手一二
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-12 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-12T00:00:00+08:00">2018-04-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>早些时间心血来潮买过一个树莓派，但是当时只是玩一玩，买来按照网上的教程摆弄了一下就闲置了。最近毕业设计，做时序数据分析的相关的工作，刚好想起能够用到树莓派+Node-RED来生成模拟的时序数据。于是开始搭建相关的环境。特此记录一下。</p>
 <p><strong>系统镜像下载</strong></p>
 <p>树莓派如今已是一个状态的生态圈。其本身有Linux定制的发行版树莓派系统。首先<a target="_blank" rel="noopener" href="https://www.raspberrypi.org/downloads/raspbian/">官网</a>去下载系统系统镜像：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/officialwebsite.png" alt="officialwebsite"><br>上面有两个版本左边是带有图形界面的，右边是没有图形界面的。个人推荐不带图形界面的，既然是玩树莓派的，我想大多数还是有一定Linux基础的，真没有必要装图形界面。</p>
 <p>下载好以后我们能够看到压缩包中存在一个.img后缀的文件，这个就是系统镜像。</p>
@@ -115,15 +225,7 @@
 <p>下载好以后，安装并打开该工具，然后插入SD卡，SD Card Formatter会自动识别插入的Sd卡，我们直接点击format进行格式化。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/sdformat.png" alt="sdformat"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/formatsuccess.png" alt="formatsuccess"></p>
 <p>2）烧录系统镜像</p>
 <p>在mac下烧录系统是很容易的，因为Linux/UNIX本身有相关的命令操作。</p>
-<p>首先在命令行我们使用命令df -h来显示目前的挂载情况<br>这里稍微补充一下Linux/UNIX下的磁盘的命名规则：<br>本人的mac只有一块磁盘就像下面的disk1，而后面的s1、s4则代表这块磁盘上的分区</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> df -h  <span class="comment"># 我只粘贴了有代表性的输出</span></span></span><br><span class="line">Filesystem                        Size   Used  Avail Capacity iused               ifree %iused  Mounted on</span><br><span class="line">/dev/disk1s1                     234Gi   99Gi  132Gi    43% 1230474 9223372036853545333    0%   /</span><br><span class="line">/dev/disk1s4                     234Gi  2.0Gi  132Gi     2%       2 9223372036854775805    0%   /private/var/vm</span><br><span class="line"><span class="meta">#</span><span class="bash"> 重点是下面这一个条</span></span><br><span class="line">/dev/disk3s1                      15Gi  2.4Mi   15Gi     1%       0                   0  100%   /Volumes/BOOT</span><br></pre></td></tr></table></figure>
-<p>上面的disk3则是我们的SD的磁盘，并且，只有一个分区s1，我们还可以看到容量为15Gi就是我们预期的格式化好了之后的容量。当然，既然这里能够显示则说明，这些磁盘我们已经挂载好了。接下来首先需要取消挂载：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 千万注意一定要取消挂载正确的磁盘！不要把你的mac磁盘给取消挂载了：）</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 另外，请记住disk3s1这个名称，后面要用</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> diskutil unmount /dev/disk3s1</span></span><br><span class="line">Volume BOOT on disk3s1 unmounted</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个时候再df发现我们的SD已经不再显示里面了，说明卸载成功</span></span><br></pre></td></tr></table></figure>
-<p>接下来进行正式的烧录，使用dd命令将系统镜像写入，需要特别特别注意disk后的数字，不能搞错！/dev/disk3s1是分区，/dev/disk3是块设备，/dev/rdisk3是原始字符设备<br>我们接下来就是要吧镜像烧录到原始字符设备</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 下面dd用于将系统镜像写入</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> bs代表了文件系统的页大小这里设置为4m</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">if</span>=后面接上镜像文件的对应路径</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> of=后面接上原始字符设备的路径，因为上面是我们卸载之前是disk3s1，所以这里就是rdisk3</span></span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo dd bs=4m <span class="keyword">if</span>=(镜像存放路径)/XXX.img of=/dev/rdisk3</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 不放心可以在命令行末尾双击tab会出现类似下面的输出</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> rdisk3    rdisk3s1</span></span><br></pre></td></tr></table></figure>
-<p>回车开始烧录，这个过程按机器的差异时间会有所不同。烧录完成以后会出现下面的输出：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">443+0 records in</span><br><span class="line">443+0 records out</span><br><span class="line">1858076672 bytes transferred in 237.453302 secs (7825019 bytes/sec)</span><br></pre></td></tr></table></figure>
-<p>至此，树莓派系统的烧录工作就完成了。<strong>补充</strong>：为了方便以后的SSH连接树莓派，完成树莓派的系统烧录之后，先别着急推出SD，打开SD卡（通常在桌面），我们在系统目录下创建一个名为SSH（大写，没有文件后缀）的文件，以供树莓派开启SSH。</p>
+<p>首先在命令行我们使用命令df -h来显示目前的挂载情况<br>这里稍微补充一下Linux/UNIX下的磁盘的命名规则：<br>本人的mac只有一块磁盘就像下面的disk1，而后面的s1、s4则代表这块磁盘上的分区<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> df -h  <span class="comment"># 我只粘贴了有代表性的输出</span></span></span><br><span class="line">Filesystem                        Size   Used  Avail Capacity iused               ifree %iused  Mounted on</span><br><span class="line">/dev/disk1s1                     234Gi   99Gi  132Gi    43% 1230474 9223372036853545333    0%   /</span><br><span class="line">/dev/disk1s4                     234Gi  2.0Gi  132Gi     2%       2 9223372036854775805    0%   /private/var/vm</span><br><span class="line"><span class="meta">#</span><span class="bash"> 重点是下面这一个条</span></span><br><span class="line">/dev/disk3s1                      15Gi  2.4Mi   15Gi     1%       0                   0  100%   /Volumes/BOOT</span><br></pre></td></tr></table></figure><br>上面的disk3则是我们的SD的磁盘，并且，只有一个分区s1，我们还可以看到容量为15Gi就是我们预期的格式化好了之后的容量。当然，既然这里能够显示则说明，这些磁盘我们已经挂载好了。接下来首先需要取消挂载：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 千万注意一定要取消挂载正确的磁盘！不要把你的mac磁盘给取消挂载了：）</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 另外，请记住disk3s1这个名称，后面要用</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> diskutil unmount /dev/disk3s1</span></span><br><span class="line">Volume BOOT on disk3s1 unmounted</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个时候再df发现我们的SD已经不再显示里面了，说明卸载成功</span></span><br></pre></td></tr></table></figure><br>接下来进行正式的烧录，使用dd命令将系统镜像写入，需要特别特别注意disk后的数字，不能搞错！/dev/disk3s1是分区，/dev/disk3是块设备，/dev/rdisk3是原始字符设备<br>我们接下来就是要吧镜像烧录到原始字符设备<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 下面dd用于将系统镜像写入</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> bs代表了文件系统的页大小这里设置为4m</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">if</span>=后面接上镜像文件的对应路径</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> of=后面接上原始字符设备的路径，因为上面是我们卸载之前是disk3s1，所以这里就是rdisk3</span></span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo dd bs=4m <span class="keyword">if</span>=(镜像存放路径)/XXX.img of=/dev/rdisk3</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 不放心可以在命令行末尾双击tab会出现类似下面的输出</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> rdisk3    rdisk3s1</span></span><br></pre></td></tr></table></figure><br>回车开始烧录，这个过程按机器的差异时间会有所不同。烧录完成以后会出现下面的输出：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">443+0 records in</span><br><span class="line">443+0 records out</span><br><span class="line">1858076672 bytes transferred in 237.453302 secs (7825019 bytes/sec)</span><br></pre></td></tr></table></figure><br>至此，树莓派系统的烧录工作就完成了。<strong>补充</strong>：为了方便以后的SSH连接树莓派，完成树莓派的系统烧录之后，先别着急推出SD，打开SD卡（通常在桌面），我们在系统目录下创建一个名为SSH（大写，没有文件后缀）的文件，以供树莓派开启SSH。</p>
 <p>命令行下如何进入SD卡？所有挂载的外部设备都会在/Volumes下查创建对应的文件夹：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /Volumes</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls -l</span></span><br><span class="line">lrwxr-xr-x  1 root  wheel     1  4  8 10:59 Macintosh HD -&gt; /</span><br><span class="line">drwxr-xr-x+ 3 root  wheel    96 11 11 15:22 Preboot</span><br><span class="line">drwxrwxrwx@ 1 zhen  staff  2560  4 12 10:30 boot # 这个boot名称的设备就是SD卡</span><br></pre></td></tr></table></figure>
 <p>至此，系统初始化工作完全搞定。</p>
@@ -132,63 +234,207 @@
 <p>树莓派3B本身带有wifi模块，但是，如果要开启首先你需要进入系统进行配置：），所以最开始你需要有线连接树莓派</p>
 <p>理论上，mac在有以太网转雷电或者是转USB情况下，我们可以通过网线直连树莓派和mac，但是本身尝试了多次发现就是发现不了同一网段的树莓派（树莓派都给mac分配了IP地址了），猜测macOS High Serria安全性增强了？这个坑以后在研究一下，填了。</p>
 <p>另外一种是路由器组网方式<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/topology.png" alt="topology"><br>按照这样的连接，你的mac和树莓派都在同一网段中，同时你还可以登陆路由器的管理界面去查看树莓派分配到的IP地址，然后通过ssh连接树莓派。</p>
-<p>组网完成以后，登陆网关，找到设备管理（不同品牌的路由器界面不同，道理上类似）<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/alldevice.png" alt="alldevice"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/netgate.png" alt="netgate"><br>可以看到我们的树莓派已经分配到了IP，然后我们直接通过命令行登陆：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ssh pi@192.168.1.100</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意默认的用户名和密码分别为pi和raspberry</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 将树莓派加入到已识别的主机中</span></span><br><span class="line">The authenticity of host &#x27;192.168.1.100 (192.168.1.100)&#x27; can&#x27;t be established.</span><br><span class="line">ECDSA key fingerprint is SHA256:p1UPTb5aXIOUiiqdpdaP/e2MV+vbkZJVey0wCYOUEJE.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 输入密码，看到一堆信息之后，我们成功进入系统</span></span><br><span class="line">pi@raspberrypi:~ $</span><br></pre></td></tr></table></figure>
-<p>注意：由于我们使用的lite版的树莓派系统，vi使用过程中会出现上下左右方向键成为ABCD等字符，同时mac上的delete（windows上是backspace）都会失效，我们要进行如下的操作：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 1、编辑/etc/vim/vimrc.tiny</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo vi /etc/vim/vimrc.tiny</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 将 <span class="built_in">set</span> compatible 改为 <span class="built_in">set</span> nocompatible 这里解决方向键ABCD问题</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 2、依旧在该文件中添加 <span class="built_in">set</span> backspace=2 解决删除问题</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> :wq保存</span></span><br></pre></td></tr></table></figure>
-<p><strong>打开wifi模块</strong></p>
-<p>首先我们扫描当前环境中能够找到的wifi</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo iwlist wlan0 scan <span class="comment"># 此步骤非必须，如果你本来就知道wifi名称就可以不用扫描</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 如果当前环境中有很多会出现类似下面的格式的信息：</span></span><br><span class="line">Cell 10 - Address: 94:D9:B3:15:7F:28</span><br><span class="line">                    Channel:6</span><br><span class="line">                    Frequency:2.437 GHz (Channel 6)</span><br><span class="line">                    Quality=70/70  Signal level=-16 dBm</span><br><span class="line">                    Encryption key:on</span><br><span class="line">                    ESSID:&quot;210&quot;</span><br><span class="line">                    Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 6 Mb/s</span><br><span class="line">                              9 Mb/s; 12 Mb/s; 18 Mb/s</span><br><span class="line">                    Bit Rates:24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s</span><br><span class="line">                    Mode:Master</span><br><span class="line">...</span><br><span class="line"><span class="meta">#</span><span class="bash"> 我删除很多不重要的输出信息，这里重点看ESSID，这个就是wifi名称。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接下来我们需要在下面的文件中开启它：</span></span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo vi /etc/wpa_supplicant/wpa_supplicant.conf</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 添加如下的信息</span></span><br><span class="line">network=&#123;</span><br><span class="line">        ssid=&quot;你的Wi-Fi名称&quot;</span><br><span class="line">        psk=&quot;Wi-Fi密码&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 如果有多个wifi，你可以创建多个network</span></span><br></pre></td></tr></table></figure>
-<p>最后一步，首先请重启（$ sudo reboot）树莓派，然后拔掉网线，通过mac登陆网关，你会发现树莓派已经通过wifi连接到了。下面两款设备都是wifi连接的。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/twowifi.png" alt="twowifi"><br>此外，由于lite版本，树莓派不具备vim，所以需要我们手动下载：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 首先移除掉旧的vi</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get remove -y vim-common</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 然后安装vim</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get install -y vim</span></span><br></pre></td></tr></table></figure>
-<p>接下来在用户目录下打开（没有就创建）.vimrc，并添加如下的vim配置</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vim ~/.vimrc</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 添加：</span></span><br><span class="line">set nocompatible &quot;不兼容vi</span><br><span class="line">set nu &quot;显示行号</span><br><span class="line">set nowrap &quot;不自动折行</span><br><span class="line">set scrolloff=3 &quot;距离顶部底部3行</span><br><span class="line">hi MatchParen ctermbg=DarkRed guibg=lightblue</span><br><span class="line">set encoding=utf-8 &quot;编码方式</span><br><span class="line">set fenc=utf-8 &quot;存储时候的编码方式</span><br><span class="line">set hlsearch &quot;搜索高亮</span><br><span class="line">syntax on &quot;语法高亮</span><br><span class="line">set ts=4 &quot;一个tab长度为4</span><br><span class="line">set expandtab &quot;tab替换为空格（配合上面即一个tab四个空格）</span><br><span class="line">set autoindent &quot;自动缩进</span><br></pre></td></tr></table></figure>
-<p>至此，树莓派的初始环境已经OK！</p>
+<p>组网完成以后，登陆网关，找到设备管理（不同品牌的路由器界面不同，道理上类似）<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/alldevice.png" alt="alldevice"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/netgate.png" alt="netgate"><br>可以看到我们的树莓派已经分配到了IP，然后我们直接通过命令行登陆：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ssh pi@192.168.1.100</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意默认的用户名和密码分别为pi和raspberry</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 将树莓派加入到已识别的主机中</span></span><br><span class="line">The authenticity of host &#x27;192.168.1.100 (192.168.1.100)&#x27; can&#x27;t be established.</span><br><span class="line">ECDSA key fingerprint is SHA256:p1UPTb5aXIOUiiqdpdaP/e2MV+vbkZJVey0wCYOUEJE.</span><br><span class="line">Are you sure you want to continue connecting (yes/no)? yes</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 输入密码，看到一堆信息之后，我们成功进入系统</span></span><br><span class="line">pi@raspberrypi:~ $</span><br></pre></td></tr></table></figure><br>注意：由于我们使用的lite版的树莓派系统，vi使用过程中会出现上下左右方向键成为ABCD等字符，同时mac上的delete（windows上是backspace）都会失效，我们要进行如下的操作：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 1、编辑/etc/vim/vimrc.tiny</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo vi /etc/vim/vimrc.tiny</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 将 <span class="built_in">set</span> compatible 改为 <span class="built_in">set</span> nocompatible 这里解决方向键ABCD问题</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 2、依旧在该文件中添加 <span class="built_in">set</span> backspace=2 解决删除问题</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> :wq保存</span></span><br></pre></td></tr></table></figure><br><strong>打开wifi模块</strong></p>
+<p>首先我们扫描当前环境中能够找到的wifi<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo iwlist wlan0 scan <span class="comment"># 此步骤非必须，如果你本来就知道wifi名称就可以不用扫描</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 如果当前环境中有很多会出现类似下面的格式的信息：</span></span><br><span class="line">Cell 10 - Address: 94:D9:B3:15:7F:28</span><br><span class="line">                    Channel:6</span><br><span class="line">                    Frequency:2.437 GHz (Channel 6)</span><br><span class="line">                    Quality=70/70  Signal level=-16 dBm</span><br><span class="line">                    Encryption key:on</span><br><span class="line">                    ESSID:&quot;210&quot;</span><br><span class="line">                    Bit Rates:1 Mb/s; 2 Mb/s; 5.5 Mb/s; 11 Mb/s; 6 Mb/s</span><br><span class="line">                              9 Mb/s; 12 Mb/s; 18 Mb/s</span><br><span class="line">                    Bit Rates:24 Mb/s; 36 Mb/s; 48 Mb/s; 54 Mb/s</span><br><span class="line">                    Mode:Master</span><br><span class="line">...</span><br><span class="line"><span class="meta">#</span><span class="bash"> 我删除很多不重要的输出信息，这里重点看ESSID，这个就是wifi名称。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接下来我们需要在下面的文件中开启它：</span></span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo vi /etc/wpa_supplicant/wpa_supplicant.conf</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 添加如下的信息</span></span><br><span class="line">network=&#123;</span><br><span class="line">        ssid=&quot;你的Wi-Fi名称&quot;</span><br><span class="line">        psk=&quot;Wi-Fi密码&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 如果有多个wifi，你可以创建多个network</span></span><br></pre></td></tr></table></figure><br>最后一步，首先请重启（$ sudo reboot）树莓派，然后拔掉网线，通过mac登陆网关，你会发现树莓派已经通过wifi连接到了。下面两款设备都是wifi连接的。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-12-raspberry-system/twowifi.png" alt="twowifi"><br>此外，由于lite版本，树莓派不具备vim，所以需要我们手动下载：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 首先移除掉旧的vi</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get remove -y vim-common</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 然后安装vim</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo apt-get install -y vim</span></span><br></pre></td></tr></table></figure><br>接下来在用户目录下打开（没有就创建）.vimrc，并添加如下的vim配置<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vim ~/.vimrc</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 添加：</span></span><br><span class="line">set nocompatible &quot;不兼容vi</span><br><span class="line">set nu &quot;显示行号</span><br><span class="line">set nowrap &quot;不自动折行</span><br><span class="line">set scrolloff=3 &quot;距离顶部底部3行</span><br><span class="line">hi MatchParen ctermbg=DarkRed guibg=lightblue</span><br><span class="line">set encoding=utf-8 &quot;编码方式</span><br><span class="line">set fenc=utf-8 &quot;存储时候的编码方式</span><br><span class="line">set hlsearch &quot;搜索高亮</span><br><span class="line">syntax on &quot;语法高亮</span><br><span class="line">set ts=4 &quot;一个tab长度为4</span><br><span class="line">set expandtab &quot;tab替换为空格（配合上面即一个tab四个空格）</span><br><span class="line">set autoindent &quot;自动缩进</span><br></pre></td></tr></table></figure><br>至此，树莓派的初始环境已经OK！</p>
+
+    </div>
 
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/Raspberry/" rel="tag"># Raspberry</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
+        
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/12/2018-04-12-%E6%A0%91%E8%8E%93%E6%B4%BE3B%E6%90%AD%E5%BB%BANODE-RED%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E5%B9%B6%E8%BF%9B%E8%A1%8C%E5%9F%BA%E7%A1%80%E7%BB%83%E4%B9%A0/" rel="prev" title="树莓派3B搭建NODE-RED运行环境并构建数据流">
+      <i class="fa fa-chevron-left"></i> 树莓派3B搭建NODE-RED运行环境并构建数据流
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/18/2018-04-18-Linux%E4%B8%8Biptables%E7%AC%94%E8%AE%B0/" rel="next" title="Linux下iptables学习笔记">
+      Linux下iptables学习笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

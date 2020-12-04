@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Electron+Vue+ElementUI开发环境搭建 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="w4ngzhen" />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="Node环境搭建本文假定你完成了nodejs的环境基础搭建：镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量 12345678910 $ node -v v12.18.1 $ npm -v 6.14.5 $ yarn -v 1.22.4  $ npm list -g --depth 0 +-- hexo@4.2.1 &#x2F;&#x2F; 忽略He">
 <meta property="og:type" content="article">
@@ -23,177 +28,415 @@
 <meta property="og:description" content="Node环境搭建本文假定你完成了nodejs的环境基础搭建：镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量 12345678910 $ node -v v12.18.1 $ npm -v 6.14.5 $ yarn -v 1.22.4  $ npm list -g --depth 0 +-- hexo@4.2.1 &#x2F;&#x2F; 忽略He">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-08-07T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.496Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.203Z">
 <meta property="article:author" content="w4ngzhen">
 <meta name="twitter:card" content="summary">
 
+<link rel="canonical" href="http://compilemind.com/2020/08/08/2020-08-08-Electron+Vue+ElementUI%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Electron+Vue+ElementUI开发环境搭建 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Node%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">Node环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#vue%E8%84%9A%E6%89%8B%E6%9E%B6%E5%AE%89%E8%A3%85"><span class="toc-text">vue脚手架安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96Electron%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="toc-text">初始化Electron项目结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%90%E8%A1%8CElectron-Vue%E7%A4%BA%E4%BE%8B"><span class="toc-text">运行Electron-Vue示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E5%85%A5ElementUI"><span class="toc-text">引入ElementUI</span></a></li></ol>
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
 
 
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-<div class="content content-post CENTER">
-   <article id="post-2020-08-08-Electron+Vue+ElementUI开发环境搭建" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Electron+Vue+ElementUI开发环境搭建</h1>
+          <div class="content post posts-expand">
+            
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2020.08.08</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
-
-      
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
     
-      <h2 id="Node环境搭建"><a href="#Node环境搭建" class="headerlink" title="Node环境搭建"></a>Node环境搭建</h2><p>本文假定你完成了nodejs的环境基础搭建：<br>镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"> $</span><span class="bash"> node -v</span></span><br><span class="line"> v12.18.1</span><br><span class="line"><span class="meta"> $</span><span class="bash"> npm -v</span></span><br><span class="line"> 6.14.5</span><br><span class="line"><span class="meta"> $</span><span class="bash"> yarn -v</span></span><br><span class="line"> 1.22.4</span><br><span class="line"> </span><br><span class="line"><span class="meta"> $</span><span class="bash"> npm list -g --depth 0</span></span><br><span class="line"> +-- hexo@4.2.1 // 忽略Hexo，本人写博用的</span><br><span class="line">`-- yarn@1.22.4</span><br></pre></td></tr></table></figure>
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2020/08/08/2020-08-08-Electron+Vue+ElementUI%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/">
 
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Electron+Vue+ElementUI开发环境搭建
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-08-08 00:00:00" itemprop="dateCreated datePublished" datetime="2020-08-08T00:00:00+08:00">2020-08-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Node环境搭建"><a href="#Node环境搭建" class="headerlink" title="Node环境搭建"></a>Node环境搭建</h2><p>本文假定你完成了nodejs的环境基础搭建：<br>镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"> $</span><span class="bash"> node -v</span></span><br><span class="line"> v12.18.1</span><br><span class="line"><span class="meta"> $</span><span class="bash"> npm -v</span></span><br><span class="line"> 6.14.5</span><br><span class="line"><span class="meta"> $</span><span class="bash"> yarn -v</span></span><br><span class="line"> 1.22.4</span><br><span class="line"> </span><br><span class="line"><span class="meta"> $</span><span class="bash"> npm list -g --depth 0</span></span><br><span class="line"> +-- hexo@4.2.1 // 忽略Hexo，本人写博用的</span><br><span class="line">`-- yarn@1.22.4</span><br></pre></td></tr></table></figure>
 <h2 id="vue脚手架安装"><a href="#vue脚手架安装" class="headerlink" title="vue脚手架安装"></a>vue脚手架安装</h2><p>为了更加便捷的创建一个vue项目，我们安装脚手架@vue/cli和@vue/init（vue-cli已经deprecated了）。之所以要安装@vue/init，是因为@vue/cli是3的版本，创建项目使用命令<strong>vue create app-name</strong>，且无法暂时无法使用模板，但是下文要用electron-vue模板进行创建，还是需要vue2的init命令来通过指定模板创建项目，为了兼容vue2的init特性，官方提供@vue/init作为桥接方式。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm install -g @vue/cli</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> npm install -g @vue/cli-init</span></span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> npm list -g --depth 0</span></span><br><span class="line">+-- @vue/cli@4.4.6</span><br><span class="line">+-- @vue/cli-init@4.4.6</span><br><span class="line">+-- hexo@4.2.1</span><br><span class="line">`-- yarn@1.22.4</span><br><span class="line"></span><br><span class="line">关于init说明：</span><br><span class="line">vue init [options] &lt;template&gt; &lt;app-name&gt;       generate a project from a remote template (legacy API, requires @vue/cli-init)</span><br></pre></td></tr></table></figure>
-
 <p>至此，你可以使用如下的形式，利用vue脚手架结合模板（template）来初始化你的vue项目（app-name）结构</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vue init [options] &lt;template&gt; &lt;app-name&gt;</span><br></pre></td></tr></table></figure>
-
 <h2 id="初始化Electron项目结构"><a href="#初始化Electron项目结构" class="headerlink" title="初始化Electron项目结构"></a>初始化Electron项目结构</h2><p>在指定的目录下，我们使用如下的命令进行electron-vue的项目初始化：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash">  vue init simulatedgreg/electron-vue electron-vue-demo</span></span><br></pre></td></tr></table></figure>
-
 <p>然而，这个过程很慢，甚至卡住不动。原因是指定模板进行创建时，会拉取github上的仓库进行模板初始化。幸运的是vue提供模板离线初始化的功能。</p>
 <p>下载模板源码</p>
 <p><a target="_blank" rel="noopener" href="https://github.com/SimulatedGREG/electron-vue">https://github.com/SimulatedGREG/electron-vue</a></p>
 <p>下载后解压存放在 <strong>用户目录/.vue-templates/</strong> 下（没有就创建，注意复数s），形成如下的结构：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;home目录&#125;&#x2F;</span><br><span class="line">  .vue-templates&#x2F;</span><br><span class="line">     electron-vue-master&#x2F;（目录名随便，但是在待会儿init指定的时候需要一致）</span><br><span class="line">       .github&#x2F;</span><br><span class="line">       template&#x2F;</span><br><span class="line">       ....</span><br></pre></td></tr></table></figure>
-
 <p>之后就可以使用离线（offline）模式创建：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vue init --offline electron-vue-master electron-vue-demo # 名称和上述文件夹名称一致即可</span><br></pre></td></tr></table></figure>
-
 <p>之后就是按照向导进行创建工作：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">$ vue init --offline electron-vue-master electron-vue-demo</span><br><span class="line">&gt; Use cached template at ~\.vue-templates\electron-vue-master</span><br><span class="line"></span><br><span class="line">? Application Name electron-vue-demo（项目名）</span><br><span class="line">? Application Id com.compilemind（Id，这里本人使用了自己的域名）</span><br><span class="line">? Application Version 0.0.1（版本）</span><br><span class="line">? Project description electron vue demo（描述）</span><br><span class="line">? Use Sass / Scss? No（是否使用Sass/Scss编译器）</span><br><span class="line">? Select <span class="built_in">which</span> Vue plugins to install (Press &lt;space&gt; to select, &lt;a&gt; to toggle all, &lt;i&gt; to invert selection)</span><br><span class="line">axios, vue-el, ectron, vue-router, vuex, vuex-electron（插件包）</span><br><span class="line">? Use linting with ESLint? Yes（启用ESlint）</span><br><span class="line">? Which ESLint config would you like to use? Standard（ESLint配置）</span><br><span class="line">? Set up unit testing with Karma + Mocha? No（测试模块）</span><br><span class="line">? Set up end-to-end testing with Spectron + Mocha? No（测试模块）</span><br><span class="line">? What build tool would you like to use? builder <span class="comment"># 这里我们使用electron-builder构建可执行程序</span></span><br><span class="line">? author w4ngzhen &lt;w4ngzhen@hotmail.com&gt;</span><br><span class="line"></span><br><span class="line">   vue-cli · Generated <span class="string">&quot;electron-vue-demo&quot;</span>.</span><br></pre></td></tr></table></figure>
-
 <h2 id="运行Electron-Vue示例"><a href="#运行Electron-Vue示例" class="headerlink" title="运行Electron-Vue示例"></a>运行Electron-Vue示例</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ cd electron-vue-demo</span><br><span class="line">$ yarn (or &#96;npm install&#96;)</span><br><span class="line">$ yarn run dev (or &#96;npm run dev&#96;)</span><br></pre></td></tr></table></figure>
-
 <p>在install的过程中，我们会看到如下一段console输出：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> electron@2.0.18 postinstall D:\Projects\electron-vue-demo\node_modules\electron</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> node install.js</span></span><br><span class="line"></span><br><span class="line">Downloading electron-v2.0.18-win32-x64.zip</span><br><span class="line">[==========================================&gt;  ] 97.0% of 50.7 MB (2.77 MB/s)</span><br></pre></td></tr></table></figure>
-
 <p>可以注意到electron的node包安装完成后，配置了postinstall（安装完成后调用的脚本），该脚本执行其内部install.js脚本后，开始下载electron的二进制的文件。</p>
 <p>首先为什么会有这个额外下载的过程呢？在本人看来，electron是基于Chromium内核的跨平台客户端解决方案（本人另一篇文章正好进行了CefSharp的封装工作），既然涉及到跨平台，而不同平台的底层实现必然有所差异，那么electron项目通过自己去实现跨平台，封装底层逻辑，让我们不关心底层的实现，而是专心于前端的开发，封装成果就是上述的electron-v2.0.18-win32-x64.zip内容。这里因为我们调试和构建的时候，就需要运行时，所以electron根据我们的当前的平台，去下载了对应已经完成针对平台编译封装的二进制内容。</p>
 <p>为什么要下载的问题搞明白了，接下来我们要看看如何去下载。有些朋友可能会发现，自己在进行electron二进制包下载的时候，速度慢的离谱。为什么这么慢？我会过一两天对下载的脚本一探究竟（时间有限，过两天写）</p>
 <p>现阶段我们需要在.npmrc文件中增加一行配置，让electron下载二进制文件的时候从指定的地方下载：</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ELECTRON_MIRROR=http://npm.taobao.org/mirrors/electron/</span><br></pre></td></tr></table></figure>
-
 <p>完成后，我们在install会发现有明显的提升。完成node包的install后，我们运行命令</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm run dev</span></span><br></pre></td></tr></table></figure>
-
 <p>启动后会发现客户端能够运行起来（即主进程能够运行），但是渲染进程报错：</p>
 <p><strong>Webpack ReferenceError:process is not defined</strong>，官方ISSUE已经存在该条：<a target="_blank" rel="noopener" href="https://github.com/SimulatedGREG/electron-vue/issues/871">ISSUE</a></p>
 <p>解决方案为：移除src\index.ejs中的该段代码，详细原因可以看ISSUE。</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// src\index.ejs</span></span><br><span class="line">    &lt;% <span class="keyword">if</span> (!process.browser) &#123; %&gt;</span><br><span class="line">      &lt;script&gt;</span><br><span class="line">        <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">&#x27;development&#x27;</span>) <span class="built_in">window</span>.__static = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>).join(__dirname, <span class="string">&#x27;/static&#x27;</span>).replace(<span class="regexp">/\\/g</span>, <span class="string">&#x27;\\\\&#x27;</span>)</span><br><span class="line">      &lt;/script&gt;</span><br><span class="line">    &lt;% &#125; %&gt;</span><br></pre></td></tr></table></figure>
-
 <p>移除后，再次运行可以看到渲染成功的界面。</p>
 <h2 id="引入ElementUI"><a href="#引入ElementUI" class="headerlink" title="引入ElementUI"></a>引入ElementUI</h2><p>引入ElementUI相关包</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install element-ui -S</span><br></pre></td></tr></table></figure>
 <p>在渲染进程模块的main.js中加入ElementUI组件</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> ElementUI <span class="keyword">from</span> <span class="string">&#x27;element-ui&#x27;</span> </span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;element-ui/lib/theme-chalk/index.css&#x27;</span> </span><br><span class="line">...</span><br><span class="line">Vue.use(ElementUI)</span><br></pre></td></tr></table></figure>
-
 <p>完成配置以后，我们就可以按照以往的方式进行前端的开发了。</p>
 
+    </div>
+
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
+        
 
 
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/06/2020-06-06-CefSharp%E5%9F%BA%E4%BA%8E.Net%20Framework%204.0%20%E6%A1%86%E6%9E%B6%E7%BC%96%E8%AF%91/" rel="prev" title="CefSharp基于.Net Framework 4.0 框架编译">
+      <i class="fa fa-chevron-left"></i> CefSharp基于.Net Framework 4.0 框架编译
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/08/23/2020-08-23-CefSharp%E8%B5%84%E6%BA%90%E6%8B%A6%E6%88%AA%E5%A4%84%E7%90%86/" rel="next" title="CefSharp请求资源拦截及自定义处理">
+      CefSharp请求资源拦截及自定义处理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Node%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">Node环境搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#vue%E8%84%9A%E6%89%8B%E6%9E%B6%E5%AE%89%E8%A3%85"><span class="nav-number">2.</span> <span class="nav-text">vue脚手架安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96Electron%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">初始化Electron项目结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8CElectron-Vue%E7%A4%BA%E4%BE%8B"><span class="nav-number">4.</span> <span class="nav-text">运行Electron-Vue示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%95%E5%85%A5ElementUI"><span class="nav-number">5.</span> <span class="nav-text">引入ElementUI</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

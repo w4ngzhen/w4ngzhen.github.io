@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言在2月份的时候，我之前曾经写过一篇关于Windows消息与C# WinForm事件机制的文章，名为《WinForm事件与消息》。在那篇文章中，我简单探讨了一下事件和消息。然而如今看来，当时的文章中的案例在运行上存在一定的问题，并且内容也有所缺陷，于是本文将重新优化文章的内容。 消息概述Windows下窗体应用程序的执行是通过消息驱动的。所有的外部事件，如键盘输入、鼠标移动、按动鼠标都由用户所触">
+<meta property="og:type" content="article">
+<meta property="og:title" content="再议Windows消息与WinForm事件">
+<meta property="og:url" content="http://compilemind.com/2020/10/13/2020-10-13-%E5%86%8D%E8%AE%AEWindows%E6%B6%88%E6%81%AF%E4%B8%8EWinForm%E4%BA%8B%E4%BB%B6/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="前言在2月份的时候，我之前曾经写过一篇关于Windows消息与C# WinForm事件机制的文章，名为《WinForm事件与消息》。在那篇文章中，我简单探讨了一下事件和消息。然而如今看来，当时的文章中的案例在运行上存在一定的问题，并且内容也有所缺陷，于是本文将重新优化文章的内容。 消息概述Windows下窗体应用程序的执行是通过消息驱动的。所有的外部事件，如键盘输入、鼠标移动、按动鼠标都由用户所触">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-10-12T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-10-13T08:00:59.084Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="WinForm">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://compilemind.com/2020/10/13/2020-10-13-%E5%86%8D%E8%AE%AEWindows%E6%B6%88%E6%81%AF%E4%B8%8EWinForm%E4%BA%8B%E4%BB%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>再议Windows消息与WinForm事件 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2020/10/13/2020-10-13-%E5%86%8D%E8%AE%AEWindows%E6%B6%88%E6%81%AF%E4%B8%8EWinForm%E4%BA%8B%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          再议Windows消息与WinForm事件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2020-10-13 00:00:00 / Modified: 16:00:59" itemprop="dateCreated datePublished" datetime="2020-10-13T00:00:00+08:00">2020-10-13</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>在2月份的时候，我之前曾经写过一篇关于Windows消息与C# WinForm事件机制的文章，名为《WinForm事件与消息》。在那篇文章中，我简单探讨了一下事件和消息。然而如今看来，当时的文章中的案例在运行上存在一定的问题，并且内容也有所缺陷，于是本文将重新优化文章的内容。</p>
+<h1 id="消息概述"><a href="#消息概述" class="headerlink" title="消息概述"></a>消息概述</h1><p>Windows下窗体应用程序的执行是通过消息驱动的。所有的外部事件，如键盘输入、鼠标移动、按动鼠标都由用户所触发；然后OS接收到对应的“消息”；然后送入消息队列中；接下来，启动的应用程序的工作引擎通过轮询等方式遍历获取，然后按照消息的类型逐个分发（Dispatch）到对应的组件（例如窗体、按钮等），最后才调用对应组件所注册的事件进行处理。</p>
+<h1 id="处理消息"><a href="#处理消息" class="headerlink" title="处理消息"></a>处理消息</h1><p>一般来说，使用WinForm技术进行开发，绝大部分的情况下，我们都在做上述流程的最后一件事情：给各种控件注册事件。毕竟，WinForm真的为我们封装了绝大部分的事件了。而通常的WinForm开发，我们都离不开一个东西：System.Windows.Forms.Application。</p>
+<h2 id="System-Windows-Forms-Application"><a href="#System-Windows-Forms-Application" class="headerlink" title="System.Windows.Forms.Application"></a>System.Windows.Forms.Application</h2><p>Application具有用于启动和停止应用程序和线程以及处理Windows消息的方法。例如，调用Run以启动当前线程上的应用程序消息循环，并可以选择使其窗体可见；调用Exit或ExitThread来停止消息循环。所以我们经常使用vs初始化一个基本的WinForm程序，显示的下列模板代码：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;summary&gt;</span></span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> 应用程序的主入口点。</span></span><br><span class="line"><span class="comment"><span class="doctag">///</span> <span class="doctag">&lt;/summary&gt;</span></span></span><br><span class="line">[<span class="meta">STAThread</span>]</span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">Main</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Application.EnableVisualStyles();</span><br><span class="line">    Application.SetCompatibleTextRenderingDefault(<span class="literal">false</span>);</span><br><span class="line">    Application.Run(<span class="keyword">new</span> Form1()); <span class="comment">// 调用Run以启动当前线程上的应用程序消息循环</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为Application是在单线程中运行的，所以在Application.Run开始后，Application本身不断轮询检查消息队列，然后根据消息类型进行数据分发。例如，当我们为这个Form1增加一个鼠标的点击事件后，我们运行该打开Form1：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Form1 form1 = <span class="keyword">new</span> Form1();</span><br><span class="line">form1.MouseClick += </span><br><span class="line">                (sender, e) =&gt; MessageBox.Show(<span class="string">@&quot;MouseClick 1&quot;</span>);</span><br><span class="line">form1.MouseClick += </span><br><span class="line">                (sender, e) =&gt; MessageBox.Show(<span class="string">@&quot;MouseClick 2&quot;</span>);</span><br><span class="line">Application.Run(form1);</span><br></pre></td></tr></table></figure>
+<p>运行后点击Form，可以看到首先出现一个MessageBox，展示“MouseClick 1”，我们点击确定后，又会出现MessageBox，展示“MouseClick 2”。实际上整个过程应该如下：</p>
+<p>当我们按下鼠标左键后，消息形成并送往应用程序消息队列中，然后被Application类从应用程序消息队列中取出，然后分发到相应的窗体。窗体使用MouseClick事件中的函数指针调用已经添加的响应函数。所以C#中的事件字段实质上是一个函数指针列表，用来维护一些消息到达时的响应函数的地址。</p>
+<p>到目前为止我们可以看到，消息其实在我们进行事件调用的时候，已经被提取加工了，它已经由Application进行了预处理，形成了所谓的“事件调用”。那么，我们还能更加自定义的干预消息吗？答案是可以的。</p>
+<h2 id="WndProc"><a href="#WndProc" class="headerlink" title="WndProc"></a>WndProc</h2><p>在.NET框架类库中的System.Windows.Forms命名空间中微软采用面对对象的方式重新定义了Message。该消息主要有一下的几个公共属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">System.Windows.Forms.Message</span><br><span class="line">HWnd     获取或设定消息的处理函数</span><br><span class="line">Msg      获取或设定消息的ID号</span><br><span class="line">Lparam   指定消息的LParam字段</span><br><span class="line">Wparam   指定消息的WParam字段</span><br><span class="line">Result   指定为响应消息处理函数而向OS系统返回的值</span><br></pre></td></tr></table></figure>
+<h3 id="WndProc-1"><a href="#WndProc-1" class="headerlink" title="WndProc"></a>WndProc</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;</span><br><span class="line"> &#x2F;&#x2F; 摘要:</span><br><span class="line">&#x2F;&#x2F;     处理 Windows 消息。</span><br><span class="line">&#x2F;&#x2F;</span><br><span class="line">&#x2F;&#x2F; 参数:</span><br><span class="line">&#x2F;&#x2F;   m:</span><br><span class="line">&#x2F;&#x2F;     要处理的 Windows System.Windows.Forms.Message。</span><br><span class="line">protected override void WndProc(ref System.Windows.Forms.Message e);</span><br></pre></td></tr></table></figure>
+<p>对于每个Form来说，我们都可以重写该方法，该方法的参数就是上面提到的Message类的实例，所有的消息在被获取后，正常情况下都会被封装为Message对象，然后由Application工作引擎调用对用的Form.WndProc传入该Messsage，由于Form子类重写了该方法，所以如果希望底层能处理相关的消息，需要通过base.WndProc传递到父类继续调用。下面就是一个代码示例来展示控制如果当前的消息是鼠标左键点击，则弹出MessageBox展示“WndProc MouseClick”：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="title">WndProc</span>(<span class="params"><span class="keyword">ref</span> Message m</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> WM_LBUTTONDOWN = <span class="number">0x0201</span>;<span class="comment">// 鼠标左键点击</span></span><br><span class="line">    <span class="keyword">if</span> (m.Msg == WM_LBUTTONDOWN)</span><br><span class="line">    &#123;</span><br><span class="line">        MessageBox.Show(<span class="string">&quot;WndProc MouseClick&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">base</span>.WndProc(<span class="keyword">ref</span> m);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="IMessageFilter"><a href="#IMessageFilter" class="headerlink" title="IMessageFilter"></a>IMessageFilter</h3><p>除了上述的WndProc之外，其实更加便于处理应该的实现IMessageFilter接口，然后让Application将实现该接口的消息过滤器添加到Application中：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">MyMessageFilter</span> : <span class="title">IMessageFilter</span></span><br><span class="line"> &#123;</span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">bool</span> <span class="title">PreFilterMessage</span>(<span class="params"><span class="keyword">ref</span> Message m</span>)</span></span><br><span class="line"><span class="function"></span>     &#123;</span><br><span class="line">         <span class="comment">//返回值为true， 表示消息已被处理，不要再往后传递，因此消息被截获</span></span><br><span class="line">         <span class="comment">//返回值为false，表示消息未被处理，需要再往后传递，因此消息未被截获</span></span><br><span class="line">         <span class="keyword">const</span> <span class="keyword">int</span> WM_LBUTTONDOWN = <span class="number">0x0201</span>;<span class="comment">// 鼠标左键点击</span></span><br><span class="line">         <span class="keyword">if</span> (m.Msg == WM_LBUTTONDOWN)</span><br><span class="line">         &#123;</span><br><span class="line">             MessageBox.Show(<span class="string">&quot;MyMessageFilter MouseClick&quot;</span>);</span><br><span class="line">             <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">         &#125;</span><br><span class="line">         <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>编写完成后，在应用程序初始化的过程中，添加该过滤器：</p>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Application.AddMessageFilter(<span class="keyword">new</span> MyMessageFilter());</span><br></pre></td></tr></table></figure>
+<p>同样的，我们启动应用程序并点击实验，可以看到正常的MessageBox输出。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/WinForm/" rel="tag"># WinForm</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/08/23/2020-08-29-S_%E5%9E%8B%E6%96%87%E6%B3%95%E5%88%B0q_%E5%9E%8B%E6%96%87%E6%B3%95%E5%86%8D%E5%88%B0LL(1)%E5%9E%8B%E6%96%87%E6%B3%95%E6%BC%94%E8%BF%9B%E7%AC%94%E8%AE%B0/" rel="prev" title="S_型文法到q_型文法再到LL(1)型文法演进笔记">
+      <i class="fa fa-chevron-left"></i> S_型文法到q_型文法再到LL(1)型文法演进笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/27/2020-11-27-node-pre-gyp%E4%BB%A5%E5%8F%8Anode-gyp%E7%9A%84%E6%BA%90%E7%A0%81%E7%AE%80%E5%8D%95%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BB%A5%E5%AE%89%E8%A3%85sqlite3%E4%B8%BA%E4%BE%8B%EF%BC%89/" rel="next" title="node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例）">
+      node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E6%A6%82%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">消息概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E6%B6%88%E6%81%AF"><span class="nav-number">3.</span> <span class="nav-text">处理消息</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Windows-Forms-Application"><span class="nav-number">3.1.</span> <span class="nav-text">System.Windows.Forms.Application</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WndProc"><span class="nav-number">3.2.</span> <span class="nav-text">WndProc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WndProc-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">WndProc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IMessageFilter"><span class="nav-number">3.2.2.</span> <span class="nav-text">IMessageFilter</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

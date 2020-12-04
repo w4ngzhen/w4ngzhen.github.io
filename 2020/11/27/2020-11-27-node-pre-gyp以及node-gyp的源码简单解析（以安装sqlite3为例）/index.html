@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C&#x2F;C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。 项目建立建立一个简单的node项目，我们开始安装SQLite3 1234567891011121">
+<meta property="og:type" content="article">
+<meta property="og:title" content="node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例）">
+<meta property="og:url" content="http://compilemind.com/2020/11/27/2020-11-27-node-pre-gyp%E4%BB%A5%E5%8F%8Anode-gyp%E7%9A%84%E6%BA%90%E7%A0%81%E7%AE%80%E5%8D%95%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BB%A5%E5%AE%89%E8%A3%85sqlite3%E4%B8%BA%E4%BE%8B%EF%BC%89/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="前言简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C&#x2F;C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。 项目建立建立一个简单的node项目，我们开始安装SQLite3 1234567891011121">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/hosted_tarball_download.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/analysis_hosted_path.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/opts.hosted_path-analysis.png">
+<meta property="og:image" content="c:/Users/w4ngzhen/AppData/Roaming/Typora/typora-user-images/image-20201204101751333.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/sqlite3-binary.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/opts.package_name-analysis.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/gyp-from-install.png">
+<meta property="og:image" content="c:/Users/w4ngzhen/AppData/Roaming/Typora/typora-user-images/image-20201204124050917.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/build-buildjs.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/do_build-buildjs.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/run-gyp.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-gyp-GYP.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-gyp-build-flow.png">
+<meta property="article:published_time" content="2020-11-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2020-12-04T08:14:12.398Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="node">
+<meta property="article:tag" content="native">
+<meta property="article:tag" content="sqlite3">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/hosted_tarball_download.png">
+
+<link rel="canonical" href="http://compilemind.com/2020/11/27/2020-11-27-node-pre-gyp%E4%BB%A5%E5%8F%8Anode-gyp%E7%9A%84%E6%BA%90%E7%A0%81%E7%AE%80%E5%8D%95%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BB%A5%E5%AE%89%E8%A3%85sqlite3%E4%B8%BA%E4%BE%8B%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例） | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2020/11/27/2020-11-27-node-pre-gyp%E4%BB%A5%E5%8F%8Anode-gyp%E7%9A%84%E6%BA%90%E7%A0%81%E7%AE%80%E5%8D%95%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BB%A5%E5%AE%89%E8%A3%85sqlite3%E4%B8%BA%E4%BE%8B%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例）
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-11-27 00:00:00" itemprop="dateCreated datePublished" datetime="2020-11-27T00:00:00+08:00">2020-11-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-12-04 16:14:12" itemprop="dateModified" datetime="2020-12-04T16:14:12+08:00">2020-12-04</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C/C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。</p>
+<h1 id="项目建立"><a href="#项目建立" class="headerlink" title="项目建立"></a>项目建立</h1><p>建立一个简单的node项目，我们开始安装<code>SQLite3</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir sqlite3-install-demo </span><br><span class="line">$ <span class="built_in">cd</span> sqlite3-install-demo</span><br><span class="line">$ npm init</span><br><span class="line"><span class="comment"># 初始化项目</span></span><br><span class="line">Press ^C at any time to quit.</span><br><span class="line">package name: (projects) sqlite3-install-demo</span><br><span class="line">version: (1.0.0)</span><br><span class="line">description:</span><br><span class="line">entry point: (index.js)</span><br><span class="line"><span class="built_in">test</span> <span class="built_in">command</span>:</span><br><span class="line">git repository:</span><br><span class="line">keywords:</span><br><span class="line">author:</span><br><span class="line">license: (ISC) MIT</span><br><span class="line">About to write to D:\Projects\package.json:</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;name&quot;</span>: <span class="string">&quot;sqlite3-install-demo&quot;</span>,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: <span class="string">&quot;1.0.0&quot;</span>,</span><br><span class="line">  <span class="string">&quot;description&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">  <span class="string">&quot;main&quot;</span>: <span class="string">&quot;index.js&quot;</span>,</span><br><span class="line">  <span class="string">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;test&quot;</span>: <span class="string">&quot;echo \&quot;Error: no test specified\&quot; &amp;&amp; exit 1&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">&quot;author&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">  <span class="string">&quot;license&quot;</span>: <span class="string">&quot;MIT&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="安装SQLite3"><a href="#安装SQLite3" class="headerlink" title="安装SQLite3"></a>安装<code>SQLite3</code></h1><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -S sqlite3</span><br></pre></td></tr></table></figure>
+<p>完成命令执行后，你会看到命令行界面出现了如下的几行<strong>重要</strong>的输出：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">&gt; sqlite3@5.0.0 install D:\Projects\sqlite3-install-demo\node_modules\sqlite3</span><br><span class="line">&gt; node-pre-gyp install --fallback-to-build</span><br><span class="line"></span><br><span class="line">node-pre-gyp WARN Using request <span class="keyword">for</span> node-pre-gyp https download</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>啪一下，很快啊！我们就迎来了第一个东西<code>node-pre-gyp</code>，但是提到了<code>node-pre-gyp</code>，我们不得不提及<code>node-gyp</code>，然后又不得不提及<code>gyp</code>。</p>
+<h1 id="gyp与node-gyp与node-pre-gyp"><a href="#gyp与node-gyp与node-pre-gyp" class="headerlink" title="gyp与node-gyp与node-pre-gyp"></a>gyp与node-gyp与node-pre-gyp</h1><h2 id="什么是gyp？"><a href="#什么是gyp？" class="headerlink" title="什么是gyp？"></a>什么是gyp？</h2><p>gyp全称<code>Generate Your Projects</code>（构建你的项目）。wiki的解释如下，自行翻译：</p>
+<blockquote>
+<p>GYP (generate your projects) is a build automation tool. GYP was created by Google to generate native IDE project files (such as Visual Studio Code and Xcode) for building the Chromium web browser and is licensed as open source software using the BSD software license.</p>
+</blockquote>
+<p>重点在于，它是一套用于生成原生IDE项目文件的自动化构建工具，处理C/C++项目，同类型的有CMake、ninja等自动构建工具。</p>
+<h2 id="什么是node-gyp？"><a href="#什么是node-gyp？" class="headerlink" title="什么是node-gyp？"></a>什么是node-gyp？</h2><p>直接给出<code>stackoverflow</code>高票回答：</p>
+<blockquote>
+<p><code>node-gyp</code> is a tool which compiles Node.js Addons. Node.js Addons are native Node.js Modules, written in C or C++, which therefore need to be compiled on your machine. After they are compiled with tools like node-gyp, their functionality can be accessed via <code>require()</code>, just as any other Node.js Module.</p>
+</blockquote>
+<p>简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C/C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。那么我们需要下载源码文件，通过node-gyp生成一定结构的代码项目让我们能够<code>require</code>引入（譬如，Windows下会生成<code>vcxproj</code>，再调用<code>MSBuild</code>进行编译，以生成Windows下的动态链接库，最后打包为一个原生node模块）。这个知乎回答的每一条可以看看：<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/36291768">传送门</a>。</p>
+<h2 id="什么是node-pre-gyp？"><a href="#什么是node-pre-gyp？" class="headerlink" title="什么是node-pre-gyp？"></a>什么是node-pre-gyp？</h2><p>上面<code>node-gyp</code>固然相当方便了，但是每一次安装node原生模块的时候，都需要根据平台（Windows、Linux、macOS以及对应的x86、x64、arm64等等）进行源码编译，这样做费时费力。为什么不一开始就针对这些平台编译好了做成二进制制品发布呢？反正一般来说主流的平台架构就那么一些（Windows、Linux、macOS）。所以<code>node-pre--gyp</code>就帮我们做了这件事。原生模块开发者将代码编译生成各个平台架构的二进制包直接发布到<code>node-pre-gyp</code>上，当我们的node项目安装原生模块时候。处理流程就是首先去<code>node-pre-gyp</code>上找有没有当前平台的组件包，有的话直接拉取使用，如果没有则进行原生编译。</p>
+<p><code>node-pre-gyp</code>一些<strong>重要参数</strong>（不全）：</p>
+<ul>
+<li><code>-C/--directory</code>: run the command in this directory</li>
+<li><code>--build-from-source</code>: build from source instead of using pre-built binary</li>
+<li><code>--fallback-to-build</code>: fallback to building from source if pre-built binary is not available</li>
+<li><code>--target=0.4.0</code>: Pass the target node or node-webkit version to compile against</li>
+<li><code>--target_arch=ia32</code>: Pass the target arch and override the host <code>arch</code>. Valid values are ‘ia32’,’x64’, or <code>arm</code>.</li>
+<li><code>--target_platform=win32</code>: Pass the target platform and override the host <code>platform</code>. Valid values are <code>linux</code>, <code>darwin</code>, <code>win32</code>, <code>sunos</code>, <code>freebsd</code>, <code>openbsd</code>, and <code>aix</code>.</li>
+</ul>
+<p>对于<code>--fallback-to-build</code>这个参数：如果二进制不可获取则直接从源码编译，即从<code>node-pre-gyp</code>又回到<code>node-gyp</code>。所以你才会在上文看到安装sqlite3的时候，会有<code>--fallback-to-build</code>。</p>
+<p>于是乎，当我们进行node原生模块安装的时候，一般会有如下的流程：</p>
+<ol>
+<li>针对当前平台架构优先考虑<code>node-pre-gyp</code>方式进行安装，但是为了防止无法获取针对对应平台编译好的二进制包（网络原因、暂时没有对应平台的二进制包），进入第2步；</li>
+<li>下载原生模块源码，然后使用<code>node-gyp</code>进行项目构建，得到与平台相关的源码项目文件（Windows则生成<code>vcxproj</code>项目，Linux下是<code>Makefile</code>）；在这个过程，<code>node-gyp</code>会使用<code>Python</code>进行自动化构建操作，这也是为什么有些朋友安装node原生模块的时候，会报错找不到<code>Python</code>。</li>
+<li>调用平台对应的编译工具进行编译。在Windows的环境下，<code>node-gyp</code>会查找本地的<code>MSBuild/CL</code>等编译工具，而这些编译工具又一般在<code>Visual Studio</code>安装的时候，也一并安装在了机器上。这就是为什么有些朋友没有安装<code>Visual Studio</code>的时候，会报错。</li>
+</ol>
+<h1 id="探索SQLite3的安装流程"><a href="#探索SQLite3的安装流程" class="headerlink" title="探索SQLite3的安装流程"></a>探索SQLite3的安装流程</h1><h2 id="npm-install"><a href="#npm-install" class="headerlink" title="npm install"></a><code>npm install</code></h2><p>为什么我们安装<code>sqlite3</code>的时候，会调用<code>node-pre-gyp</code>命令呢？进入<code>项目目录/node_modules/sqlite3/</code>文件夹，让我们查看一下<code>package.json</code>中的<code>scripts</code>部分：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  ...</span><br><span class="line">  &quot;repository&quot;: &#123;</span><br><span class="line">    &quot;type&quot;: &quot;git&quot;,</span><br><span class="line">    &quot;url&quot;: &quot;git://github.com/mapbox/node-sqlite3.git&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;scripts&quot;: &#123;</span><br><span class="line">    &quot;install&quot;: &quot;node-pre-gyp install --fallback-to-build&quot;, // install</span><br><span class="line">    &quot;pack&quot;: &quot;node-pre-gyp package&quot;,</span><br><span class="line">    &quot;pretest&quot;: &quot;node test/support/createdb.js&quot;,</span><br><span class="line">    &quot;test&quot;: &quot;mocha -R spec --timeout 480000&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">  &quot;version&quot;: &quot;5.0.0&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>答案显而易见了，<code>install</code>脚本中执行了<code>node-pre-gyp install --fallback-to-build</code>命令。</p>
+<p>这就不得不提到<code>npm</code>的安装流程是。当我们进行<code>npm install xxx</code>的时候，<code>npm</code>首先下载<code>xxx</code>的包。下载完成后，若<code>package.json</code>中的scripts中存在<code>install</code>属性，则会立刻调用。至于<code>scripts</code>中的其他固定脚本：<code>test</code>、<code>preinstall</code>、<code>postinstall</code>等等作用以及<code>scripts</code>的高级用法，请直接查阅<a target="_blank" rel="noopener" href="https://docs.npmjs.com/cli/v6/using-npm/scripts">scripts | npm Docs (npmjs.com)</a>。</p>
+<p>所以本此<code>sqlite3</code><strong>前期</strong>安装的过程为：</p>
+<ol>
+<li><code>npm</code>下载在仓库中的<code>sqlite3</code>npm包；</li>
+<li>执行<code>$&#123;your_projects&#125;/node_modules/sqlite3/package.json</code>中的<code>install</code>脚本，即<code>node-pre-gyp install --fallback-to-build</code></li>
+</ol>
+<p>于是乎，安装进入到了一个新的环节：<code>node-pre-gyp install</code>。当然，若你没有全局安装<code>node-pre-gyp</code>，它会由<code>npm</code>帮你安装到<code>$&#123;your_projects&#125;/node_modules/</code>中，并且通过<code>node-pre-gyp/package.json</code>中的<code>bin</code>元素，建立软连接到<code>$&#123;your_projects&#125;/node_modules/.bin</code>中。这样，<code>node\npm</code>环境中就有了<code>node-pre-gyp</code>命令可以使用。至于<code>package.json#bin</code>的作用，详细参考官方文档<a target="_blank" rel="noopener" href="https://docs.npmjs.com/cli/v6/configuring-npm/package-json#bin">package.json | npm Docs (npmjs.com)</a>。</p>
+<h2 id="node-pre-gyp-install"><a href="#node-pre-gyp-install" class="headerlink" title="node-pre-gyp install"></a><code>node-pre-gyp install</code></h2><p><code>node-pre-gyp</code>在上述的安装流程中，已经能够被我们在CLI中所使用。查看<code>node_modules/node-pre-gyp/bin/node-pre-gyp</code>文件（下文都将省略<code>$&#123;your_projects&#125;/</code>），用文本的形式打开。就是<code>node-pre-gyp</code>CLI的执行过程，脚本中的主要内容为最后一行：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">// start running the given commands!</span><br><span class="line">run();</span><br></pre></td></tr></table></figure>
+<p>检查该函数的定义：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">run</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> command = prog.todo.shift();</span><br><span class="line">  <span class="keyword">if</span> (!command) &#123;</span><br><span class="line">    <span class="comment">// done!</span></span><br><span class="line">    completed = <span class="literal">true</span>;</span><br><span class="line">    log.info(<span class="string">&#x27;ok&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  prog.commands[command.name](command.args, <span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (err) &#123;</span><br><span class="line">      log.error(command.name + <span class="string">&#x27; error&#x27;</span>);</span><br><span class="line">      log.error(<span class="string">&#x27;stack&#x27;</span>, err.stack);</span><br><span class="line">      errorMessage();</span><br><span class="line">      log.error(<span class="string">&#x27;not ok&#x27;</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(err.message);</span><br><span class="line">      <span class="keyword">return</span> process.exit(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">var</span> args_array = [].slice.call(<span class="built_in">arguments</span>, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (args_array.length) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log.apply(<span class="built_in">console</span>, args_array);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// now run the next command in the queue</span></span><br><span class="line">    process.nextTick(run);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>prog</code>是什么？该文件往上查看定义，原来是：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> node_pre_gyp = <span class="built_in">require</span>(<span class="string">&#x27;../&#x27;</span>); <span class="comment">// 上一个目录作为模块引入</span></span><br><span class="line"><span class="keyword">var</span> log = <span class="built_in">require</span>(<span class="string">&#x27;npmlog&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Process and execute the selected commands.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> prog = <span class="keyword">new</span> node_pre_gyp.Run(); <span class="comment">// 来自于node_pre_gyp中的Run，而node_pre_gyp在上方</span></span><br></pre></td></tr></table></figure>
+<p>继续检查上一个目录，发现并没又<code>indes.js</code>文件，熟悉<code>npm</code>的朋友应该知道要去看<code>package.json</code>中的<code>main</code>元素了：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">	&quot;license&quot;: &quot;BSD-3-Clause&quot;,</span><br><span class="line">	&quot;main&quot;: &quot;./lib/node-pre-gyp.js&quot;, // 模块是这个文件</span><br><span class="line">	&quot;name&quot;: &quot;node-pre-gyp&quot;,</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>查阅<code>lib/node-pre-gyp.js</code>代码中的Run：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Run</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> self = <span class="built_in">this</span>;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.commands = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">  commands.forEach(<span class="function"><span class="keyword">function</span> (<span class="params">command</span>) </span>&#123;</span><br><span class="line">    self.commands[command] = <span class="function"><span class="keyword">function</span> (<span class="params">argv, callback</span>) </span>&#123;</span><br><span class="line">      log.verbose(<span class="string">&#x27;command&#x27;</span>, command, argv);</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">require</span>(<span class="string">&#x27;./&#x27;</span> + command)(self, argv, callback); <span class="comment">// 这里是核心</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>核心功能就是引入当前所在目录下的模块进行执行。例如，本次调用的是<code>node-pre-gyp install</code>，则会<code>require(./install)</code>，检查一下<code>node-pre-gyp.js</code>目录下，果然存在该<code>js</code>文件。继续阅读<code>install.js</code>源码。里面有几个函数的定义。咱们先不看内容，把函数名列举出来，猜测一下作用：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 去下载平台编译好的二进制？</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">download</span>(<span class="params">uri,opts,callback</span>) </span>&#123;...&#125;</span><br><span class="line"><span class="comment">// 把下载好的二进制放到对应目录？</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">place_binary</span>(<span class="params">from,to,opts,callback</span>) </span>&#123;...&#125;</span><br><span class="line"><span class="comment">// 进行构建。难道是没有下载，就调用node-gyp源码编译？</span></span><br><span class="line"><span class="comment">// 还有，node-pre-gyp又--fallback-to-build参数，也会调用这个？</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">do_build</span>(<span class="params">gyp,argv,callback</span>) </span>&#123;...&#125;</span><br><span class="line"><span class="comment">// 打印回退出现的异常</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">print_fallback_error</span>(<span class="params">err,opts,package_json</span>) </span>&#123;...&#125;</span><br><span class="line"><span class="comment">// 安装，核心没跑了</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">install</span>(<span class="params">gyp, argv, callback</span>) </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+<p>首先看<code>download</code>的调用点是在<code>place_binary</code>中：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">place_binary</span>(<span class="params">from,to,opts,callback</span>) </span>&#123; <span class="comment">// place_binary函数</span></span><br><span class="line">    download(<span class="keyword">from</span>,opts,<span class="function"><span class="keyword">function</span>(<span class="params">err,req</span>) </span>&#123; <span class="comment">// 调用了download</span></span><br><span class="line">        <span class="keyword">if</span> (err) <span class="keyword">return</span> callback(err);</span><br><span class="line">        <span class="keyword">if</span> (!req) <span class="keyword">return</span> callback(<span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">&quot;empty req&quot;</span>));</span><br><span class="line">		...</span><br><span class="line">    &#125;</span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再看<code>place_binary</code>调用点是在<code>install</code>中：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">install</span>(<span class="params">gyp, argv, callback</span>) </span>&#123;</span><br><span class="line">	<span class="comment">// 省略部分...</span></span><br><span class="line">    <span class="keyword">var</span> should_do_source_build = source_build === package_json.name || (source_build === <span class="literal">true</span> || source_build === <span class="string">&#x27;true&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span> (should_do_source_build) &#123; <span class="comment">// 源码编译</span></span><br><span class="line">        log.info(<span class="string">&#x27;build&#x27;</span>,<span class="string">&#x27;requesting source compile&#x27;</span>);</span><br><span class="line">        <span class="keyword">return</span> do_build(gyp,argv,callback);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 省略部分...</span></span><br><span class="line">        mkdirp(to,<span class="function"><span class="keyword">function</span>(<span class="params">err</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">if</span> (err) &#123;</span><br><span class="line">				after_place(err);</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				place_binary(<span class="keyword">from</span>,to,opts,after_place); <span class="comment">// 调用点</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">        <span class="comment">// 省略部分...</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 省略部分...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过上述分析，整个大的处理流程如下：</p>
+<ol>
+<li>进入<code>install</code>函数</li>
+<li>检查是否需要<code>build-from-source</code>。是则进，入<code>do_build</code>分支，进行源码编译；否则进入步骤3。</li>
+<li>检查是否启用<code>--fallback-to-build</code>参数，设定是否启用标志位。</li>
+<li>解析编译好的二进制文件的选项配置，譬如二进制文件存放地址，也就是通过请求下载对应二进制包的地址，以及各种各样参数。所以说，为什么下载很慢，我们后文会重点关注下载地址。</li>
+</ol>
+<h3 id="下载二进制包"><a href="#下载二进制包" class="headerlink" title="下载二进制包"></a>下载二进制包</h3><p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/hosted_tarball_download.png" alt=""></p>
+<p>根据流程，接下来我们进一步检查<code>versioning.js</code>文件，找到其中的<code>evaluate</code>函数，分析最后的<code>hosted_tarball</code>路径：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/analysis_hosted_path.png" alt=""></p>
+<p><code>hosted_tarball</code>路径主要分为两个部分：1、<code>hosted_path</code>；2、<code>package_name</code>。</p>
+<h4 id="hosted-path"><a href="#hosted-path" class="headerlink" title="hosted_path"></a>hosted_path</h4><p>经过源码分析来源路径为：</p>
+<p> <img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/opts.hosted_path-analysis.png" alt=""></p>
+<p>我们自底向上分析。</p>
+<p><code>host</code>变量取决于从环境变量中检查名称为<code>&#39;npm_config_&#39; + opts.module_name + &#39;_binary_host_mirror&#39;</code>的环境变量。如果不存在，则使用<code>package_json.binary.host</code>。正常使用的时候，我们并不会设定环境变量，所以这里就进入<code>package_json.binary</code>进行获取。这个<code>package_json</code>是<code>evaluate</code>函数被调用时候传入的，在<code>node-pre-gyp/install.js</code>中能够看到：</p>
+<p><img src="C:\Users\w4ngzhen\AppData\Roaming\Typora\typora-user-images\image-20201204101751333.png" alt="image-20201204101751333"></p>
+<p>一开始分析的时候，看到这里，本人以为<code>package_json</code>就是<code>node-pre-gyp/package.json</code>，于是本人去检查该<code>json</code>发现很奇怪，并没有binary属性，更别提host了。一番思考才明白，<code>node-pre-gyp install</code>的运行时调用者是谁呀？不是应该是<code>sqlite3</code>吗？所以这个地方的<code>require(&#39;./package.json&#39;)</code>实际上是指代的是<code>sqlite3/package.json</code>。查看<code>sqlite3/package.json</code>，果然发现了对应的元素：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/sqlite3-binary.png" alt=""></p>
+<p>在<code>binary</code>属性中，我们还能看到<code>remote_path</code>也在其中。</p>
+<p>至此，<code>hosted_path</code>我们完成了简单的分析，我们可以得出一个结论：</p>
+<p><strong><code>node-pre-gyp</code>下载二进制文件的路径，优先来源于对应模块的镜像地址，该镜像地址通过配置<code>&#39;npm_config_&#39; + 模块名 + &#39;_binary_host_mirror&#39;</code>来实现自定义；在没有定义镜像地址的情况下，读取模块<code>package.json</code>中的binary属性信息。</strong></p>
+<p>当然，读者可以根据具体情况再进一步分析源码。</p>
+<h4 id="package-name"><a href="#package-name" class="headerlink" title="package_name"></a>package_name</h4><p>其实，对于<code>hosted_path</code>的分析，我们也容易分析<code>package_name</code>了。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/opts.package_name-analysis.png" alt=""></p>
+<p>自底向上分析，来自于<code>sqlite3/package.json</code>中<code>binary</code>属性中的<code>package_name</code>，内容见上图分析<code>host</code>。</p>
+<h4 id="失败处理"><a href="#失败处理" class="headerlink" title="失败处理"></a>失败处理</h4><p><code>--fallback-to-build</code>参数表明了是否进行失败后下载源码进行编译，源码不再分析。</p>
+<h3 id="从源码构建"><a href="#从源码构建" class="headerlink" title="从源码构建"></a>从源码构建</h3><h4 id="build-js"><a href="#build-js" class="headerlink" title="build.js"></a>build.js</h4><p>当我们提供了参数<code>--build-from-source</code>或是在下载编译好的二进制到本地出错的时提供了参数<code>--fallback-to-build</code>。node-pre-gyp将进入<code>do_build</code>模块，进行源码编译。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function do_build(gyp,argv,callback) &#123;</span><br><span class="line">  var args &#x3D; [&#39;rebuild&#39;].concat(argv);</span><br><span class="line">  gyp.todo.push( &#123; name: &#39;build&#39;, args: args &#125; );</span><br><span class="line">  process.nextTick(callback);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中，<code>gyp</code>由调用install的时候，传入：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/gyp-from-install.png" alt=""></p>
+<p>那么我们又将回到调用install的地方。实际上，gyp就是node-pre-gyp.js导出的模块：</p>
+<p><img src="C:\Users\w4ngzhen\AppData\Roaming\Typora\typora-user-images\image-20201204124050917.png" alt="image-20201204124050917"></p>
+<p>也就是说在<code>do_build</code>中进行操作就是，放置了一个<code>build</code>任务在队列中。所以我们按照先前的分析，直接去看<code>build.js</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/build-buildjs.png" alt=""></p>
+<p>看源码调用了当前模块中的<code>do_build</code>，且其中最核心的就是<code>compile</code>模块：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/do_build-buildjs.png" alt=""></p>
+<h4 id="util-compile-js"><a href="#util-compile-js" class="headerlink" title="util/compile.js"></a>util/compile.js</h4><p>进入compile模块，直接找到对应的<code>run_gyp</code>函数，代码很短，不难看出进行构建调用了<code>node-gyp</code></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/run-gyp.png" alt=""></p>
+<p>上述代码，会先考略<code>node-webkit</code>构建。但是我们核心的还是使用<code>node-gyp</code>，所以else中，会进行<code>node-gyp</code>的工具的检查工作。最后调用命令行执行<code>node-gyp</code>。于是，node原生模块的安装工作，进入了新的阶段：<code>node-gyp</code>。</p>
+<h2 id="node-gyp-build"><a href="#node-gyp-build" class="headerlink" title="node-gyp build"></a><code>node-gyp build</code></h2><p>上文提到我们已经进入了<code>node-gyp</code>的范畴，会调用<code>node-gyp build</code>操作。当然，这个命令同样是在安装<code>node-gyp</code>依赖的时候已经完成了安装，并且进行<code>node_modules/.bin/</code>软连接操作。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="string">&quot;bin&quot;</span>: &#123;</span><br><span class="line">  <span class="string">&quot;node-gyp&quot;</span>: <span class="string">&quot;bin/node-gyp.js&quot;</span></span><br><span class="line">&#125;,</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>我们进入该<code>js</code>进行分析</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-gyp-GYP.png" alt=""></p>
+<p>实际上，<code>node-gyp</code>这段的命令行代码，和<code>node-pre-gyp</code>非常相似！所以我们也不去深入分析调用命令行了。直接在lib文件夹下面的<code>build.js</code>。在该<code>js</code>中，核心的方法为：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">build</span> (<span class="params">gyp, argv, callback</span>) </span>&#123;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在该方法中，还编写了几个<strong>内部函数</strong>，作为了功能的划分：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// function build (gyp, argv, callback) 内部函数</span></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Load the &quot;config.gypi&quot; file that was generated during &quot;configure&quot;.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">loadConfigGypi</span> (<span class="params"></span>) </span>&#123;...&#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * On Windows, find the first build/*.sln file.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">findSolutionFile</span> (<span class="params"></span>) </span>&#123;...&#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Uses node-which to locate the msbuild / make executable.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">doWhich</span> (<span class="params"></span>) </span>&#123;...&#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Search for the location of &quot;msbuild.exe&quot; file on Windows.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">findMsbuild</span> (<span class="params"></span>) </span>&#123;...&#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Actually spawn the process and compile the module.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">doBuild</span> (<span class="params"></span>) </span>&#123;...&#125;  </span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Invoked after the make/msbuild command exits.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">onExit</span> (<span class="params">code, signal</span>) </span>&#123;...&#125;</span><br></pre></td></tr></table></figure>
+<p>不得不说，<code>build</code>写的真心不错，看起来很舒服。这里为了方便读者快速阅读，我整理这些函数的调用图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-gyp-build-flow.png" alt=""></p>
+<p>整个调用流程图个人认为足够进行安装的时候的一场分析了。至于每个内部函数的功能，有空继续更新本文吧。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/node/" rel="tag"># node</a>
+              <a href="/tags/native/" rel="tag"># native</a>
+              <a href="/tags/sqlite3/" rel="tag"># sqlite3</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/13/2020-10-13-%E5%86%8D%E8%AE%AEWindows%E6%B6%88%E6%81%AF%E4%B8%8EWinForm%E4%BA%8B%E4%BB%B6/" rel="prev" title="再议Windows消息与WinForm事件">
+      <i class="fa fa-chevron-left"></i> 再议Windows消息与WinForm事件
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E5%BB%BA%E7%AB%8B"><span class="nav-number">2.</span> <span class="nav-text">项目建立</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85SQLite3"><span class="nav-number">3.</span> <span class="nav-text">安装SQLite3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gyp%E4%B8%8Enode-gyp%E4%B8%8Enode-pre-gyp"><span class="nav-number">4.</span> <span class="nav-text">gyp与node-gyp与node-pre-gyp</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFgyp%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">什么是gyp？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFnode-gyp%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">什么是node-gyp？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFnode-pre-gyp%EF%BC%9F"><span class="nav-number">4.3.</span> <span class="nav-text">什么是node-pre-gyp？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8E%A2%E7%B4%A2SQLite3%E7%9A%84%E5%AE%89%E8%A3%85%E6%B5%81%E7%A8%8B"><span class="nav-number">5.</span> <span class="nav-text">探索SQLite3的安装流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#npm-install"><span class="nav-number">5.1.</span> <span class="nav-text">npm install</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#node-pre-gyp-install"><span class="nav-number">5.2.</span> <span class="nav-text">node-pre-gyp install</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8C%85"><span class="nav-number">5.2.1.</span> <span class="nav-text">下载二进制包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#hosted-path"><span class="nav-number">5.2.1.1.</span> <span class="nav-text">hosted_path</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#package-name"><span class="nav-number">5.2.1.2.</span> <span class="nav-text">package_name</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%B1%E8%B4%A5%E5%A4%84%E7%90%86"><span class="nav-number">5.2.1.3.</span> <span class="nav-text">失败处理</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA"><span class="nav-number">5.2.2.</span> <span class="nav-text">从源码构建</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#build-js"><span class="nav-number">5.2.2.1.</span> <span class="nav-text">build.js</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#util-compile-js"><span class="nav-number">5.2.2.2.</span> <span class="nav-text">util&#x2F;compile.js</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#node-gyp-build"><span class="nav-number">5.3.</span> <span class="nav-text">node-gyp build</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Linux下iptables学习笔记 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Linux,iptables," />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="在Centos7版本之后，防火墙应用已经由从前的iptables转变为firewall这款应用了。但是，当今绝大多数的Linux版本（特别是企业中）还是使用的6.x以下的Centos版本，所以对iptables的了解还是很有必要的。此外，需要说明的是iptables自身并不具备防火墙的功能，它需要通过内核netfilter（网络过滤器）来实现，与firewalld一样，他们的作用都是用于维护规则，">
 <meta property="og:type" content="article">
@@ -32,115 +37,199 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/finalConfig.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/enableAndStart.png">
 <meta property="article:published_time" content="2018-04-17T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.472Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.194Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Linux">
-<meta property="article:tag" content="iptables">
+<meta property="article:tag" content="iftables">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/inputchain.png">
 
+<link rel="canonical" href="http://compilemind.com/2018/04/18/2018-04-18-Linux%E4%B8%8Biptables%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Linux下iptables学习笔记 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#iptables"><span class="toc-text">iptables</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#iptables%E5%91%BD%E4%BB%A4%E8%A1%8C%E9%85%8D%E7%BD%AE"><span class="toc-text">iptables命令行配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0-NAT%E7%B1%BB%E5%9E%8B"><span class="toc-text">[补充学习]NAT类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%86%E8%A7%A3-%E5%9C%A8Centos7-x%E4%B8%8A%E5%8D%B8%E8%BD%BDfirewalld%EF%BC%8C%E5%AE%89%E8%A3%85iptables"><span class="toc-text">[了解]在Centos7.x上卸载firewalld，安装iptables</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85iptables%E3%80%81iptables-service"><span class="toc-text">安装iptables、iptables-service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A6%81%E7%94%A8-%E5%81%9C%E6%AD%A2%E8%87%AA%E5%B8%A6%E7%9A%84firewalld%E6%9C%8D%E5%8A%A1"><span class="toc-text">禁用&#x2F;停止自带的firewalld服务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%8E%B0%E6%9C%89%E7%9A%84%E8%A7%84%E5%88%99"><span class="toc-text">设置现有的规则</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%9D%E5%AD%98%E8%A7%84%E5%88%99%E8%AE%BE%E5%AE%9A%E3%80%81%E5%BC%80%E5%90%AFiptables%E6%9C%8D%E5%8A%A1"><span class="toc-text">保存规则设定、开启iptables服务</span></a></li></ol></li></ol>
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
 
 
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-<div class="content content-post CENTER">
-   <article id="post-2018-04-18-Linux下iptables笔记" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Linux下iptables学习笔记</h1>
+          <div class="content post posts-expand">
+            
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.04.18</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
-
-      
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
     
-      <p>在Centos7版本之后，防火墙应用已经由从前的iptables转变为firewall这款应用了。但是，当今绝大多数的Linux版本（特别是企业中）还是使用的6.x以下的Centos版本，所以对iptables的了解还是很有必要的。此外，需要说明的是iptables自身并不具备防火墙的功能，它需要通过内核netfilter（网络过滤器）来实现，与firewalld一样，他们的作用都是用于维护规则，而真正使用规则干活的是内核的netfilter，只不过firewalld和iptables的结构以及使用方法不一样，他们都只是一个外壳应用罢了。打个比方，就好像有一本书，同样的内容，一种是纸质的，另一种是电子的，我们翻阅它的方式不同，给它做笔记的方式不同，但是内容（内核）一样。</p>
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/04/18/2018-04-18-Linux%E4%B8%8Biptables%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux下iptables学习笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-18 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-18T00:00:00+08:00">2018-04-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在Centos7版本之后，防火墙应用已经由从前的iptables转变为firewall这款应用了。但是，当今绝大多数的Linux版本（特别是企业中）还是使用的6.x以下的Centos版本，所以对iptables的了解还是很有必要的。此外，需要说明的是iptables自身并不具备防火墙的功能，它需要通过内核netfilter（网络过滤器）来实现，与firewalld一样，他们的作用都是用于维护规则，而真正使用规则干活的是内核的netfilter，只不过firewalld和iptables的结构以及使用方法不一样，他们都只是一个外壳应用罢了。打个比方，就好像有一本书，同样的内容，一种是纸质的，另一种是电子的，我们翻阅它的方式不同，给它做笔记的方式不同，但是内容（内核）一样。</p>
 <h3 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h3><p><strong>iptables概念</strong></p>
 <p>iptables中的规则（rule）。在我看来，规则是iptables中进行数据包检查的基本单元。每一条规则都定义了对于数据包的条件验证，譬如网络地址的验证、端口验证、协议验证等。</p>
 <p>iptables中的链（chain）。链是数据包传播的路径，每一条链其实就是众多规则中的一个检查清单，每一条链中可以有一条或数条规则。就像这里，我们有一个INPUT链（INPUT概念之后再作解释），数据包来到这条链时，就会根据该链中的规则进行检查，譬如源、目的地址是否符合规则；源、目的端口是否符合规则等等。当一个数据包到达一个<strong>链</strong>时，iptables就会从INPUT链中规则1开始检查，看该数据包是否满足规则所定义的条件——如果满足，系统就会根据该条规则所定义的方法处理该数据包；否则iptables将继续检查下一条规则2，如果该数据包不符合链中任一条规则，iptables就会根据该链预先定义的默认策略来处理数据包。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/inputchain.png" alt="inputchain"></p>
 <p>iptables中的表（table）。表是一组链的集合，在iptables中默认定义了四张表：filter、nat、mangle和raw，分别用于实现包过滤（最常用去配置的表），网络地址转换、包重构(修改)和数据跟踪处理。如下图：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/alltables.png" alt="alltables"><br>当然，上图只是一个大致示意，并不意味着每个表中的例如想PREROUTING这样的链是独自在各个表中的，实际上表与链之间是一种交叉的关系，为什么这么说呢？这需要我们理解在iptables中传输数据包的流程（请结合下图慢慢阅读）。<br>（1）当一个数据包进入网卡时，它首先进入PREROUTING链，根据该链中的规则判定数据包的处理方式（ACCEPT？DROP？REJECT？），一旦通过规则检测，Linux内核根据数据包的IP地址决定是将数据包留下传入进入内部，还是转发出去。<br>1）如果数据包就是进入本机的（IP地址表明），它就会到达INPUT链。数据包到了INPUT链后，便开始根据INPUT链中的规则来检查数据包是否满足一系列的条件，满足之后，完全进入主机，任何进程都会收到它。同时，主机中的任何程序都可以发送数据包，发送出来的数据包会走到OUTPUT链，再根据里面的规则判定处理，最后到POSTROUTING链，再判定处理。<br>2）如果数据包是准备转发的，他就会到达FORWARD链，再根据FORWARD链中的规则进行检查判定决定接下来的处理。如果通过了FORWARD链，说明内核允许该数据包转发，那么数据包就会到POSTROUTING链进行最后的判断。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/flow.png" alt="flow"><br>同时我们可以看到，这里的角度并不是以table来看的，而是以chain来看的，这就是为什么我在上面提到的，尽管table是chain的集合，但并不意味着当我们定义防火墙的时候是按照table角度来定义，而是要根据chain角度来定义。我们要根据上图来决定我们要在何处怎样处理进入的数据包。这个flow在我看来必须要非常熟悉，对之后的命令行配置也有很大的帮助，因为iptables的命令行配置十分复杂。</p>
-<h4 id="iptables命令行配置"><a href="#iptables命令行配置" class="headerlink" title="iptables命令行配置"></a>iptables命令行配置</h4><p>iptables的命令格式如下：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> iptables [-t table] COMMAND chain rules [-j action]</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> table 表名</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> chain 链名</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> rules 规则</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> action 动作</span></span><br></pre></td></tr></table></figure>
-<p><strong>table</strong> </p>
+<h4 id="iptables命令行配置"><a href="#iptables命令行配置" class="headerlink" title="iptables命令行配置"></a>iptables命令行配置</h4><p>iptables的命令格式如下：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> iptables [-t table] COMMAND chain rules [-j action]</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> table 表名</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> chain 链名</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> rules 规则</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> action 动作</span></span><br></pre></td></tr></table></figure><br><strong>table</strong> </p>
 <p>表选项用于指定命令要作用于哪一个表（raw、mangle、nat、filter）</p>
-<p><strong>COMMAND</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">1、对某一条的整条链进行管理的命令</span><br><span class="line">-P或–policy &lt;链名&gt; 定义默认策略</span><br><span class="line">  设置默认策略的（设定默认门是关着的还是开着的）</span><br><span class="line">  默认策略一般只有两种（DROP 关闭 | ACCEPT 打开 ）</span><br><span class="line">  比如：</span><br><span class="line">  iptables -P INPUT DROP </span><br><span class="line">  这条命令就是我们将INPUT链默认的策略设置为关闭，即所有的想要进入我们主机的连接全部被拒绝。</span><br><span class="line">-F或-flush &lt;链名&gt; 清空某个表中的某条链中的所有规则</span><br><span class="line">  比如：</span><br><span class="line">  iptables -t filter -F INPUT # 清空filter表中的INPUT链中的所有规则</span><br><span class="line">  iptables -t filter -F # 清空filter表中的所有链的所有规则</span><br><span class="line">-Z或–zero &lt;链名&gt; 将表中数据包计数器和流量计数器归零</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">2、对某一条链的具体规则进行相关的定义</span><br><span class="line">-A或—append &lt;链名&gt; 追加，在当前链的最后新增一个规则</span><br><span class="line">-I或–insert num &lt;链名&gt; 在指定的num位置插入1条规则</span><br><span class="line">-D或–delete num &lt;链名&gt; 从规则列表中删除第num条规则</span><br><span class="line">-R或–replace num &lt;链名&gt; 替换规则列表中的第num条规则</span><br><span class="line"></span><br><span class="line">3、查看管理命令 “-L”</span><br><span class="line">-L或–list &lt;链名&gt; 查看iptables规则列表</span><br><span class="line">附加命令</span><br><span class="line">  -n：以数字的方式显示ip，它会将ip直接显示出来，如果不加-n，则会将ip反向解析成主机名。</span><br><span class="line">  -v：显示详细信息</span><br><span class="line">  -vv</span><br><span class="line">  -vvv :越多越详细</span><br><span class="line">  -x：在计数器上显示精确值，不做单位换算</span><br><span class="line">  --line-numbers : 显示规则的行号</span><br><span class="line">  -t nat：显示所有的关卡的信息</span><br></pre></td></tr></table></figure>
-<p><strong>rules</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-i或–in-interface &lt;网络接口名&gt; 指定数据包从哪个网络接口进入，如ppp0、eth0和eth1等</span><br><span class="line">-o或–out-interface &lt;网络接口名&gt; 指定数据包从哪块网络接口输出，如ppp0、eth0和eth1等</span><br><span class="line">-p或—proto协议类型 &lt;协议类型&gt; 指定数据包匹配的协议，如TCP、UDP和ICMP等</span><br><span class="line">-s或–source &lt;源地址或子网&gt; 指定数据包匹配的源地址</span><br><span class="line">–sport &lt;源端口号&gt; 指定数据包匹配的源端口号，可以使用“起始端口号:结束端口号”的格式指定一个范围的端口</span><br><span class="line">-d或–destination &lt;目标地址或子网&gt; 指定数据包匹配的目标地址</span><br><span class="line">–dport目标端口号 指定数据包匹配的目标端口号，可以使用“起始端口号:结束端口号”的格式指定一个范围的端口</span><br></pre></td></tr></table></figure>
-<p><strong>action</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 主要的action有如下的几个</span><br><span class="line">ACCEPT 接受数据包</span><br><span class="line">DROP 丢弃数据包（只丢弃，不作回应，与下面的REJECT不一样）</span><br><span class="line">REJECT 明确的拒绝，还向发送者返回错误信息。</span><br><span class="line">SNAT 源地址转换，即改变数据包的源地址</span><br><span class="line">DNAT 目标地址转换，即改变数据包的目的地址</span><br><span class="line">REDIRECT：重定向，主要用于实现端口重定向</span><br><span class="line">MASQUERADE IP伪装，即是常说的NAT技术</span><br><span class="line">LOG 日志功能，将符合规则的数据包的相关信息记录在日志中，以便管理员的分析和排错</span><br></pre></td></tr></table></figure>
-<p>这里大致整理一下iptables命令的格式：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/fullformat.png" alt="fullformat"></p>
+<p><strong>COMMAND</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">1、对某一条的整条链进行管理的命令</span><br><span class="line">-P或–policy &lt;链名&gt; 定义默认策略</span><br><span class="line">  设置默认策略的（设定默认门是关着的还是开着的）</span><br><span class="line">  默认策略一般只有两种（DROP 关闭 | ACCEPT 打开 ）</span><br><span class="line">  比如：</span><br><span class="line">  iptables -P INPUT DROP </span><br><span class="line">  这条命令就是我们将INPUT链默认的策略设置为关闭，即所有的想要进入我们主机的连接全部被拒绝。</span><br><span class="line">-F或-flush &lt;链名&gt; 清空某个表中的某条链中的所有规则</span><br><span class="line">  比如：</span><br><span class="line">  iptables -t filter -F INPUT # 清空filter表中的INPUT链中的所有规则</span><br><span class="line">  iptables -t filter -F # 清空filter表中的所有链的所有规则</span><br><span class="line">-Z或–zero &lt;链名&gt; 将表中数据包计数器和流量计数器归零</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">2、对某一条链的具体规则进行相关的定义</span><br><span class="line">-A或—append &lt;链名&gt; 追加，在当前链的最后新增一个规则</span><br><span class="line">-I或–insert num &lt;链名&gt; 在指定的num位置插入1条规则</span><br><span class="line">-D或–delete num &lt;链名&gt; 从规则列表中删除第num条规则</span><br><span class="line">-R或–replace num &lt;链名&gt; 替换规则列表中的第num条规则</span><br><span class="line"></span><br><span class="line">3、查看管理命令 “-L”</span><br><span class="line">-L或–list &lt;链名&gt; 查看iptables规则列表</span><br><span class="line">附加命令</span><br><span class="line">  -n：以数字的方式显示ip，它会将ip直接显示出来，如果不加-n，则会将ip反向解析成主机名。</span><br><span class="line">  -v：显示详细信息</span><br><span class="line">  -vv</span><br><span class="line">  -vvv :越多越详细</span><br><span class="line">  -x：在计数器上显示精确值，不做单位换算</span><br><span class="line">  --line-numbers : 显示规则的行号</span><br><span class="line">  -t nat：显示所有的关卡的信息</span><br></pre></td></tr></table></figure><br><strong>rules</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">-i或–in-interface &lt;网络接口名&gt; 指定数据包从哪个网络接口进入，如ppp0、eth0和eth1等</span><br><span class="line">-o或–out-interface &lt;网络接口名&gt; 指定数据包从哪块网络接口输出，如ppp0、eth0和eth1等</span><br><span class="line">-p或—proto协议类型 &lt;协议类型&gt; 指定数据包匹配的协议，如TCP、UDP和ICMP等</span><br><span class="line">-s或–source &lt;源地址或子网&gt; 指定数据包匹配的源地址</span><br><span class="line">–sport &lt;源端口号&gt; 指定数据包匹配的源端口号，可以使用“起始端口号:结束端口号”的格式指定一个范围的端口</span><br><span class="line">-d或–destination &lt;目标地址或子网&gt; 指定数据包匹配的目标地址</span><br><span class="line">–dport目标端口号 指定数据包匹配的目标端口号，可以使用“起始端口号:结束端口号”的格式指定一个范围的端口</span><br></pre></td></tr></table></figure><br><strong>action</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 主要的action有如下的几个</span><br><span class="line">ACCEPT 接受数据包</span><br><span class="line">DROP 丢弃数据包（只丢弃，不作回应，与下面的REJECT不一样）</span><br><span class="line">REJECT 明确的拒绝，还向发送者返回错误信息。</span><br><span class="line">SNAT 源地址转换，即改变数据包的源地址</span><br><span class="line">DNAT 目标地址转换，即改变数据包的目的地址</span><br><span class="line">REDIRECT：重定向，主要用于实现端口重定向</span><br><span class="line">MASQUERADE IP伪装，即是常说的NAT技术</span><br><span class="line">LOG 日志功能，将符合规则的数据包的相关信息记录在日志中，以便管理员的分析和排错</span><br></pre></td></tr></table></figure><br>这里大致整理一下iptables命令的格式：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/fullformat.png" alt="fullformat"></p>
 <p>接下来详细的讲解一下实际使用命令的要点：</p>
 <p><strong>1、定义默认策略</strong></p>
-<p>什么叫默认策略？可以试想这样的场景，首先结合上面的当一个数据包到达链的时候，会根据链中定义的规则进行处理，但是很显然，我们没法对任何一种数据包的处理方式都定义在规则中，当我们的数据包进入链的时候，如果不满足所有规则的进入条件，那么我们起码要有一种默认的策略方式来处理这个数据包。这个定义默认策略就是这个作用。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">iptables [-t表名] &lt;-P&gt; &lt;链名&gt; &lt;动作&gt; </span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：指默认策略将应用于哪个表，可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认使用filter表。</span><br><span class="line">&lt;-P&gt;：定义默认策略。</span><br><span class="line">&lt;链名&gt;：指默认策略将应用于哪个链，可以使用INPUT、OUTPUT、FORWARD、PREROUTING、OUTPUT和POSTROUTING。</span><br><span class="line">&lt;动作&gt;：处理数据包的动作，可以使用ACCEPT（接受数据包）和DROP（丢弃数据包）。</span><br></pre></td></tr></table></figure>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/defaultPolicy.png" alt="defaultPolicy"><br><strong>2、增加、插入、删除和替换规则</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">相关规则定义的格式为：</span><br><span class="line">iptables [-t表名] &lt;-A | I | R | D&gt; 链名 [规则编号] [-i | o 网卡名称] [-p 协议类型] [-s 源IP地址 | 源子网] [--sport 源端口号] [-d 目标IP地址 | 目标子网] [--dport目标端口号] &lt;-j动作&gt;</span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：定义默认策略将应用于哪个表，可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认使用filter表。</span><br><span class="line">-A：新增加一条规则，该规则将会增加到规则列表的最后一行，该参数不能使用规则编号。</span><br><span class="line">-I：插入一条规则，原本该位置上的规则将会往后顺序移动，如果没有指定规则编号，则在第一条规则前插入。</span><br><span class="line">-R：替换某条规则，规则被替换并不会改变顺序，必须要指定替换的规则编号。</span><br><span class="line">-D：从规则列表中删除一条规则，可以输入完整规则，或直接指定规则编号加以删除。</span><br><span class="line">&lt;链名&gt;：指定查看指定表中哪个链的规则列表，可以使用INPUT、OUTPUT、FORWARD、PREROUTING、OUTPUT和POSTROUTING。</span><br><span class="line">[规则编号]：规则编号用于插入、删除和替换规则时用，编号是按照规则列表的顺序排列，规则列表中第一条规则的编号为1。</span><br><span class="line">[-i | o 网卡名称]：i是指定数据包从哪块网卡进入，o是指定数据包从哪块网卡输出。网卡名称可以使用ppp0、eth0和eth1等(注意CentOS6.x与7.x网卡命名区别)。</span><br><span class="line">[-p 协议类型]：可以指定规则应用的协议，包含TCP、UDP和ICMP等。</span><br><span class="line">[-s 源IP地址 | 源子网]：源主机的IP地址或子网地址。</span><br><span class="line">[--sport 源端口号]：数据包的IP的源端口号。</span><br><span class="line">[-d目标IP地址 | 目标子网]：目标主机的IP地址或子网地址。</span><br><span class="line">[--dport目标端口号]：数据包的IP的目标端口号。</span><br><span class="line">&lt;-j动作&gt;：处理数据包的动作，各个动作的详细说明可以参考前面的说明。</span><br></pre></td></tr></table></figure>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/modifyRule.png" alt="modifyRule"></p>
-<p><strong>3、查看iptables规则</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">查看iptables规则的命令格式为：</span><br><span class="line">iptables [-t表名] &lt;-L&gt; [链名]</span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：指查看哪个表的规则列表，表名用可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认查看filter表的规则列表。</span><br><span class="line">&lt;-L&gt;：查看指定表和指定链的规则列表。</span><br><span class="line">[链名]：指查看指定表中哪个链的规则列表，可以使用INPUT、OUTPUT、FORWARD、PREROUTING、OUTPUT和POSTROUTING，如果不指明哪个链，则将查看某个表中所有链的规则列表。</span><br></pre></td></tr></table></figure>
-<p>由于这个命令比较简单，就不贴图了。</p>
+<p>什么叫默认策略？可以试想这样的场景，首先结合上面的当一个数据包到达链的时候，会根据链中定义的规则进行处理，但是很显然，我们没法对任何一种数据包的处理方式都定义在规则中，当我们的数据包进入链的时候，如果不满足所有规则的进入条件，那么我们起码要有一种默认的策略方式来处理这个数据包。这个定义默认策略就是这个作用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">iptables [-t表名] &lt;-P&gt; &lt;链名&gt; &lt;动作&gt; </span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：指默认策略将应用于哪个表，可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认使用filter表。</span><br><span class="line">&lt;-P&gt;：定义默认策略。</span><br><span class="line">&lt;链名&gt;：指默认策略将应用于哪个链，可以使用INPUT、OUTPUT、FORWARD、PREROUTING、OUTPUT和POSTROUTING。</span><br><span class="line">&lt;动作&gt;：处理数据包的动作，可以使用ACCEPT（接受数据包）和DROP（丢弃数据包）。</span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/defaultPolicy.png" alt="defaultPolicy"><br><strong>2、增加、插入、删除和替换规则</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">相关规则定义的格式为：</span><br><span class="line">iptables [-t表名] &lt;-A | I | R | D&gt; 链名 [规则编号] [-i | o 网卡名称] [-p 协议类型] [-s 源IP地址 | 源子网] [--sport 源端口号] [-d 目标IP地址 | 目标子网] [--dport目标端口号] &lt;-j动作&gt;</span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：定义默认策略将应用于哪个表，可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认使用filter表。</span><br><span class="line">-A：新增加一条规则，该规则将会增加到规则列表的最后一行，该参数不能使用规则编号。</span><br><span class="line">-I：插入一条规则，原本该位置上的规则将会往后顺序移动，如果没有指定规则编号，则在第一条规则前插入。</span><br><span class="line">-R：替换某条规则，规则被替换并不会改变顺序，必须要指定替换的规则编号。</span><br><span class="line">-D：从规则列表中删除一条规则，可以输入完整规则，或直接指定规则编号加以删除。</span><br><span class="line">&lt;链名&gt;：指定查看指定表中哪个链的规则列表，可以使用INPUT、OUTPUT、FORWARD、PREROUTING、OUTPUT和POSTROUTING。</span><br><span class="line">[规则编号]：规则编号用于插入、删除和替换规则时用，编号是按照规则列表的顺序排列，规则列表中第一条规则的编号为1。</span><br><span class="line">[-i | o 网卡名称]：i是指定数据包从哪块网卡进入，o是指定数据包从哪块网卡输出。网卡名称可以使用ppp0、eth0和eth1等(注意CentOS6.x与7.x网卡命名区别)。</span><br><span class="line">[-p 协议类型]：可以指定规则应用的协议，包含TCP、UDP和ICMP等。</span><br><span class="line">[-s 源IP地址 | 源子网]：源主机的IP地址或子网地址。</span><br><span class="line">[--sport 源端口号]：数据包的IP的源端口号。</span><br><span class="line">[-d目标IP地址 | 目标子网]：目标主机的IP地址或子网地址。</span><br><span class="line">[--dport目标端口号]：数据包的IP的目标端口号。</span><br><span class="line">&lt;-j动作&gt;：处理数据包的动作，各个动作的详细说明可以参考前面的说明。</span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/modifyRule.png" alt="modifyRule"></p>
+<p><strong>3、查看iptables规则</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">查看iptables规则的命令格式为：</span><br><span class="line">iptables [-t表名] &lt;-L&gt; [链名]</span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：指查看哪个表的规则列表，表名用可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认查看filter表的规则列表。</span><br><span class="line">&lt;-L&gt;：查看指定表和指定链的规则列表。</span><br><span class="line">[链名]：指查看指定表中哪个链的规则列表，可以使用INPUT、OUTPUT、FORWARD、PREROUTING、OUTPUT和POSTROUTING，如果不指明哪个链，则将查看某个表中所有链的规则列表。</span><br></pre></td></tr></table></figure><br>由于这个命令比较简单，就不贴图了。</p>
 <p><strong>4、清除规则和计数器</strong></p>
-<p>在新建规则时，往往需要清除原有的、旧的规则，以免它们影响新设定的规则。如果规则比较多，一条条删除就会十分麻烦，这时可以使用iptables提供的清除规则参数达到快速删除所有的规则的目的。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">定义参数的格式为：</span><br><span class="line">iptables [-t表名] &lt;-F | Z&gt;</span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：指定默认策略将应用于哪个表，可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认使用filter表。</span><br><span class="line">-F：删除指定表中所有规则。</span><br><span class="line">-Z：将指定表中的数据包计数器和流量计数器归零。</span><br></pre></td></tr></table></figure>
-<p>同上，由于这个命令比较简单，就不贴图了。</p>
+<p>在新建规则时，往往需要清除原有的、旧的规则，以免它们影响新设定的规则。如果规则比较多，一条条删除就会十分麻烦，这时可以使用iptables提供的清除规则参数达到快速删除所有的规则的目的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">定义参数的格式为：</span><br><span class="line">iptables [-t表名] &lt;-F | Z&gt;</span><br><span class="line">参数说明如下。</span><br><span class="line">[-t表名]：指定默认策略将应用于哪个表，可以使用filter、nat和mangle，如果没有指定使用哪个表，iptables就默认使用filter表。</span><br><span class="line">-F：删除指定表中所有规则。</span><br><span class="line">-Z：将指定表中的数据包计数器和流量计数器归零。</span><br></pre></td></tr></table></figure><br>同上，由于这个命令比较简单，就不贴图了。</p>
 <p>当然，我们只看命令格式是枯燥的，这里我们使用一些实例来结合命令，使我们更加直观的理解。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">禁止客户机访问某个网站或者某个IP地址</span><br><span class="line">【例1】添加iptables规则禁止用户访问域名为www.xxx.com的网站。</span><br><span class="line">iptables &lt;-A | I&gt; FORWARD -d www.xxx.com -j DROP</span><br><span class="line">【例2】添加iptables规则禁止用户访问IP地址为xxx.xxx.xxx.xxx的网站。</span><br><span class="line">iptables &lt;-A | I&gt; FORWARD -d xxx.xxx.xxx.xxx -j DROP</span><br></pre></td></tr></table></figure>
 <p>解析：首先我们可以确定是需要添加或者是插入一条我们的规则，所以使用&lt;-A | I&gt;；由于这里的拓扑是客户机连接我们的Linux服务器，客户机访问某一个网站，数据包到我们这里并不进入我们主机内部，而是经过转发FORWARD，所以我们要给FORWARD链插入或添加规则；由于指定了目标IP或域名，所以使用 -d 参数，又因为是禁止访问，所以 -j 之后的操作我们使用DROP。</p>
@@ -149,9 +238,7 @@
 <p>解析：同上的拓扑一样，客户机连接我们的Linux服务器，我们的Linux服务器是要准备做转发服务器，替我们的客户机去访问资源。所以还是对FORWARD链添加或者插入规则；但是这一次我们是要准备禁止某个IP地址的客户机上网，或者是某一子网下所有的客户机上网，也就是说，只要数据包的源IP地址或者是源子网下的我们都要禁止，所以这里采用 -s 参数。后面 -j 接DROP代表我们要丢弃来自这些源地址的数据包</p>
 <p>总结：这条命令告诉防火墙，我们现在添加了一条规则在默认的filter表中的FORWARD链，其规则为如果客户机的数据包到我们的服务器了，如果其源地址是xxx或者是某个子网下的地址，那么我们禁止转发他。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">禁止客户机访问某些服务</span><br><span class="line">【例1】禁止192.168.1.0子网里所有的客户机使用FTP协议下载。</span><br><span class="line">iptables -I FORWARD -s 192.168.1.0&#x2F;24 -p tcp –dport 21 -j DROP</span><br><span class="line">【例2】禁止192.168.1.0子网里所有的客户机使用Telnet协议连接远程计算机。</span><br><span class="line">iptables -I FORWARD -s 192.168.1.0&#x2F;24 -p tcp –dport 23 -j DROP</span><br></pre></td></tr></table></figure>
-<p>解析：以例1为例，首先我们要知道FTP协议使用的是TCP下默认21号端口。禁止192.168.1.0子网里所有的客户机使用FTP协议下载，首先还是转发的地方进行限定所以要在FORWARD链添加规则，源地址为192.168.1.0/24这个子网下的所有客户机，协议使用的是TCP，目的端口为21号。后面 -j 接DROP代表我我们要丢弃满足上述规则的数据包。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">强制访问指定的站点</span><br><span class="line">【例】强制所有的客户机访问192.168.1.x这台Web服务器。</span><br><span class="line">iptables -t nat -I PREROUTING -i eth0 -p tcp –dport 80 -j DNAT –to-destination 192.168.1.x:80</span><br><span class="line"></span><br><span class="line">禁止使用ICMP协议</span><br><span class="line">【例】禁止Internet上的计算机通过ICMP协议ping到NAT服务器的ppp0接口，但允许内网的客户机通过ICMP协议ping的计算机。</span><br><span class="line">iptables -I INPUT -i ppp0 -p icmp -j DROP</span><br></pre></td></tr></table></figure>
-
+<p>解析：以例1为例，首先我们要知道FTP协议使用的是TCP下默认21号端口。禁止192.168.1.0子网里所有的客户机使用FTP协议下载，首先还是转发的地方进行限定所以要在FORWARD链添加规则，源地址为192.168.1.0/24这个子网下的所有客户机，协议使用的是TCP，目的端口为21号。后面 -j 接DROP代表我我们要丢弃满足上述规则的数据包。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">强制访问指定的站点</span><br><span class="line">【例】强制所有的客户机访问192.168.1.x这台Web服务器。</span><br><span class="line">iptables -t nat -I PREROUTING -i eth0 -p tcp –dport 80 -j DNAT –to-destination 192.168.1.x:80</span><br><span class="line"></span><br><span class="line">禁止使用ICMP协议</span><br><span class="line">【例】禁止Internet上的计算机通过ICMP协议ping到NAT服务器的ppp0接口，但允许内网的客户机通过ICMP协议ping的计算机。</span><br><span class="line">iptables -I INPUT -i ppp0 -p icmp -j DROP</span><br></pre></td></tr></table></figure></p>
 <h3 id="补充学习-NAT类型"><a href="#补充学习-NAT类型" class="headerlink" title="[补充学习]NAT类型"></a>[补充学习]NAT类型</h3><p>NAT（Network Address Translation，网络地址转换）是1994年提出的。当在专用网内部的一些主机本来已经分配到了本地IP地址（即仅在本专用网内使用的专用地址），但现在又想和因特网上的主机通信（并不需要加密）时，可使用NAT方法。</p>
 <p>这种方法需要在专用网连接到因特网的路由器上安装NAT软件。装有NAT软件的路由器叫做NAT路由器，它至少有一个有效的外部全球IP地址。这样，所有使用本地地址的主机在和外界通信时，都要在NAT路由器上将其本地地址转换成全球IP地址，才能和因特网连接。</p>
 <p>另外，这种通过使用少量的公有IP 地址代表较多的私有IP 地址的方式，将有助于减缓可用的IP地址空间的枯竭。</p>
@@ -162,60 +249,209 @@
 <h4 id="安装iptables、iptables-service"><a href="#安装iptables、iptables-service" class="headerlink" title="安装iptables、iptables-service"></a>安装iptables、iptables-service</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 先检查是否安装了iptables</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl status iptables.service</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装iptables</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> yum install -y iptables</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 升级iptables（安装的最新版本则不需要）</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> yum update iptables </span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装iptables-services</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> yum install iptables-services <span class="comment"># service!s!</span></span></span><br></pre></td></tr></table></figure>
 <h4 id="禁用-停止自带的firewalld服务"><a href="#禁用-停止自带的firewalld服务" class="headerlink" title="禁用/停止自带的firewalld服务"></a>禁用/停止自带的firewalld服务</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">停止firewalld服务</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl stop firewalld</span></span><br><span class="line"><span class="meta">#</span><span class="bash">禁用firewalld服务</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl mask firewalld</span></span><br></pre></td></tr></table></figure>
 <h4 id="设置现有的规则"><a href="#设置现有的规则" class="headerlink" title="设置现有的规则"></a>设置现有的规则</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#查看iptables现有规则</span><br><span class="line">$ iptables -L -n</span><br></pre></td></tr></table></figure>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/iptables-L-n.png" alt="iptables-L-n"><br>可以看到显示的INPUT、FORWARD、OUTPUT上没有任何规则配置且默认策略均为ACCEPT</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 务必先配置INPUT链的默认规则为ACCEPT，这样一来，避免误配置导致我们无法进入</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P INPUT ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash">清空所有默认规则</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -F</span></span><br><span class="line"><span class="meta">#</span><span class="bash">清空所有自定义规则</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -X</span></span><br><span class="line"><span class="meta">#</span><span class="bash">所有计数器归0</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -Z</span></span><br><span class="line"><span class="meta">#</span><span class="bash">允许来自于lo接口的数据包(本地访问)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -i lo -j ACCEPT</span></span><br></pre></td></tr></table></figure>
-<p>接下来定义特别的入站规则</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 开放22端口</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 22 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开放21端口(FTP)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 21 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开放80端口(HTTP)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 80 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开放443端口(HTTPS)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 443 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 允许ping</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p icmp --icmp-type 8 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 允许接受本机请求之后的返回数据 RELATED,是为FTP设置的</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -m state --state  RELATED,ESTABLISHED -j ACCEPT</span></span><br></pre></td></tr></table></figure>
-<p>在上面的入站规则配置好以后，接下来我们可以将INPUT默认策略转为DROP（拒绝）</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 其他入站一律丢弃</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P INPUT DROP</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 所有出站一律允许</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P OUTPUT ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 所有转发一律丢弃</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P FORWARD DROP</span></span><br></pre></td></tr></table></figure>
-<p>最终我们可以看到我们目前定义的配置表：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/finalConfig.png" alt="finalConfig"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/iptables-L-n.png" alt="iptables-L-n"><br>可以看到显示的INPUT、FORWARD、OUTPUT上没有任何规则配置且默认策略均为ACCEPT<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 务必先配置INPUT链的默认规则为ACCEPT，这样一来，避免误配置导致我们无法进入</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P INPUT ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash">清空所有默认规则</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -F</span></span><br><span class="line"><span class="meta">#</span><span class="bash">清空所有自定义规则</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -X</span></span><br><span class="line"><span class="meta">#</span><span class="bash">所有计数器归0</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -Z</span></span><br><span class="line"><span class="meta">#</span><span class="bash">允许来自于lo接口的数据包(本地访问)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -i lo -j ACCEPT</span></span><br></pre></td></tr></table></figure><br>接下来定义特别的入站规则<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 开放22端口</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 22 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开放21端口(FTP)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 21 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开放80端口(HTTP)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 80 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开放443端口(HTTPS)</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p tcp --dport 443 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 允许ping</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -p icmp --icmp-type 8 -j ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 允许接受本机请求之后的返回数据 RELATED,是为FTP设置的</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -A INPUT -m state --state  RELATED,ESTABLISHED -j ACCEPT</span></span><br></pre></td></tr></table></figure><br>在上面的入站规则配置好以后，接下来我们可以将INPUT默认策略转为DROP（拒绝）<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 其他入站一律丢弃</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P INPUT DROP</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 所有出站一律允许</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P OUTPUT ACCEPT</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 所有转发一律丢弃</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> iptables -P FORWARD DROP</span></span><br></pre></td></tr></table></figure><br>最终我们可以看到我们目前定义的配置表：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/finalConfig.png" alt="finalConfig"></p>
 <h4 id="保存规则设定、开启iptables服务"><a href="#保存规则设定、开启iptables服务" class="headerlink" title="保存规则设定、开启iptables服务"></a>保存规则设定、开启iptables服务</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 保存上述规则</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> service iptables save</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注册iptables服务</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 相当于以前的chkconfig iptables on</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl <span class="built_in">enable</span> iptables.service</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 开启服务</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl start iptables.service</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看状态</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> systemctl status iptables.service</span></span><br></pre></td></tr></table></figure>
 <p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/enableAndStart.png" alt="enableAndStart"><br>防火墙配置完成！</p>
 
+    </div>
+
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/iftables/" rel="tag"># iftables</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
+        
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/04/12/2018-04-12-%E6%A0%91%E8%8E%93%E6%B4%BE3B%E4%B8%8A%E6%89%8B%E4%B8%80%E4%BA%8C/" rel="prev" title="树莓派3B上手一二">
+      <i class="fa fa-chevron-left"></i> 树莓派3B上手一二
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/04/24/2018-04-24-Scala%20trait%E7%89%B9%E8%B4%A8%20%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3/" rel="next" title="Scala trait特质 深入理解">
+      Scala trait特质 深入理解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#iptables"><span class="nav-number">1.</span> <span class="nav-text">iptables</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#iptables%E5%91%BD%E4%BB%A4%E8%A1%8C%E9%85%8D%E7%BD%AE"><span class="nav-number">1.1.</span> <span class="nav-text">iptables命令行配置</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A5%E5%85%85%E5%AD%A6%E4%B9%A0-NAT%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">[补充学习]NAT类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%86%E8%A7%A3-%E5%9C%A8Centos7-x%E4%B8%8A%E5%8D%B8%E8%BD%BDfirewalld%EF%BC%8C%E5%AE%89%E8%A3%85iptables"><span class="nav-number">3.</span> <span class="nav-text">[了解]在Centos7.x上卸载firewalld，安装iptables</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85iptables%E3%80%81iptables-service"><span class="nav-number">3.1.</span> <span class="nav-text">安装iptables、iptables-service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A6%81%E7%94%A8-%E5%81%9C%E6%AD%A2%E8%87%AA%E5%B8%A6%E7%9A%84firewalld%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.2.</span> <span class="nav-text">禁用&#x2F;停止自带的firewalld服务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E7%8E%B0%E6%9C%89%E7%9A%84%E8%A7%84%E5%88%99"><span class="nav-number">3.3.</span> <span class="nav-text">设置现有的规则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%E8%A7%84%E5%88%99%E8%AE%BE%E5%AE%9A%E3%80%81%E5%BC%80%E5%90%AFiptables%E6%9C%8D%E5%8A%A1"><span class="nav-number">3.4.</span> <span class="nav-text">保存规则设定、开启iptables服务</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

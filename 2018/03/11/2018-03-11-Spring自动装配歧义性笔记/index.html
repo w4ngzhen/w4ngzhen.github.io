@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Spring自动装配歧义性笔记 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Spring,Bean," />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="前情提要，如果系统中存在两个都实现了同一接口的类，Spring在进行@Autowired自动装配的时候，会选择哪一个？如下： 123456789101112131415161718192021222324252627282930313233&#x2F;&#x2F; 一下两个类均被标记为bean@Componentpublic class CD implements Playable &amp;#123;    @Overri">
 <meta property="og:type" content="article">
@@ -23,150 +28,395 @@
 <meta property="og:description" content="前情提要，如果系统中存在两个都实现了同一接口的类，Spring在进行@Autowired自动装配的时候，会选择哪一个？如下： 123456789101112131415161718192021222324252627282930313233&#x2F;&#x2F; 一下两个类均被标记为bean@Componentpublic class CD implements Playable &amp;#123;    @Overri">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2018-03-10T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.465Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.190Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Spring">
 <meta property="article:tag" content="Bean">
 <meta name="twitter:card" content="summary">
 
+<link rel="canonical" href="http://compilemind.com/2018/03/11/2018-03-11-Spring%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E6%AD%A7%E4%B9%89%E6%80%A7%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Spring自动装配歧义性笔记 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
 
 
-<div class="content content-post CENTER">
-   <article id="post-2018-03-11-Spring自动装配歧义性笔记" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Spring自动装配歧义性笔记</h1>
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.03.11</span>
-      </span>
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
 
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
+  </li>
+        <li class="menu-item menu-item-archives">
 
-      
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
 
 
-      
 
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
 
-  <div class="article-content">
+</div>
+    </header>
+
     
-      <p><a href="/2018/03/10/Spring-Bean%E8%A3%85%E9%85%8D%E7%AC%94%E8%AE%B0/">前情提要</a>，如果系统中存在两个都实现了同一接口的类，Spring在进行@Autowired自动装配的时候，会选择哪一个？如下：</p>
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/11/2018-03-11-Spring%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E6%AD%A7%E4%B9%89%E6%80%A7%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring自动装配歧义性笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-11 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-11T00:00:00+08:00">2018-03-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><a href="/2018/03/10/Spring-Bean装配笔记/">前情提要</a>，如果系统中存在两个都实现了同一接口的类，Spring在进行@Autowired自动装配的时候，会选择哪一个？如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一下两个类均被标记为bean</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;CD is playing...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Video</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Video is playing...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//配置类仅打开自动扫描</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ComponentScan(basePackages = &quot;zhen&quot;</span></span><br><span class="line"><span class="meta">public class MyConfig &#123;</span></span><br><span class="line"><span class="meta">&#125;</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">//测试类</span></span><br><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(classes = MyConfig.class)</span></span><br><span class="line"><span class="meta">public class MyConfigTest &#123;</span></span><br><span class="line"><span class="meta">    @Autowired</span></span><br><span class="line"><span class="meta">    Playable playable;</span></span><br><span class="line"><span class="meta">    @Test</span></span><br><span class="line"><span class="meta">    public void checkNULL() &#123;</span></span><br><span class="line"><span class="meta">        Assert.assertNotNull(playable);</span></span><br><span class="line"><span class="meta">    &#125;</span></span><br><span class="line"><span class="meta">&#125;</span></span><br></pre></td></tr></table></figure>
 <p>此时再次运行测试类会发现，FAILD并且报错：</p>
 <p>Unsatisfied dependency expressed through field ‘playable’; nested exception is org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type ‘zhen.Playable’ available: <strong>expected single matching bean but found 2: CD,video</strong> //  找到了两个都bean都能匹配</p>
 <p><strong>自动装配歧义性问题</strong></p>
 <p>上面的异常就是出现了歧义性。Spring为我们扫描了我们代码中的bean（这个部分是没有问题的），但是，在自动装配的过程中却由于歧义性而报错，并且，造成这样的歧义性还有由于Autowired这个注解仅仅按照类型进行装配——上面的CD与Video都实现了Playable接口，Autowired注解仅告诉Spring在测试类中的playable接受一个Playable类型的对象但是这里有两个bean：CD、video都是Playable类型的，所以Spring不知道。</p>
-<p>为了解决这个问题，我们需要通过一定的手段来限定：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">声明首选的bean</span><br><span class="line">限定自动转配的bean</span><br></pre></td></tr></table></figure>
-<p><strong>声明首选的bean</strong></p>
+<p>为了解决这个问题，我们需要通过一定的手段来限定：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">声明首选的bean</span><br><span class="line">限定自动转配的bean</span><br></pre></td></tr></table></figure><br><strong>声明首选的bean</strong></p>
 <p>根据名字我们很容易理解，就是声明在有歧义性情况下，Spring到底选择哪一个bean来装配。方式就是在bean组件下添加@Primary注解,例如在原先的CD的@Component下加上首选注解，再次运行测试代码，PASS。但是，这种方式通常只在同类型bean较少的或者是系统简单的情况使用，而且还存在一个情况：假如目前有两位开发人员，在各自的环境编写bean，他们都希望自己的bean是Primary的，都加该注解，实际上还是会报错，因为系统现在同样有两个Primary bean，Spring还是不能判断选择哪一个bean注入。</p>
 <p><strong>限定自动装配的bean——@Qualifier注解</strong></p>
-<p>首先，我们可以通过在@Component中加入字符串来更明确的指定bean id而不是使用Spring的默认bean id策略。就像如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component(&quot;myCD&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Component(&quot;myVideo&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Video</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先，我们可以通过在@Component中加入字符串来更明确的指定bean id而不是使用Spring的默认bean id策略。就像如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component(&quot;myCD&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Component(&quot;myVideo&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Video</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当这样指定以后，我们在自动转配的地方，使用@Qualifier(“指定id”)来限定我们要注入的确定的bean：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="meta">@Qualifier(&quot;myCD&quot;)</span></span><br><span class="line">  Playable playable;</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br>再次运行不会报错。</p>
+<p>关于@Qualifier，最佳的情形应该是来标记bean特性。但是，如果多个bean都有相同的特性，都是用了相同的标记的@Qualifier注解，那么同样又会出现歧义性问题。所以我们又要添加新的@Qualifier注解来进一步限定，这样做没有问题，但是Java语法规定，不允许在同一条目上重复出现相同类型的多个注解。你<strong>不能</strong>这么做：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 编译器会报错</span></span><br><span class="line"><span class="meta">@Qualifier(&quot;myCD&quot;)</span></span><br><span class="line"><span class="meta">@Qaulifier(&quot;JayChou&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>为了结局这样的问题，我们可以创建自己的注解：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD&#125;)</span> <span class="comment">//字段注解  </span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span> <span class="comment">//在运行期保留注解信息</span></span><br><span class="line"><span class="meta">@Qualifier</span> <span class="comment">// 需要使用@Qualifier注解来限定</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> MyCD &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Qualifier</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> JayChou &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>如此定义了注解以后，我们就可以在原先的@Component下如下定义：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@MyCD</span></span><br><span class="line"><span class="meta">@JayChou</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>并且在测试类下如下声明：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="meta">@MyCD</span></span><br><span class="line"><span class="meta">@JayChou</span></span><br><span class="line">Playable playable;</span><br></pre></td></tr></table></figure><br>测试通过！</p>
 
-<p>当这样指定以后，我们在自动转配的地方，使用@Qualifier(“指定id”)来限定我们要注入的确定的bean：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="meta">@Qualifier(&quot;myCD&quot;)</span></span><br><span class="line">  Playable playable;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>再次运行不会报错。</p>
-<p>关于@Qualifier，最佳的情形应该是来标记bean特性。但是，如果多个bean都有相同的特性，都是用了相同的标记的@Qualifier注解，那么同样又会出现歧义性问题。所以我们又要添加新的@Qualifier注解来进一步限定，这样做没有问题，但是Java语法规定，不允许在同一条目上重复出现相同类型的多个注解。你<strong>不能</strong>这么做：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 编译器会报错</span></span><br><span class="line"><span class="meta">@Qualifier(&quot;myCD&quot;)</span></span><br><span class="line"><span class="meta">@Qaulifier(&quot;JayChou&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>为了结局这样的问题，我们可以创建自己的注解：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD&#125;)</span> <span class="comment">//字段注解  </span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span> <span class="comment">//在运行期保留注解信息</span></span><br><span class="line"><span class="meta">@Qualifier</span> <span class="comment">// 需要使用@Qualifier注解来限定</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> MyCD &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Qualifier</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> JayChou &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如此定义了注解以后，我们就可以在原先的@Component下如下定义：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@MyCD</span></span><br><span class="line"><span class="meta">@JayChou</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>并且在测试类下如下声明：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="meta">@MyCD</span></span><br><span class="line"><span class="meta">@JayChou</span></span><br><span class="line">Playable playable;</span><br></pre></td></tr></table></figure>
-<p>测试通过！</p>
+    </div>
 
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+              <a href="/tags/Bean/" rel="tag"># Bean</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
+        
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/10/2018-03-10-Spring%20Bean%E8%A3%85%E9%85%8D%E7%AC%94%E8%AE%B0/" rel="prev" title="Spring Bean装配笔记">
+      <i class="fa fa-chevron-left"></i> Spring Bean装配笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/03/12/2018-03-12-Linux%20Bash%E5%91%BD%E4%BB%A4%E6%9D%82%E8%AE%B0(cut%20sort%20uniq%20wc%20tee)/" rel="next" title="Linux Bash命令杂记(cut sort uniq wc tee)">
+      Linux Bash命令杂记(cut sort uniq wc tee) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

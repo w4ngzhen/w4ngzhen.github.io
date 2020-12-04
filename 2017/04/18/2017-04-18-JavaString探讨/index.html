@@ -1,109 +1,215 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Java String的探讨 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Java,String," />
-  
 
-  <meta name="description" content="关于String相关内容的学习，历来都是Java学习必不可少的一个经历。 以前一直想要好好总结一下String的相关的知识点，苦于没有时间，终于在今天有一个闲暇的时间来好好总结一下，也希望这文章能够加深我对于String相关内容的理解（ps:在我看来，学习某些知识点的时候把学到的想到的都记录下一方面能够加深自己学习印象，二者能够锻炼锻炼我的文笔） 首先JVM中存在着一个字符串池String poo">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="关于String相关内容的学习，历来都是Java学习必不可少的一个经历。 以前一直想要好好总结一下String的相关的知识点，苦于没有时间，终于在今天有一个闲暇的时间来好好总结一下，也希望这文章能够加深我对于String相关内容的理解~（ps:在我看来，学习某些知识点的时候把学到的想到的都记录下一方面能够加深自己学习印象，二者能够锻炼锻炼我的文笔~） 首先JVM中存在着一个字符串池String p">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java String的探讨">
 <meta property="og:url" content="http://compilemind.com/2017/04/18/2017-04-18-JavaString%E6%8E%A2%E8%AE%A8/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="关于String相关内容的学习，历来都是Java学习必不可少的一个经历。 以前一直想要好好总结一下String的相关的知识点，苦于没有时间，终于在今天有一个闲暇的时间来好好总结一下，也希望这文章能够加深我对于String相关内容的理解（ps:在我看来，学习某些知识点的时候把学到的想到的都记录下一方面能够加深自己学习印象，二者能够锻炼锻炼我的文笔） 首先JVM中存在着一个字符串池String poo">
+<meta property="og:description" content="关于String相关内容的学习，历来都是Java学习必不可少的一个经历。 以前一直想要好好总结一下String的相关的知识点，苦于没有时间，终于在今天有一个闲暇的时间来好好总结一下，也希望这文章能够加深我对于String相关内容的理解~（ps:在我看来，学习某些知识点的时候把学到的想到的都记录下一方面能够加深自己学习印象，二者能够锻炼锻炼我的文笔~） 首先JVM中存在着一个字符串池String p">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2017-04-17T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.456Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.186Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="String">
 <meta name="twitter:card" content="summary">
 
+<link rel="canonical" href="http://compilemind.com/2017/04/18/2017-04-18-JavaString%E6%8E%A2%E8%AE%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Java String的探讨 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
 
 
-<div class="content content-post CENTER">
-   <article id="post-2017-04-18-JavaString探讨" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Java String的探讨</h1>
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2017.04.18</span>
-      </span>
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
 
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
+  </li>
+        <li class="menu-item menu-item-archives">
 
-      
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
 
 
-      
 
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
 
-  <div class="article-content">
+</div>
+    </header>
+
     
-      <p>关于String相关内容的学习，历来都是Java学习必不可少的一个经历。</p>
-<p>以前一直想要好好总结一下String的相关的知识点，苦于没有时间，终于在今天有一个闲暇的时间来好好总结一下，也希望这文章能够加深我对于String相关内容的理解<del>（ps:在我看来，学习某些知识点的时候把学到的想到的都记录下一方面能够加深自己学习印象，二者能够锻炼锻炼我的文笔</del>）</p>
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/04/18/2017-04-18-JavaString%E6%8E%A2%E8%AE%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java String的探讨
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-04-18 00:00:00" itemprop="dateCreated datePublished" datetime="2017-04-18T00:00:00+08:00">2017-04-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>关于String相关内容的学习，历来都是Java学习必不可少的一个经历。</p>
+<p>以前一直想要好好总结一下String的相关的知识点，苦于没有时间，终于在今天有一个闲暇的时间来好好总结一下，也希望这文章能够加深我对于String相关内容的理解~（ps:在我看来，学习某些知识点的时候把学到的想到的都记录下一方面能够加深自己学习印象，二者能够锻炼锻炼我的文笔~）</p>
 <p>首先JVM中存在着一个字符串池String pool，其中保存着很多String对象，这些String对象可以被共享使用，因此这个pool的存在在很多方面提高Java一些String操作的效率。 而这一些都是基于String类是final的，它的值一经创建就不可改变。String pool由String类维护，所以我们可以调用intern()方法来访问字符串池。</p>
-<p>接下里我们来看第一个例子：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="string">&quot;abc&quot;</span>;     </span><br><span class="line">String s2 = <span class="string">&quot;abc&quot;</span>;       </span><br><span class="line">System.out.println(<span class="string">&quot;s1 == s2 : &quot;</span>+(s1==s2)); <span class="comment">//true     </span></span><br><span class="line">System.out.println(<span class="string">&quot;s1.equals(s2) : &quot;</span> + (s1.equals(s2))); <span class="comment">//true </span></span><br></pre></td></tr></table></figure>
-<p>在这个例子中，虚拟机进行了哪些操作呢？首先，因为在此s1我是直接使用了”abc”，那么系统会在String pool中创建了一个String对象,他的值就是”abc”，s2进行创建的时候，系统先搜索String pool中是否已经存在了”abc”，由于String pool中已经存在了一个”abc”的String对象，很好，系统直接将s2指向了String pool中的那个”abc”地址。所以下面两个输出都是true。<br>上面都是使用””来创建String对象的，第二个例子我们使用new来创建：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">String s3 = <span class="keyword">new</span> String(<span class="string">&quot;abc&quot;</span>);   </span><br><span class="line">String s4 = <span class="keyword">new</span> String(<span class="string">&quot;abc&quot;</span>);   </span><br><span class="line">System.out.println(<span class="string">&quot;s3 == s4 : &quot;</span>+(s3==s4)); <span class="comment">//false</span></span><br><span class="line">System.out.println(<span class="string">&quot;s3.equals(s4) : &quot;</span>+(s3.equals(s4))); <span class="comment">//true </span></span><br><span class="line">System.out.println(<span class="string">&quot;s1 == s3 : &quot;</span>+(s1==s3)); <span class="comment">//false   </span></span><br><span class="line">System.out.println(<span class="string">&quot;s1.equals(s3) : &quot;</span>+(s1.equals(s3))); <span class="comment">//true  </span></span><br></pre></td></tr></table></figure>
-<p>在这里，应当要提一点。对于new String来说，该构造函数的对象接收一个String字符串对象。其实这里进行了两件事情：</p>
+<p>接下里我们来看第一个例子：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">String s1 = <span class="string">&quot;abc&quot;</span>;     </span><br><span class="line">String s2 = <span class="string">&quot;abc&quot;</span>;       </span><br><span class="line">System.out.println(<span class="string">&quot;s1 == s2 : &quot;</span>+(s1==s2)); <span class="comment">//true     </span></span><br><span class="line">System.out.println(<span class="string">&quot;s1.equals(s2) : &quot;</span> + (s1.equals(s2))); <span class="comment">//true </span></span><br></pre></td></tr></table></figure><br>在这个例子中，虚拟机进行了哪些操作呢？首先，因为在此s1我是直接使用了”abc”，那么系统会在String pool中创建了一个String对象,他的值就是”abc”，s2进行创建的时候，系统先搜索String pool中是否已经存在了”abc”，由于String pool中已经存在了一个”abc”的String对象，很好，系统直接将s2指向了String pool中的那个”abc”地址。所以下面两个输出都是true。<br>上面都是使用””来创建String对象的，第二个例子我们使用new来创建：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">String s3 = <span class="keyword">new</span> String(<span class="string">&quot;abc&quot;</span>);   </span><br><span class="line">String s4 = <span class="keyword">new</span> String(<span class="string">&quot;abc&quot;</span>);   </span><br><span class="line">System.out.println(<span class="string">&quot;s3 == s4 : &quot;</span>+(s3==s4)); <span class="comment">//false</span></span><br><span class="line">System.out.println(<span class="string">&quot;s3.equals(s4) : &quot;</span>+(s3.equals(s4))); <span class="comment">//true </span></span><br><span class="line">System.out.println(<span class="string">&quot;s1 == s3 : &quot;</span>+(s1==s3)); <span class="comment">//false   </span></span><br><span class="line">System.out.println(<span class="string">&quot;s1.equals(s3) : &quot;</span>+(s1.equals(s3))); <span class="comment">//true  </span></span><br></pre></td></tr></table></figure><br>在这里，应当要提一点。对于new String来说，该构造函数的对象接收一个String字符串对象。其实这里进行了两件事情：</p>
 <p>步骤一：系统首先会创建一个String对象”abc”，通过String temp = “abc”来创建的（temp只是我自己取得名字，至于到底叫什么，我们是不用关心的），这个创建过程和第一个例子是一样的道理，他会在String pool去寻找’”abc”，然后根据有没有来判断是额外的创建还是直接用String pool中的那个”abc”。</p>
 <p>步骤二：new String接受了刚刚的temp参数以后，在堆上去创建一个对象，把刚刚的temp的值”abc”赋给这个在堆中的String对象的值。</p>
 <p>步骤三：把s3指向刚刚在堆中的这个String对象。</p>
@@ -112,62 +218,210 @@
 <p>接下来是第三种例子，String中 + 的重载：</p>
 <p>由于我们知道，常量的值在编译的时候就已经进行了优化了。所以这一行代码：</p>
 <p> String str1 = “ab” + “cd”;<br>在编译的时候就等价于优化过的</p>
-<p>String str1 = “abcd”;<br>所以执行下面这几行代码的时候，根据常量编译优化，加上我对于第一个例子的讲解，我们可以知道输出是true：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String str1 = <span class="string">&quot;ab&quot;</span> + <span class="string">&quot;cd&quot;</span>;  <span class="comment">//1个对象  </span></span><br><span class="line">String str2 = <span class="string">&quot;abcd&quot;</span>;   </span><br><span class="line">System.out.println(<span class="string">&quot;str1 = str2 : &quot;</span>+ (str1 == str2));  <span class="comment">//输出为true</span></span><br></pre></td></tr></table></figure>
-<p>接下来就是第四种情形了，这种情况依然是String + 的重载，但是比起第三种是有本质的不同的。首先看代码：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String str2 = <span class="string">&quot;ab&quot;</span>;</span><br><span class="line">String str3 = <span class="string">&quot;cd&quot;</span>;                                       </span><br><span class="line">String str4 = str2 + str3;                                        </span><br><span class="line">String str5 = <span class="string">&quot;abcd&quot;</span>;    </span><br><span class="line">System.out.println(<span class="string">&quot;str4 = str5 : &quot;</span> + (str4 == str5));</span><br></pre></td></tr></table></figure>
-<p>解读这一段代码，str2、str3就是情况一，我们不再讨论。此刻str4比起第三种的 + 两端都是String常量而言，这里是对于编译器来说是两个变量。这一个部分，系统会干什么呢？首先，系统会new 一个StringBuilder对象，然后调用该对象的append函数，把str2、str3按顺序连接起来。连接好以后，调用StringBuilder的toString方法，该方法内部new 一个String对象，并把它return。得到str2 + str3的结果，接着str4指向堆中的这个String对象。</p>
+<p>String str1 = “abcd”;<br>所以执行下面这几行代码的时候，根据常量编译优化，加上我对于第一个例子的讲解，我们可以知道输出是true：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String str1 = <span class="string">&quot;ab&quot;</span> + <span class="string">&quot;cd&quot;</span>;  <span class="comment">//1个对象  </span></span><br><span class="line">String str2 = <span class="string">&quot;abcd&quot;</span>;   </span><br><span class="line">System.out.println(<span class="string">&quot;str1 = str2 : &quot;</span>+ (str1 == str2));  <span class="comment">//输出为true</span></span><br></pre></td></tr></table></figure><br>接下来就是第四种情形了，这种情况依然是String + 的重载，但是比起第三种是有本质的不同的。首先看代码：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">String str2 = <span class="string">&quot;ab&quot;</span>;</span><br><span class="line">String str3 = <span class="string">&quot;cd&quot;</span>;                                       </span><br><span class="line">String str4 = str2 + str3;                                        </span><br><span class="line">String str5 = <span class="string">&quot;abcd&quot;</span>;    </span><br><span class="line">System.out.println(<span class="string">&quot;str4 = str5 : &quot;</span> + (str4 == str5));</span><br></pre></td></tr></table></figure><br>解读这一段代码，str2、str3就是情况一，我们不再讨论。此刻str4比起第三种的 + 两端都是String常量而言，这里是对于编译器来说是两个变量。这一个部分，系统会干什么呢？首先，系统会new 一个StringBuilder对象，然后调用该对象的append函数，把str2、str3按顺序连接起来。连接好以后，调用StringBuilder的toString方法，该方法内部new 一个String对象，并把它return。得到str2 + str3的结果，接着str4指向堆中的这个String对象。</p>
 <p>注意：对于StringBuilder的创建还有其他的情况。比如假设此处的String str4 = “ab” + “c” + str2 那么，编译器首先会进行一个优化，也就是第三种情况所说的他会优化为String str4 = “abc” + str2 然后，new StringBuilder(“abc”)，然后append(str2)。也就是说，从=号右边开始前部分，他首先会在编译过程判断能否进行优化，可以优化，由优化为最大的常量子串，然后new一个以该最大子串的为初始值的StringBuilder对象，然后再append。</p>
 <p>所以，在以上的这四条String创建语句中，创建了str2、str3、str5三个在String pool中的字符串常量，以及在系统内部进行append的StringBuilder，以及toString函数return的在堆中创建的String对象，一共五个对象。</p>
 <p>那么最终输出结果当然是false，前者是指向堆中的String对象的地址，而后者是S指向tring pool中String对象的地址。</p>
-<p>但是，还有一种变量情况是不一样的：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> String str1 = <span class="string">&quot;b&quot;</span>;  </span><br><span class="line">String str2 = <span class="string">&quot;a&quot;</span> + str1;  </span><br><span class="line">String str3 = <span class="string">&quot;ab&quot;</span>;  </span><br><span class="line">System.out.println(<span class="string">&quot;str2 = str3 : &quot;</span>+ (str2 == str3)); <span class="comment">//true</span></span><br></pre></td></tr></table></figure>
-<p>这里按照情况四中注意部分来说，输出本来应该是false，但是为什么是true呢？注意看str1前面的修饰符，这里使用了final修饰符，final修饰的变量表示是一个常量，在创建额时候就需要初始化，并且不可修改。在final关键字的修饰下，编译器会在编译过程中就进行优化，其实这里的道理就和例子三是一样的了。这也是为什么这里输出的是true。</p>
+<p>但是，还有一种变量情况是不一样的：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> String str1 = <span class="string">&quot;b&quot;</span>;  </span><br><span class="line">String str2 = <span class="string">&quot;a&quot;</span> + str1;  </span><br><span class="line">String str3 = <span class="string">&quot;ab&quot;</span>;  </span><br><span class="line">System.out.println(<span class="string">&quot;str2 = str3 : &quot;</span>+ (str2 == str3)); <span class="comment">//true</span></span><br></pre></td></tr></table></figure><br>这里按照情况四中注意部分来说，输出本来应该是false，但是为什么是true呢？注意看str1前面的修饰符，这里使用了final修饰符，final修饰的变量表示是一个常量，在创建额时候就需要初始化，并且不可修改。在final关键字的修饰下，编译器会在编译过程中就进行优化，其实这里的道理就和例子三是一样的了。这也是为什么这里输出的是true。</p>
+
+    </div>
 
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/String/" rel="tag"># String</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
+        
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/04/04/2017-04-04-%E4%BF%AE%E6%94%B9MysqlRoot%E5%AF%86%E7%A0%81/" rel="prev" title="修改MySql Root密码（包含忘记密码的方式）">
+      <i class="fa fa-chevron-left"></i> 修改MySql Root密码（包含忘记密码的方式）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EPrivoxy%E5%8E%9F%E7%90%86/" rel="next" title="理解$hadow$ocks与Privoxy原理">
+      理解$hadow$ocks与Privoxy原理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>在macOS上通过虚拟机搭建基础CentOS7系统环境 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Linux," />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="尽管从Mac的Terminal可以看出，macOS与UNIX、Linux或多或少都有血缘关系（shell、bash等），但是在mac进行Linux开发，或者把macOS直接当作Linux来使用依然是说不过去的，这其中包括一些命令行的使用，一些基本的文件夹体系等（如，在Linux上的&#x2F;home目录与在macOS下的&#x2F;Users）不一致。如果想要在macOS上进行Linux的学习，或者进行Linux开">
 <meta property="og:type" content="article">
@@ -55,85 +60,185 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/sharefile.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/deleteshare.png">
 <meta property="article:published_time" content="2018-03-05T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.460Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.188Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Linux">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/create-v.png">
 
+<link rel="canonical" href="http://compilemind.com/2018/03/06/2018-03-06-%E5%9C%A8macOS%E4%B8%8A%E9%80%9A%E8%BF%87%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%90%AD%E5%BB%BA%E5%9F%BA%E7%A1%80CentOS%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>在macOS上通过虚拟机搭建基础CentOS7系统环境 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-text">虚拟机的选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Linux%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-text">Linux的选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%8F%8C%E7%BD%91%E5%8D%A1%E5%AE%9E%E7%8E%B0%E8%99%9A%E6%8B%9F%E6%9C%BA-%E4%B8%8E%E4%B8%BB%E6%9C%BA%EF%BC%88mac%EF%BC%89%E4%B8%8E%E5%A4%96%E7%BD%91%E9%80%9A%E4%BF%A1"><span class="toc-text">配置双网卡实现虚拟机 与主机（mac）与外网通信</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E4%BB%85%E4%BB%85%E4%B8%8E%E4%B8%BB%E6%9C%BA%E9%80%9A%E4%BF%A1%E7%9A%84%E4%BB%85%E4%B8%BB%E6%9C%BA%E6%A8%A1%E5%BC%8F%E7%BD%91%E5%8D%A1"><span class="toc-text">配置仅仅与主机通信的仅主机模式网卡</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%97%A2%E8%83%BD%E4%B8%8E%E4%B8%BB%E6%9C%BA%E9%80%9A%E4%BF%A1%E5%90%8C%E6%97%B6%E8%BF%98%E8%83%BD%E4%B8%8E%E5%A4%96%E7%BD%91%E9%80%9A%E4%BF%A1%E7%9A%84%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F"><span class="toc-text">配置既能与主机通信同时还能与外网通信的桥接模式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85VirtaulBox%E5%A2%9E%E5%BC%BA%E5%B7%A5%E5%85%B7%E5%8C%85"><span class="toc-text">安装VirtaulBox增强工具包</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BACentOS%E5%AE%89%E8%A3%85%E5%BF%85%E8%A6%81%E7%9A%84%E5%BC%80%E5%8F%91%E5%BA%93%E5%B7%A5%E5%85%B7%E5%BA%93"><span class="toc-text">为CentOS安装必要的开发库工具库</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%82%E8%BD%BD%E5%A2%9E%E5%BC%BA%E5%8A%9F%E8%83%BD%E9%95%9C%E5%83%8F%E6%96%87%E4%BB%B6"><span class="toc-text">挂载增强功能镜像文件</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="toc-text">设置共享文件夹</span></a></li></ol>
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
 
 
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-<div class="content content-post CENTER">
-   <article id="post-2018-03-06-在macOS上通过虚拟机搭建基础CentOS系统环境" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">在macOS上通过虚拟机搭建基础CentOS7系统环境</h1>
+          <div class="content post posts-expand">
+            
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.03.06</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
-
-      
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
     
-      <p>尽管从Mac的Terminal可以看出，macOS与UNIX、Linux或多或少都有血缘关系（shell、bash等），但是在mac进行Linux开发，或者把macOS直接当作Linux来使用依然是说不过去的，这其中包括一些命令行的使用，一些基本的文件夹体系等（如，在Linux上的/home目录与在macOS下的/Users）不一致。如果想要在macOS上进行Linux的学习，或者进行Linux开发，最完美的方案自然是安装虚拟机。</p>
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/06/2018-03-06-%E5%9C%A8macOS%E4%B8%8A%E9%80%9A%E8%BF%87%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%90%AD%E5%BB%BA%E5%9F%BA%E7%A1%80CentOS%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          在macOS上通过虚拟机搭建基础CentOS7系统环境
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-06 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-06T00:00:00+08:00">2018-03-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>尽管从Mac的Terminal可以看出，macOS与UNIX、Linux或多或少都有血缘关系（shell、bash等），但是在mac进行Linux开发，或者把macOS直接当作Linux来使用依然是说不过去的，这其中包括一些命令行的使用，一些基本的文件夹体系等（如，在Linux上的/home目录与在macOS下的/Users）不一致。如果想要在macOS上进行Linux的学习，或者进行Linux开发，最完美的方案自然是安装虚拟机。</p>
 <h3 id="虚拟机的选择"><a href="#虚拟机的选择" class="headerlink" title="虚拟机的选择"></a>虚拟机的选择</h3><p>mac平台上的主流虚拟机有VMWare Fusion、Parallels Desktop、VrtualBox。前两者均是付费产品，价格虽不是很贵（参考JetBrains、Adobe系列），但是对于只是在Linux上进行学习或者是进行一些简单的开发颇有些大材小用了。所以，本次教程选择免费的VirtualBox进行搭建。</p>
 <p>地址：<a target="_blank" rel="noopener" href="https://www.virtualbox.org/">VirtualBox</a></p>
 <p>下载好以后，打开dmg双击pkg正常安装即可。</p>
@@ -159,93 +264,225 @@
 <h3 id="配置双网卡实现虚拟机-与主机（mac）与外网通信"><a href="#配置双网卡实现虚拟机-与主机（mac）与外网通信" class="headerlink" title="配置双网卡实现虚拟机 与主机（mac）与外网通信"></a>配置双网卡实现虚拟机 与主机（mac）与外网通信</h3><p>在上面的配置中，我们已经搭建好了一个最基本的，不具备网络通信的CentOS7操作系统，但是不能与外网通信，我们不能通过在线安装我们需要的软件，这样的单机操作系统用处是不大的。接下来我将介绍如何通过双网卡的方式来实现实现虚拟机 与主机（mac）与外网通信。</p>
 <h4 id="配置仅仅与主机通信的仅主机模式网卡"><a href="#配置仅仅与主机通信的仅主机模式网卡" class="headerlink" title="配置仅仅与主机通信的仅主机模式网卡"></a>配置仅仅与主机通信的仅主机模式网卡</h4><p>以下配置方式是不能与外网通信的，仅仅与主机通信，但好处在于我们可以使用静态IP地址，避免IP地址的变动。如果你没有这方面的需求，可以直接进入下一节。</p>
 <p>无论是哪一台计算机，要进行网络通信，都必须要至少有一块网卡来进行通信，当然，我们可以通过软件来虚拟出网卡，让这个虚拟的网卡获取IP来通信，更多的细节需要你有计算机网络的相关知识来支撑，这里不多提。这里既然我们需要让虚拟机中的系统来与我们的主机（mac）来通信，自然而然，需要让我们mac有一块网卡，虚拟机有一块网卡，让它们处于同一网段，这样一来，我们自然就实现了虚拟机与主机（mac）之间的通信。主机上怎么创建一块虚拟网卡呢？这里VirtualBox就可以帮我们实现。</p>
-<p>点击主界面上的“全局工具” - “主机网络管理器”，进入后点击“创建”（<strong>注意</strong>：这里可能会存在显示BUG，导致你点击创建之后没反应，<strong>请不要</strong>连续点击创建，点了一次之后切换一下画面），之后你就会在主机上（mac）创建一块用于和VirtualBox中的虚拟机进行通信的虚拟网卡：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/createHostNetworkUI.png" alt="createHostNetworkUI"><br>这里VBox自动为我们在mac主机上创建了一块名称为vboxnet0的网卡<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/createHostNetwork.png" alt="createHostNetwork"><br>我们进入mac终端，显示当前的所有的网卡信息也能看到这块网卡在我们的mac主机上已经创建成功了：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ifconfig</span></span><br><span class="line">...</span><br><span class="line">vboxnet0: flags=8943&lt;UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">	ether 0a:00:27:00:00:00</span><br><span class="line">	inet 192.168.56.1 netmask 0xffffff00 broadcast 192.168.56.255</span><br><span class="line"><span class="meta">#</span><span class="bash"> 我们看到这块网卡已经有一个IP地址为192.168.56.1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 要让我们的虚拟机与我们的主机通信，只要虚拟机中有一块我们主机在同一网段的网卡就行了</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p><strong>注意：请明确以上操作是为我们的主机mac，不是为我们的虚拟机创建网卡：）</strong></p>
+<p>点击主界面上的“全局工具” - “主机网络管理器”，进入后点击“创建”（<strong>注意</strong>：这里可能会存在显示BUG，导致你点击创建之后没反应，<strong>请不要</strong>连续点击创建，点了一次之后切换一下画面），之后你就会在主机上（mac）创建一块用于和VirtualBox中的虚拟机进行通信的虚拟网卡：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/createHostNetworkUI.png" alt="createHostNetworkUI"><br>这里VBox自动为我们在mac主机上创建了一块名称为vboxnet0的网卡<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/createHostNetwork.png" alt="createHostNetwork"><br>我们进入mac终端，显示当前的所有的网卡信息也能看到这块网卡在我们的mac主机上已经创建成功了：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ifconfig</span></span><br><span class="line">...</span><br><span class="line">vboxnet0: flags=8943&lt;UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">	ether 0a:00:27:00:00:00</span><br><span class="line">	inet 192.168.56.1 netmask 0xffffff00 broadcast 192.168.56.255</span><br><span class="line"><span class="meta">#</span><span class="bash"> 我们看到这块网卡已经有一个IP地址为192.168.56.1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 要让我们的虚拟机与我们的主机通信，只要虚拟机中有一块我们主机在同一网段的网卡就行了</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure><br><strong>注意：请明确以上操作是为我们的主机mac，不是为我们的虚拟机创建网卡：）</strong></p>
 <p>接下来，我们可以通过VirtualBox给CentOS配置一块网卡，用于我们的虚拟机中的操作系统与我们的主机（mac）之间的通信，所以首先我们要配置一块“仅主机（Host-Only）网络”：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/host-only.png" alt="host-only"><br>我们可以看到，VirtualBox已经很智能的为我们选择了我们刚刚为主机mac创建的网卡。点击“OK”之后，我们虚拟机与主机之间的通信网卡配置完成（<strong>注意</strong>：仅仅是虚拟网卡配置好了，IP地址什么还没有配置）。接下来我们登录我们的虚拟机查看网卡的配置情况。<br>进入系统之后，我们使用命令ip addr来查看CentOS下的网卡配置情况（默认是没有ifconfig命令的，我们之后再装）<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ip_addr.png" alt="ip_addr"><br>注意查看此处第二块网卡，我们可以看到它的硬件地址是08:00…:3d，和我们上面的配置Host-Only处显示的硬件MAC地址是一样的，同时请记住这块网卡的名称。</p>
 <p><strong>配置网络</strong></p>
-<p>在CentOS7中，我们进入/etc/sysconfig/network-script目录，显示当前目录下的文件：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /etc/sysconfig/network-script</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 在众多的配置文件中，我们应该是能够找到和我们上面ip addr命令中显示的那块网卡名称一样的带有“ifcfg-”前缀的配置文件</span></span><br><span class="line">...</span><br><span class="line">ifcfg-enp0s3</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p><strong>注意</strong>：在CentOS6.x及一下，网卡的命名规则和7不一样，相关的差别请自行搜索。</p>
-<p>接下来我们需要配置网卡的具体信息，由于我们选择的是minimal版本的CentOS，所以使用vi来打开编辑它：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi ifcfg-enp0s3</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同时为了配合上面的我们主机的IP网段，我们按照如下的方式来配置</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 类型=以太网</span></span><br><span class="line">TYPE=Ethernet(默认)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 设备名</span></span><br><span class="line">DEVICE=enp0s3(默认)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">BOOTPROTO=dhcp(dhcp为自动分配ip地址,我们把他注释了，在下面另外加)</span></span><br><span class="line">BOOTPROTO=static(新添加)</span><br><span class="line"><span class="meta">#</span><span class="bash"> IP地址</span></span><br><span class="line">IPADDR=192.168.56.66(新添加)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 子网掩码</span></span><br><span class="line">NETMASK=255.255.255.0(新添加)</span><br><span class="line"></span><br><span class="line">ONBOOT=yes(默认为no,修改为yes意为每次启动之后自动启动该网卡)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 以上就是一个最精简的网卡配置文件</span></span><br></pre></td></tr></table></figure>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ifcfg.png" alt="ifcfg"><br>接下来reboot重启CentOS，重启之后通过ip addr再次查看我们网卡信息，也可以看到其网卡已经配置好了IP地址：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ipaddrNew.png" alt="ipaddrNew"><br>最后来进行测试，由于mac本身的安全防火墙是打开的，所以我们通过虚拟机（ip=192.168.56.66）去ping我们mac主机（ip=192.168.56.1）是ping不通的，我们只有在mac终端下去ping我们的虚拟机，发现已经ping通：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ping.png" alt="ping"></p>
+<p>在CentOS7中，我们进入/etc/sysconfig/network-script目录，显示当前目录下的文件：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /etc/sysconfig/network-script</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 在众多的配置文件中，我们应该是能够找到和我们上面ip addr命令中显示的那块网卡名称一样的带有“ifcfg-”前缀的配置文件</span></span><br><span class="line">...</span><br><span class="line">ifcfg-enp0s3</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br><strong>注意</strong>：在CentOS6.x及一下，网卡的命名规则和7不一样，相关的差别请自行搜索。</p>
+<p>接下来我们需要配置网卡的具体信息，由于我们选择的是minimal版本的CentOS，所以使用vi来打开编辑它：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi ifcfg-enp0s3</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同时为了配合上面的我们主机的IP网段，我们按照如下的方式来配置</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 类型=以太网</span></span><br><span class="line">TYPE=Ethernet(默认)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 设备名</span></span><br><span class="line">DEVICE=enp0s3(默认)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">BOOTPROTO=dhcp(dhcp为自动分配ip地址,我们把他注释了，在下面另外加)</span></span><br><span class="line">BOOTPROTO=static(新添加)</span><br><span class="line"><span class="meta">#</span><span class="bash"> IP地址</span></span><br><span class="line">IPADDR=192.168.56.66(新添加)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 子网掩码</span></span><br><span class="line">NETMASK=255.255.255.0(新添加)</span><br><span class="line"></span><br><span class="line">ONBOOT=yes(默认为no,修改为yes意为每次启动之后自动启动该网卡)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 以上就是一个最精简的网卡配置文件</span></span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ifcfg.png" alt="ifcfg"><br>接下来reboot重启CentOS，重启之后通过ip addr再次查看我们网卡信息，也可以看到其网卡已经配置好了IP地址：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ipaddrNew.png" alt="ipaddrNew"><br>最后来进行测试，由于mac本身的安全防火墙是打开的，所以我们通过虚拟机（ip=192.168.56.66）去ping我们mac主机（ip=192.168.56.1）是ping不通的，我们只有在mac终端下去ping我们的虚拟机，发现已经ping通：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ping.png" alt="ping"></p>
 <h4 id="配置既能与主机通信同时还能与外网通信的桥接模式"><a href="#配置既能与主机通信同时还能与外网通信的桥接模式" class="headerlink" title="配置既能与主机通信同时还能与外网通信的桥接模式"></a>配置既能与主机通信同时还能与外网通信的桥接模式</h4><p>配置第二块网卡的原理十分简单，就是我们将我们主机的一块能够上网的网卡作为桥接网卡（可以理解为抽象成一台路由器上的网卡），这样，首先毫无疑问，我们的既然都是我们主机上的网卡了，自然主机与虚拟机之间是能够通信的，同时，我们的虚拟机还能够通过这块桥接网卡来与外界通信。</p>
 <p>以上的简略了解以后，我们首先可以知道，我们可以不再需要Host-Only这样的主机模式了。所以我们不再选择主机模式。</p>
-<p>选择桥接模式之前，我们首先查看我们当前能够使用的桥接的网络，在本次实验中，本人mac使用的是无线网卡en0连接的网络本地的局域网：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ifconfig</span></span><br><span class="line">...</span><br><span class="line">en0: flags=8863&lt;UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">	...</span><br><span class="line">	inet 172.20.10.12 netmask 0xfffffff0 broadcast 172.20.10.15</span><br><span class="line">	nd6 options=201&lt;PERFORMNUD,DAD&gt;</span><br><span class="line">	media: autoselect</span><br><span class="line">	status: active</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-<p>在此基础之上，我们设置虚拟机的网络为桥接模式，取消仅主机模式网络，并且选择我们的无线网卡：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/nohostonly.png" alt="nohostonly"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/en0.png" alt="en0"><br>接下来进入系统，验证网卡是否配置成功，之后在测试ping外网：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ipaddrBridgeAndPing.png" alt="ipaddrBridgeAndPing"><br>再使用主机ping我们的虚拟机，发现没有问题<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/pingVM.png" alt="pingVM"><br>综上，我们的虚拟机 + 网络完全配置完成！</p>
+<p>选择桥接模式之前，我们首先查看我们当前能够使用的桥接的网络，在本次实验中，本人mac使用的是无线网卡en0连接的网络本地的局域网：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ifconfig</span></span><br><span class="line">...</span><br><span class="line">en0: flags=8863&lt;UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">	...</span><br><span class="line">	inet 172.20.10.12 netmask 0xfffffff0 broadcast 172.20.10.15</span><br><span class="line">	nd6 options=201&lt;PERFORMNUD,DAD&gt;</span><br><span class="line">	media: autoselect</span><br><span class="line">	status: active</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br>在此基础之上，我们设置虚拟机的网络为桥接模式，取消仅主机模式网络，并且选择我们的无线网卡：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/nohostonly.png" alt="nohostonly"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/en0.png" alt="en0"><br>接下来进入系统，验证网卡是否配置成功，之后在测试ping外网：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ipaddrBridgeAndPing.png" alt="ipaddrBridgeAndPing"><br>再使用主机ping我们的虚拟机，发现没有问题<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/pingVM.png" alt="pingVM"><br>综上，我们的虚拟机 + 网络完全配置完成！</p>
 <h3 id="安装VirtaulBox增强工具包"><a href="#安装VirtaulBox增强工具包" class="headerlink" title="安装VirtaulBox增强工具包"></a>安装VirtaulBox增强工具包</h3><p>VirtualBox的增强工具包通常不需要我们再去下载，它通常伴随VirtualBox下载好了。一般会存放在对应应用的根目录下（在Windows中就是安装根目录），在mac中我们知道应用的根目录就是当我们安装的应用的包内容中：找到VitualBox应用，右键，“显示包内容”，“Contents”，“MacOS”，可以看到一个名为VBoxGuestAddition.iso镜像文件：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/additioniso.png" alt="additioniso"><br>接下来，就需要我们将这个iso镜像文件挂载到我们的Linux系统中。<strong>注意，一定要明确这个增强工具是给我们虚拟机中的Linux系统安装的</strong>。</p>
-<h4 id="为CentOS安装必要的开发库工具库"><a href="#为CentOS安装必要的开发库工具库" class="headerlink" title="为CentOS安装必要的开发库工具库"></a>为CentOS安装必要的开发库工具库</h4><p>进入Linux中，在前面安装配置好网络的基础上，我们使用yum安装如下待会增强功能包需要用到的工具库：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> yum update</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> yum install gcc gcc-c++ make kernel-headers kernel-devel bzip2</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 务必注意先安装gcc、gcc-c++、make，这三个工具是后面编译的基础工具</span></span><br></pre></td></tr></table></figure>
-<p>安装完成以后，reboot重启。**(务必要重启，为了更新kernel内核系统信息)**</p>
+<h4 id="为CentOS安装必要的开发库工具库"><a href="#为CentOS安装必要的开发库工具库" class="headerlink" title="为CentOS安装必要的开发库工具库"></a>为CentOS安装必要的开发库工具库</h4><p>进入Linux中，在前面安装配置好网络的基础上，我们使用yum安装如下待会增强功能包需要用到的工具库：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> yum update</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> yum install gcc gcc-c++ make kernel-headers kernel-devel bzip2</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 务必注意先安装gcc、gcc-c++、make，这三个工具是后面编译的基础工具</span></span><br></pre></td></tr></table></figure><br>安装完成以后，reboot重启。<strong>(务必要重启，为了更新kernel内核系统信息)</strong></p>
 <h4 id="挂载增强功能镜像文件"><a href="#挂载增强功能镜像文件" class="headerlink" title="挂载增强功能镜像文件"></a>挂载增强功能镜像文件</h4><p>这里必须要提到Linux中的一个概念：<strong>挂载（mount）</strong>。根文件系统之外的其他文件要想能够被访问，都必须通过“关联”至根文件系统上的某个目录来实现，此关联操作即为“挂载”，此目录即为“挂载点”,解除此关联关系的过程称之为“卸载”。实际上，我们Windows上同样也有挂载，比如U盘的插入并读写，新添加的硬盘并读写等等。这一切由于在Windows上已经有对应的驱动程序帮助我们自动的进行了，所以我们不太熟悉这个过程。而在Linux上，特别是在命令行界面下，我们要去读取一些系统以外的文件（就比如上面的U盘，光驱等），就必须要手动的去做这样一个操作。</p>
 <p>挂在的过程我们需要明确最主要的两点：设备以及挂载点。设备其实就是Linux操作系统中/dev/目录下显示那一些设备。挂载点其实就是Linux文件系统中的我们可以自定义的文件夹，在到时候使用挂在命令的时候，将外部文件系统与Linux内部文件系统关联起来的入口。可能还有些模糊，下面安装增强功能包会进一步根据实际来解释的。</p>
 <p>在上面我们已经安装好了开发工具并重启之后，我们首先点击VirtualBox上的“devices”选项，找到“Install Guest Addition CD image”：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/installdevices.png" alt="installdevices"><br>找到这一栏以后，我们点击它，现在是没有任何反应的，但是这里VirtualBox已经为我们将CD镜像“连接”到了Linux中了，就好像我们普通电脑装入光驱一个道理。</p>
 <p>补充：VirtualBox上的devices其实就是我们的外设接口一样。我们可以看到devices显示的Optical Drivers、Audio、Network以及USB，实际上就是为我们虚拟化的接口。假设我们想要将U盘数据传到Linux中，就可以现在电脑上插入U盘，然后在USB中找到我们这个插入的U盘对应的驱动选项，VirtualBox就会为我们读入U盘，之后在Linux中我们把对应的设备挂载到某一文件夹就可以读取了。</p>
-<p>继续上面的安装。接下来我们创建一个挂载点，挂载点通常就是创建一个临时的文件夹：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir tempdir</span></span><br></pre></td></tr></table></figure>
-<p>创建完成以后，我们将cd设备挂载到这个文件夹上：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mount -t auto /dev/cdrom ./tempdir</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 完成挂载以后会打印设备的访问权限</span></span><br></pre></td></tr></table></figure>
-<p>接下来，我们就可以进入刚刚创建的tempdir，我们可以看到这个文件中，出现了一些新的文件，这些文件其实就是刚刚增强功能包中的文件：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/tempdir.png" alt="tempdir"><br>看到这里，读者应该就能对挂载有基本更形象的认识了吧。其实就是将外部文件通过某一个我们内部创建的文件夹（挂载点）连接到我们Linux内部文件系统。<br>这个增强包中包含了Linux、Windows以及macOS系统的增强工具包。我们是Linux系统，所以运行VBoxLinuxAdditions.sh即可：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sh ./VBoxLinuxAdditions.sh</span></span><br></pre></td></tr></table></figure>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/building.png" alt="building"><br>完成以后，我们会发现系统的分辨率发生了变化，并且通过输出也知道增强工具安装成功了。</p>
-<p>最后请类似于像Windows上弹出U盘一样，卸载挂载点</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> umount tempdir</span></span><br></pre></td></tr></table></figure>
-
+<p>继续上面的安装。接下来我们创建一个挂载点，挂载点通常就是创建一个临时的文件夹：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir tempdir</span></span><br></pre></td></tr></table></figure><br>创建完成以后，我们将cd设备挂载到这个文件夹上：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mount -t auto /dev/cdrom ./tempdir</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 完成挂载以后会打印设备的访问权限</span></span><br></pre></td></tr></table></figure><br>接下来，我们就可以进入刚刚创建的tempdir，我们可以看到这个文件中，出现了一些新的文件，这些文件其实就是刚刚增强功能包中的文件：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/tempdir.png" alt="tempdir"><br>看到这里，读者应该就能对挂载有基本更形象的认识了吧。其实就是将外部文件通过某一个我们内部创建的文件夹（挂载点）连接到我们Linux内部文件系统。<br>这个增强包中包含了Linux、Windows以及macOS系统的增强工具包。我们是Linux系统，所以运行VBoxLinuxAdditions.sh即可：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sh ./VBoxLinuxAdditions.sh</span></span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/building.png" alt="building"><br>完成以后，我们会发现系统的分辨率发生了变化，并且通过输出也知道增强工具安装成功了。</p>
+<p>最后请类似于像Windows上弹出U盘一样，卸载挂载点<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> umount tempdir</span></span><br></pre></td></tr></table></figure></p>
 <h3 id="设置共享文件夹"><a href="#设置共享文件夹" class="headerlink" title="设置共享文件夹"></a>设置共享文件夹</h3><p>VirtualBox为我们设计了“共享文件夹”，方便Linux与主机之间的文件传输。这一功能需要增强功能包安装完成了才可以使用。</p>
 <p>这一步其实很简单，同样是在VirtualBox上的devices选项中，我们点击“Shared Folders” - “Shared Folders Settings”，点击新建共享文件夹按钮：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/newsf.png" alt="newsf"><br>在弹出来的界面设置在主机上的共享文件夹，这里我在桌面上创建了一个名为“sharefolder”的文件夹，并选择了它，同时为了方便，文件名我设置为了“sf”。下方第一条“只读”按需勾选（以后可以修改），“Auto-mount”自动挂载选上，方便系统中自动挂载读取，“Make Permanet”永久化一般也选上，以后一直用这个文件夹与虚拟机中的Linux进行文件共享。</p>
-<p>回到Linux中，我们为了方便文件的管理，创建一个名为myshare的文件夹作为挂载点。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir myshare</span></span><br></pre></td></tr></table></figure>
-<p>接下来使用如下的命令将主机上的共享文件夹挂载进来：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mount -t vboxsf sf ./myshare</span></span><br></pre></td></tr></table></figure>
-<p>于是，当我们在主机上往共享文件夹中操作文件的时候，刷新Linux中的文件夹，就可以实时的看到（反之亦然）：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/sharefile.png" alt="sharefile"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/deleteshare.png" alt="deleteshare"></p>
+<p>回到Linux中，我们为了方便文件的管理，创建一个名为myshare的文件夹作为挂载点。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir myshare</span></span><br></pre></td></tr></table></figure><br>接下来使用如下的命令将主机上的共享文件夹挂载进来：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mount -t vboxsf sf ./myshare</span></span><br></pre></td></tr></table></figure><br>于是，当我们在主机上往共享文件夹中操作文件的时候，刷新Linux中的文件夹，就可以实时的看到（反之亦然）：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/sharefile.png" alt="sharefile"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/deleteshare.png" alt="deleteshare"></p>
 <p>在此基础上，整个使用VirtualBox进行Linux虚拟机的搭建工作完成！</p>
 
+    </div>
+
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
+        
 
 
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/08/22/2017-08-22-JavaInteger%E5%B0%8F%E8%AE%B0/" rel="prev" title="Java中的Integer">
+      <i class="fa fa-chevron-left"></i> Java中的Integer
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/03/07/2018-03-07-IntelliJ%E4%B8%ADSpring%E6%8F%90%E7%A4%BABUG/" rel="next" title="IntelliJ中Spring识别BUG">
+      IntelliJ中Spring识别BUG <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">1.</span> <span class="nav-text">虚拟机的选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux%E7%9A%84%E9%80%89%E6%8B%A9"><span class="nav-number">2.</span> <span class="nav-text">Linux的选择</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%8F%8C%E7%BD%91%E5%8D%A1%E5%AE%9E%E7%8E%B0%E8%99%9A%E6%8B%9F%E6%9C%BA-%E4%B8%8E%E4%B8%BB%E6%9C%BA%EF%BC%88mac%EF%BC%89%E4%B8%8E%E5%A4%96%E7%BD%91%E9%80%9A%E4%BF%A1"><span class="nav-number">3.</span> <span class="nav-text">配置双网卡实现虚拟机 与主机（mac）与外网通信</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E4%BB%85%E4%BB%85%E4%B8%8E%E4%B8%BB%E6%9C%BA%E9%80%9A%E4%BF%A1%E7%9A%84%E4%BB%85%E4%B8%BB%E6%9C%BA%E6%A8%A1%E5%BC%8F%E7%BD%91%E5%8D%A1"><span class="nav-number">3.1.</span> <span class="nav-text">配置仅仅与主机通信的仅主机模式网卡</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%97%A2%E8%83%BD%E4%B8%8E%E4%B8%BB%E6%9C%BA%E9%80%9A%E4%BF%A1%E5%90%8C%E6%97%B6%E8%BF%98%E8%83%BD%E4%B8%8E%E5%A4%96%E7%BD%91%E9%80%9A%E4%BF%A1%E7%9A%84%E6%A1%A5%E6%8E%A5%E6%A8%A1%E5%BC%8F"><span class="nav-number">3.2.</span> <span class="nav-text">配置既能与主机通信同时还能与外网通信的桥接模式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85VirtaulBox%E5%A2%9E%E5%BC%BA%E5%B7%A5%E5%85%B7%E5%8C%85"><span class="nav-number">4.</span> <span class="nav-text">安装VirtaulBox增强工具包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BACentOS%E5%AE%89%E8%A3%85%E5%BF%85%E8%A6%81%E7%9A%84%E5%BC%80%E5%8F%91%E5%BA%93%E5%B7%A5%E5%85%B7%E5%BA%93"><span class="nav-number">4.1.</span> <span class="nav-text">为CentOS安装必要的开发库工具库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%82%E8%BD%BD%E5%A2%9E%E5%BC%BA%E5%8A%9F%E8%83%BD%E9%95%9C%E5%83%8F%E6%96%87%E4%BB%B6"><span class="nav-number">4.2.</span> <span class="nav-text">挂载增强功能镜像文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6%E5%A4%B9"><span class="nav-number">5.</span> <span class="nav-text">设置共享文件夹</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

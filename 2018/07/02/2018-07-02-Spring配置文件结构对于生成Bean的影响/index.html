@@ -1,26 +1,31 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>Spring配置文件结构对于生成Bean的影响 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="Spring,Bean," />
-  
 
-  <meta name="description" content="由于前段时间忙于毕设，导致Spring学习的东西忘了很多，所以最近又开始从头看Spring的基础。基础的Bean的装配不再多说了。这一次，主要是深入一点了解Spring配置文件结构搭配对于Bean装配的影响。 首先，我们设定一个简单的场景：播放器播放歌曲。所以基于此，我们定义两个接口： 12345package demo;&#x2F;&#x2F; CD接口public interface CompactDisc &amp;#">
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="由于前段时间忙于毕设，导致Spring学习的东西忘了很多，所以最近又开始从头看Spring的基础。基础的Bean的装配不再多说了。这一次，主要是深入一点了解Spring配置文件结构搭配对于Bean装配的影响。 首先，我们设定一个简单的场景：播放器播放歌曲。所以基于此，我们定义两个接口：12345package demo;&#x2F;&#x2F; CD接口public interface CompactDisc &amp;#1">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Spring配置文件结构对于生成Bean的影响">
 <meta property="og:url" content="http://compilemind.com/2018/07/02/2018-07-02-Spring%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E5%AF%B9%E4%BA%8E%E7%94%9F%E6%88%90Bean%E7%9A%84%E5%BD%B1%E5%93%8D/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="由于前段时间忙于毕设，导致Spring学习的东西忘了很多，所以最近又开始从头看Spring的基础。基础的Bean的装配不再多说了。这一次，主要是深入一点了解Spring配置文件结构搭配对于Bean装配的影响。 首先，我们设定一个简单的场景：播放器播放歌曲。所以基于此，我们定义两个接口： 12345package demo;&#x2F;&#x2F; CD接口public interface CompactDisc &amp;#">
+<meta property="og:description" content="由于前段时间忙于毕设，导致Spring学习的东西忘了很多，所以最近又开始从头看Spring的基础。基础的Bean的装配不再多说了。这一次，主要是深入一点了解Spring配置文件结构搭配对于Bean装配的影响。 首先，我们设定一个简单的场景：播放器播放歌曲。所以基于此，我们定义两个接口：12345package demo;&#x2F;&#x2F; CD接口public interface CompactDisc &amp;#1">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/dependency.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/norefinjava.png">
@@ -30,94 +35,187 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/cdxmltest.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/passed.png">
 <meta property="article:published_time" content="2018-07-01T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.477Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.196Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Spring">
 <meta property="article:tag" content="Bean">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/dependency.png">
 
+<link rel="canonical" href="http://compilemind.com/2018/07/02/2018-07-02-Spring%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E5%AF%B9%E4%BA%8E%E7%94%9F%E6%88%90Bean%E7%9A%84%E5%BD%B1%E5%93%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>Spring配置文件结构对于生成Bean的影响 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A6%96%E5%85%88%E6%98%AFCD%E7%B1%BBBean"><span class="toc-text">首先是CD类Bean</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Java%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-text">Java类型配置文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#xml%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-text">xml类型配置文件</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CDPlayer%E7%9A%84Bean"><span class="toc-text">CDPlayer的Bean</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Java%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-1"><span class="toc-text">Java类型配置文件</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#xml%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-1"><span class="toc-text">xml类型配置文件</span></a></li></ol></li></ol>
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
 
 
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-<div class="content content-post CENTER">
-   <article id="post-2018-07-02-Spring配置文件结构对于生成Bean的影响" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">Spring配置文件结构对于生成Bean的影响</h1>
+          <div class="content post posts-expand">
+            
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2018.07.02</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
-
-      
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
     
-      <p>由于前段时间忙于毕设，导致Spring学习的东西忘了很多，所以最近又开始从头看Spring的基础。基础的Bean的装配不再多说了。这一次，主要是深入一点了解Spring配置文件结构搭配对于Bean装配的影响。</p>
-<p>首先，我们设定一个简单的场景：播放器播放歌曲。所以基于此，我们定义两个接口：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo;</span><br><span class="line"><span class="comment">// CD接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">CompactDisc</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">play</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo;</span><br><span class="line"><span class="comment">// 媒体播放器接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MediaPlayer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">play</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>按照是实际来讲，我们定义一个BlankDisc，空白的唱片，其包含三个属性：title、artist和tracks，分别代表了唱片的标题、歌手以及歌曲目录：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo.cd;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> demo.CompactDisc;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BlankDisc</span> <span class="keyword">implements</span> <span class="title">CompactDisc</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> String artist;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; tracks; <span class="comment">// 简化结构，只存放歌曲目录名称并保存为List</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BlankDisc</span><span class="params">(String title, String artist, List&lt;String&gt; tracks)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.title = title;</span><br><span class="line">        <span class="keyword">this</span>.artist = artist;</span><br><span class="line">        <span class="keyword">this</span>.tracks = tracks;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Playing &quot;</span> + title + <span class="string">&quot; \n\tby &quot;</span> + artist);</span><br><span class="line">        tracks.stream().forEach(t -&gt; System.out.println(<span class="string">&quot; \t&gt;&gt;&gt; &quot;</span> + t));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>同样的，实现MediaPlayer接口，定义实际的唱片播放器，能够持有cd的引用，同时，这里我们并没有通过构造器来定义，原因是唱片播放器并非一定放有cd（当然代码没有对null进行约束，这是不好的，实际编写请勿这样编写）：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo.player;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> demo.CompactDisc;</span><br><span class="line"><span class="keyword">import</span> demo.MediaPlayer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayer</span> <span class="keyword">implements</span> <span class="title">MediaPlayer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> CompactDisc cd;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCd</span><span class="params">(CompactDisc cd)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.cd = cd;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;CDPlayer 开始播放: &quot;</span>);</span><br><span class="line">        cd.play();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>接下来，要说明的是，Spring支持xml与Java文件同时存在的配置方式，这里我们也会这么做，尽可能的复杂化配置依赖，因为本片文章就是探讨各种配置文件交叉依赖的情形，并理清依赖的思路。</p>
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/07/02/2018-07-02-Spring%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E5%AF%B9%E4%BA%8E%E7%94%9F%E6%88%90Bean%E7%9A%84%E5%BD%B1%E5%93%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring配置文件结构对于生成Bean的影响
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-07-02 00:00:00" itemprop="dateCreated datePublished" datetime="2018-07-02T00:00:00+08:00">2018-07-02</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>由于前段时间忙于毕设，导致Spring学习的东西忘了很多，所以最近又开始从头看Spring的基础。基础的Bean的装配不再多说了。这一次，主要是深入一点了解Spring配置文件结构搭配对于Bean装配的影响。</p>
+<p>首先，我们设定一个简单的场景：播放器播放歌曲。所以基于此，我们定义两个接口：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo;</span><br><span class="line"><span class="comment">// CD接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">CompactDisc</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">play</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo;</span><br><span class="line"><span class="comment">// 媒体播放器接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MediaPlayer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">play</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>按照是实际来讲，我们定义一个BlankDisc，空白的唱片，其包含三个属性：title、artist和tracks，分别代表了唱片的标题、歌手以及歌曲目录：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo.cd;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> demo.CompactDisc;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BlankDisc</span> <span class="keyword">implements</span> <span class="title">CompactDisc</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> String title;</span><br><span class="line">    <span class="keyword">private</span> String artist;</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; tracks; <span class="comment">// 简化结构，只存放歌曲目录名称并保存为List</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">BlankDisc</span><span class="params">(String title, String artist, List&lt;String&gt; tracks)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.title = title;</span><br><span class="line">        <span class="keyword">this</span>.artist = artist;</span><br><span class="line">        <span class="keyword">this</span>.tracks = tracks;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Playing &quot;</span> + title + <span class="string">&quot; \n\tby &quot;</span> + artist);</span><br><span class="line">        tracks.stream().forEach(t -&gt; System.out.println(<span class="string">&quot; \t&gt;&gt;&gt; &quot;</span> + t));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>同样的，实现MediaPlayer接口，定义实际的唱片播放器，能够持有cd的引用，同时，这里我们并没有通过构造器来定义，原因是唱片播放器并非一定放有cd（当然代码没有对null进行约束，这是不好的，实际编写请勿这样编写）：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo.player;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> demo.CompactDisc;</span><br><span class="line"><span class="keyword">import</span> demo.MediaPlayer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayer</span> <span class="keyword">implements</span> <span class="title">MediaPlayer</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> CompactDisc cd;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCd</span><span class="params">(CompactDisc cd)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.cd = cd;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;CDPlayer 开始播放: &quot;</span>);</span><br><span class="line">        cd.play();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>接下来，要说明的是，Spring支持xml与Java文件同时存在的配置方式，这里我们也会这么做，尽可能的复杂化配置依赖，因为本片文章就是探讨各种配置文件交叉依赖的情形，并理清依赖的思路。</p>
 <p>首先我们将CD类Bean与CDPlayer类Bean分离开来。</p>
 <h4 id="首先是CD类Bean"><a href="#首先是CD类Bean" class="headerlink" title="首先是CD类Bean"></a>首先是CD类Bean</h4><h5 id="Java类型配置文件"><a href="#Java类型配置文件" class="headerlink" title="Java类型配置文件"></a>Java类型配置文件</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> demo.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> demo.cd.BlankDisc;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> BlankDisc <span class="title">yeHuiMei</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        List&lt;String&gt; tracks = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        tracks.add(<span class="string">&quot;以父之名&quot;</span>);</span><br><span class="line">        tracks.add(<span class="string">&quot;懦夫&quot;</span>);</span><br><span class="line">        tracks.add(<span class="string">&quot;晴天&quot;</span>);</span><br><span class="line">        tracks.add(<span class="string">&quot;...&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> BlankDisc(<span class="string">&quot;YeHuiMei&quot;</span>, <span class="string">&quot;JayChou&quot;</span>, tracks);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在这个配置文件中，只定义了一个Bean，Bean id名称为yeHuiMei（方法名），同时也将相关的属性设置完毕。</p>
@@ -127,65 +225,210 @@
 <h5 id="xml类型配置文件-1"><a href="#xml类型配置文件-1" class="headerlink" title="xml类型配置文件"></a>xml类型配置文件</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;cdPlayerInXML&quot;</span> <span class="attr">class</span>=<span class="string">&quot;demo.player.CDPlayer&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;cd&quot;</span> <span class="attr">ref</span>=<span class="string">&quot;yeHuiMei&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>目前配置文件搞定了，并且我们现在的配置以来结构如下：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/dependency.png" alt="dependency"></p>
 <p>当然，目前还是有一定的问题的，因为很显然，我们的配置文件都独立与彼此。尽管在CDPlayer中的配置文件通过相关的语法制定了CD Bean的选择（@Qualifier和ref），但是我们可以看到文件本身并没有明确的引入另外的配置文件，所以在IDEA中通常会有这样的提示：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/norefinjava.png" alt="norefinjava"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/norefinxml.png" alt="norefinxml"><br>同时打开，IDEA的项目结构Project Structs（win默认ctrl+shift+alt+s），点击左侧的Modules，可以看到Spring项目上右下角IDEA提示我们“Unmapped Spring configuration files”并列举除了上述的四个文件。</p>
-<p>我们点击上面的+将所有的配置文件追踪上，刚刚所有的索引问题都OK了。此时，我们任意找到一个xml文件，可以看到左上方有一个小标志，点击并选择第一个：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/clickdpdiagram.png" alt="clickdpdiagram"><br>打开之后就能够看到整个项目对于配置文件的依赖：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/dpdiagram.png" alt="dpdiagram"><br>可以看到我们的项目（springdemo）具有一个是上下文应用模块，这个应用上下文包含了四份配置文件。但一定要注意，在后续我们加载配置文件的时候，必须要将有依赖关系的配置文件全部加载进来才能够读取到对应的Bean。这里我们进行一个简单的测试：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="comment">// 设置所要加载的配置文件</span></span><br><span class="line"><span class="meta">@ContextConfiguration(locations = &#123;&quot;classpath:cdconfig.xml&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayerTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;onTheRun&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> CompactDisc cd;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cdShouldNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        cd.play();</span><br><span class="line">        assertNotNull(cd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这个测试是可以直接通过的，因为这里我们加载的是cdconfig.xml配置文件，里面我们定义了名为onTheRun的Bean，所以打印还有非空测试也通过：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/cdxmltest.png" alt="cdxmltest"><br>然而接下来我们更换配置文件为cdplayerconfig.xml，相关注入如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(locations = &#123;&quot;classpath:cdplayerconfig.xml&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayerTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;cdPlayerInXML&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> MediaPlayer mp;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediaPlayerNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(mp);</span><br><span class="line">        mp.play();</span><br><span class="line">        assertNotNull(mp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里我们指定注入的就是xml中的CDPlayer Bean，然而，并不能通过测试，在错误提示中，我们可以找到这样一行：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Cannot resolve reference to bean <span class="string">&#x27;yeHuiMei&#x27;</span> <span class="keyword">while</span> setting bean property <span class="string">&#x27;cd&#x27;</span>; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named <span class="string">&#x27;yeHuiMei&#x27;</span> is defined</span><br><span class="line">	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:<span class="number">328</span>)</span><br></pre></td></tr></table></figure>
-<p>前面我们知道，cdPlayerInXML这个bean中我们还注入了Java配置文件下的名为yeHuiMei Bean，而在测试的过程中，我们只加载了cdplayerconfig.xml这个配置文件。所以实际上除了这个配置文件意外的其他bean都没有被Spring生成并放入Bean容器中。</p>
+<p>我们点击上面的+将所有的配置文件追踪上，刚刚所有的索引问题都OK了。此时，我们任意找到一个xml文件，可以看到左上方有一个小标志，点击并选择第一个：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/clickdpdiagram.png" alt="clickdpdiagram"><br>打开之后就能够看到整个项目对于配置文件的依赖：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/dpdiagram.png" alt="dpdiagram"><br>可以看到我们的项目（springdemo）具有一个是上下文应用模块，这个应用上下文包含了四份配置文件。但一定要注意，在后续我们加载配置文件的时候，必须要将有依赖关系的配置文件全部加载进来才能够读取到对应的Bean。这里我们进行一个简单的测试：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="comment">// 设置所要加载的配置文件</span></span><br><span class="line"><span class="meta">@ContextConfiguration(locations = &#123;&quot;classpath:cdconfig.xml&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayerTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;onTheRun&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> CompactDisc cd;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cdShouldNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        cd.play();</span><br><span class="line">        assertNotNull(cd);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>这个测试是可以直接通过的，因为这里我们加载的是cdconfig.xml配置文件，里面我们定义了名为onTheRun的Bean，所以打印还有非空测试也通过：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/cdxmltest.png" alt="cdxmltest"><br>然而接下来我们更换配置文件为cdplayerconfig.xml，相关注入如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(locations = &#123;&quot;classpath:cdplayerconfig.xml&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayerTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;cdPlayerInXML&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> MediaPlayer mp;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediaPlayerNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(mp);</span><br><span class="line">        mp.play();</span><br><span class="line">        assertNotNull(mp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>这里我们指定注入的就是xml中的CDPlayer Bean，然而，并不能通过测试，在错误提示中，我们可以找到这样一行：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Cannot resolve reference to bean <span class="string">&#x27;yeHuiMei&#x27;</span> <span class="keyword">while</span> setting bean property <span class="string">&#x27;cd&#x27;</span>; nested exception is org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named <span class="string">&#x27;yeHuiMei&#x27;</span> is defined</span><br><span class="line">	at org.springframework.beans.factory.support.BeanDefinitionValueResolver.resolveReference(BeanDefinitionValueResolver.java:<span class="number">328</span>)</span><br></pre></td></tr></table></figure><br>前面我们知道，cdPlayerInXML这个bean中我们还注入了Java配置文件下的名为yeHuiMei Bean，而在测试的过程中，我们只加载了cdplayerconfig.xml这个配置文件。所以实际上除了这个配置文件意外的其他bean都没有被Spring生成并放入Bean容器中。</p>
 <p>也许会有疑问，在上面的Bean依赖图中，我们看到所有的配置文件都有已经被放入到了Spring Application Context中，为什么不被自动加载呢？道理很简单，这只是IDE的辅助而已。IDEA中的那个部分只是IDEA自身的一些辅助功能比如静态检查，所以需要我们手动的将这些文件给添加进去。当我们还是移除掉刚刚的结构之后，进行第一次的只对没有依赖的CDBean进行测试依然有效。</p>
 <p>一定要明确，Spring的注入是发生在代码中的！不要被IDE遮蔽了双眼！这里何时会被注入呢？当我们配置了Spring的配置文件并将其加载进来了，当Spring遇到@Autowired等注入注解的时候，就会为我们注入Bean。</p>
-<p>通常，当我们有多个配置文件的是，最优的结构思路是将多个配置文件导入到一个专门的独立的配置文件中，就像下面这样，我将开始的四个配置文件全部导入到一个名为AllConfig的Java配置文件：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@Import(&#123;CDConfig.class, CDPlayerConfig.class&#125;)</span></span><br><span class="line"><span class="comment">// 一定要注意！！！classpath:后面一定不要带空格！否则会被识别为【[空格]cdconfig.xml】这样的文件名而不被找到，血的教训。</span></span><br><span class="line"><span class="meta">@ImportResource(&#123;&quot;classpath:cdconfig.xml&quot;, &quot;classpath:cdplayerconfig.xml&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AllConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>然后在测试文件中我们将加载配置文件为Java配置文件AllConfig，此时，所有的以来问题全部解决：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(classes = &#123;AllConfig.class&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayerTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;onTheRun&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> CompactDisc cd;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cdShouldNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        cd.play();</span><br><span class="line">        assertNotNull(cd);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;cdPlayerInXML&quot;)</span><span class="comment">// 一开始由于配置文件没有引入全导致注入失败</span></span><br><span class="line">    <span class="keyword">private</span> MediaPlayer mp;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediaPlayerNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(mp);</span><br><span class="line">        mp.play();</span><br><span class="line">        assertNotNull(mp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/passed.png" alt="passed"></p>
+<p>通常，当我们有多个配置文件的是，最优的结构思路是将多个配置文件导入到一个专门的独立的配置文件中，就像下面这样，我将开始的四个配置文件全部导入到一个名为AllConfig的Java配置文件：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@Import(&#123;CDConfig.class, CDPlayerConfig.class&#125;)</span></span><br><span class="line"><span class="comment">// 一定要注意！！！classpath:后面一定不要带空格！否则会被识别为【[空格]cdconfig.xml】这样的文件名而不被找到，血的教训。</span></span><br><span class="line"><span class="meta">@ImportResource(&#123;&quot;classpath:cdconfig.xml&quot;, &quot;classpath:cdplayerconfig.xml&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AllConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>然后在测试文件中我们将加载配置文件为Java配置文件AllConfig，此时，所有的以来问题全部解决：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(classes = &#123;AllConfig.class&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CDPlayerTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;onTheRun&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> CompactDisc cd;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">cdShouldNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        cd.play();</span><br><span class="line">        assertNotNull(cd);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;cdPlayerInXML&quot;)</span><span class="comment">// 一开始由于配置文件没有引入全导致注入失败</span></span><br><span class="line">    <span class="keyword">private</span> MediaPlayer mp;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">mediaPlayerNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(mp);</span><br><span class="line">        mp.play();</span><br><span class="line">        assertNotNull(mp);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-07-02-Spring/passed.png" alt="passed"></p>
+
+    </div>
 
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+              <a href="/tags/Bean/" rel="tag"># Bean</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
+        
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/06/17/2018-06-17-%E6%AF%95%E4%B8%9A%E6%89%80%E6%83%B3/" rel="prev" title="毕业所想">
+      <i class="fa fa-chevron-left"></i> 毕业所想
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/07/29/2018-07-29-%E5%81%9A%E4%BD%A0%E6%89%80%E5%81%9A/" rel="next" title="做你所做">
+      做你所做 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A6%96%E5%85%88%E6%98%AFCD%E7%B1%BBBean"><span class="nav-number">1.</span> <span class="nav-text">首先是CD类Bean</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Java%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">1.1.</span> <span class="nav-text">Java类型配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#xml%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">1.2.</span> <span class="nav-text">xml类型配置文件</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CDPlayer%E7%9A%84Bean"><span class="nav-number">2.</span> <span class="nav-text">CDPlayer的Bean</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Java%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-1"><span class="nav-number">2.1.</span> <span class="nav-text">Java类型配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#xml%E7%B1%BB%E5%9E%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-1"><span class="nav-number">2.2.</span> <span class="nav-text">xml类型配置文件</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>

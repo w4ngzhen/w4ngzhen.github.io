@@ -1,19 +1,24 @@
 <!DOCTYPE html>
-
-
-  <html class="light page-post">
-
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  
-  <title>理解$hadow$ocks与Privoxy原理 | CompileMind</title>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="/css/main.css">
 
-  
-    <meta name="keywords" content="shadowsocks,privoxy," />
-  
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
 
   <meta name="description" content="以下所有提到$hadow$ocks的均以ss指代 为什么要用ss呢？在早期（如今绝大多数也是），对于互联网的访问流程是及其简单的：浏览器（或其他客户端）向互联网服务器提出一个请求（request），然后等待互联网服务器回应（response），最后在本地解析渲染。麻烦一点的，中间会有多个代理帮助我们进行数据的请求。 后来，墙出现了，我们不能再愉快的访问外网了。因为墙相当于一个巨大的墙阻挡着我们和外">
 <meta property="og:type" content="article">
@@ -28,147 +33,394 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/bysock.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/flow.png">
 <meta property="article:published_time" content="2017-04-23T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-24T11:05:26.457Z">
+<meta property="article:modified_time" content="2020-10-13T07:20:30.187Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="shadowsocks">
 <meta property="article:tag" content="privoxy">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/requestresponse.png">
 
+<link rel="canonical" href="http://compilemind.com/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EPrivoxy%E5%8E%9F%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>理解$hadow$ocks与Privoxy原理 | CompileMind</title>
   
 
-  
-    <link rel="icon" href="/favicon.ico">
-  
-
-  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
 
 
-  
-
-  
-    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
-  
-
-<meta name="generator" content="Hexo 5.1.0"></head>
-
-<body>
 
 
-  
 
-  <div class="post-header">
-   
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
 
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
 </div>
 
 
-  <div id="toc" class="toc-article">
-    <strong class="toc-title">Posts List</strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8ss%E5%91%A2%EF%BC%9F"><span class="toc-text">为什么要用ss呢？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Privoxy%E4%BD%9C%E7%94%A8"><span class="toc-text">Privoxy作用</span></a></li></ol>
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
   </div>
 
 
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
 
-<div class="content content-post CENTER">
-   <article id="post-2017-04-24-理解$hadow$ocks与Privoxy原理" class="article article-type-post" itemprop="blogPost">
-  <header class="article-header">
-    <h1 class="post-title">理解$hadow$ocks与Privoxy原理</h1>
+          <div class="content post posts-expand">
+            
 
-    <div class="article-meta">
-      <span>
-        <i class="icon-calendar"></i>
-        <span>2017.04.24</span>
-      </span>
-
-      
-        <span class="article-author">
-          <i class="icon-user"></i>
-          <span>w4ngzhen</span>
-        </span>
-      
-
-      
-
-
-      
-
-      
-      <i class="fa fa-eye"></i> 
-        <span id="busuanzi_container_page_pv">
-           &nbsp热度 <span id="busuanzi_value_page_pv">
-           <i class="fa fa-spinner fa-spin"></i></span>℃
-        </span>
-      
-      
-    </div>
-  </header>
-
-  <div class="article-content">
     
-      <p><strong>以下所有提到$hadow$ocks的均以ss指代</strong></p>
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EPrivoxy%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          理解$hadow$ocks与Privoxy原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-04-24 00:00:00" itemprop="dateCreated datePublished" datetime="2017-04-24T00:00:00+08:00">2017-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><strong>以下所有提到$hadow$ocks的均以ss指代</strong></p>
 <h3 id="为什么要用ss呢？"><a href="#为什么要用ss呢？" class="headerlink" title="为什么要用ss呢？"></a>为什么要用ss呢？</h3><p>在早期（如今绝大多数也是），对于互联网的访问流程是及其简单的：浏览器（或其他客户端）向互联网服务器提出一个请求（request），然后等待互联网服务器回应（response），最后在本地解析渲染。麻烦一点的，中间会有多个代理帮助我们进行数据的请求。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/requestresponse.png" alt="requestresponse"></p>
 <p>后来，墙出现了，我们不能再愉快的访问外网了。因为墙相当于一个巨大的墙阻挡着我们和外界，当我们想要访问外网的时候，这个请求数据包必然会经过墙的检查：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/checkbyw.png" alt="checkbyw"><br>当检查到被墙禁止访问的内容请求的时候，自然会被“过滤”或被“忽视”掉。但，有人还是想要往墙外看看。怎么办呢？有人想出了一个方法，如同最上面图中右边的拓扑，但是中间代理服务器本身就在国外，当我们想要访问外部内容的时候，首先和这个在国外的代理服务器进行ssh通信，告诉它，我想要请求xx资源，再让这台代理服务器去访问目标服务器，得到回应之后，再把我们想要的数据通过ssh传递给我们：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/byssh.png" alt="byssh"></p>
 <p>刚开始这样还不错。因为ssh本身基于RSA加密，所以首先，墙无法查看其请求内容（ip、内容等），所以也就无法分析你的请求关键词（用于筛选连接），避免了被重置链接的问题，但由于创建隧道和数据传输的过程中，ssh本身的特征是明显的，我们的墙研发人员根据相关的如连接频率、连接时间等进行分析，再通过一定的手段干预连接，于是后来墙愈来越强了。使用ssh tunnel的方式不太灵了！ </p>
 <p>既然ssh你还能看出连接时间、频率等特征值。那我干脆不用了，转换一下，我往外界发送合法的TCP数据包该没有问题吧？好，每次我访问某个资源的时候，首先将请求在本地转换为（拆分、加密等手段）一个个非常规端口的TCP数据包，里面的内容也是加密过的。当我发送给外部服务器的时候，墙只能知道你发送的是合法TCP数据包，它也不敢妄自丢弃和查看特征值，因为他没法保证这个TCP数据包究竟是要请求什么，外面看来本身就是个普通的数据包。等发到外部的代理服务器的时候，我运用相关的协议进行重组解密，得到原始请求。后面就和ssh tunnel有异曲同工之妙。于是，如下的拓扑出现了：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/bysock.png" alt="bysock"></p>
 <p>理解了这个之后，搭建服务器就是一件很简单的事情了。网上资源很多，这里不再赘述。</p>
 <h3 id="Privoxy作用"><a href="#Privoxy作用" class="headerlink" title="Privoxy作用"></a>Privoxy作用</h3><p>当我们搭建好了ss服务器之后，我们本地需要使用ss客户端监听1080（通常的默认端口），配置相关的命令，从而实现当我们本地机器访问外部网络的时候，请求数据首先经过本的1080端口进行加密拆分为原始的TCP数据包。然而需要注意的是，当我们监听了默认的1080端口之后，并不意味着，我们访问数据的时候，所有网络数据就走1080这个ss客户端监听的端口了。由于Windows和macOS客户端通常包含了相关的代理转发功能，所以我们在进行HTTP或者是HTTPS的时候，会默认的启动一个代理转发的模块，来替我们监听HTTP和HTTPS请求，并将这些请求数据送入1080端口应用（即ss客户端）。</p>
-<p>然而，在Linux下的ss客户端，并没有包含这个功能，所以，但我们进行HTTP(s)请求的时候，需要设置代理，当我们使用Privoxy的时候，安装Privoxy：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install epel-release</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install privoxy</span></span><br></pre></td></tr></table></figure>
-<p>第一步的安装epel这是因为像centos这类衍生出来的发行版，他们的源有时候内容更新的比较滞后，或者说有时候一些扩展的源根本就没有。EPEL(<a target="_blank" rel="noopener" href="http://fedoraproject.org/wiki/EPEL">http://fedoraproject.org/wiki/EPEL</a>) 是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。</p>
-<p>默认的配置文件地址在 /etc/privoxy/config 目录下。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 把本地HTTP流量转发到本地1080 SOCKS5代理</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 即当我们发出HTTP(S)请求的时候，会将请求转为Socks5</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意最后的 <span class="string">&quot;.&quot;</span></span></span><br><span class="line">forward-socks5 / 127.0.0.1:1080 .</span><br><span class="line"><span class="meta">#</span><span class="bash"> 可选，默认监听本地连接端口为8118</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> listen-address 127.0.0.1:8118</span></span><br></pre></td></tr></table></figure>
-<p>接下里启动：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start privoxy</span><br></pre></td></tr></table></figure>
-<p>配置完成以后还没有结束！请考虑一下，目前我们只是设定了如果有对于所有HTTP(S)的访问（即foward-sock5后面的“/”）都将转为socks5送入被ss客户端监听的1080端口中去，但是并没有设定HTTP(S)代理服务器！，所以，最后你还需要在.bash_profile（或者是.bashrc）中设定代理服务器的环境变量：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export http_proxy=http://127.0.0.1:8118</span><br><span class="line">export https_proxy=https://127.0.0.1:8118</span><br><span class="line"><span class="meta">#</span><span class="bash"> 最后再<span class="built_in">source</span>一下</span></span><br></pre></td></tr></table></figure>
-<p>最后，我们再以一个整体拓扑来表达一下我们的访问流程：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/flow.png" alt="flow"></p>
+<p>然而，在Linux下的ss客户端，并没有包含这个功能，所以，但我们进行HTTP(s)请求的时候，需要设置代理，当我们使用Privoxy的时候，安装Privoxy：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install epel-release</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install privoxy</span></span><br></pre></td></tr></table></figure><br>第一步的安装epel这是因为像centos这类衍生出来的发行版，他们的源有时候内容更新的比较滞后，或者说有时候一些扩展的源根本就没有。EPEL(<a target="_blank" rel="noopener" href="http://fedoraproject.org/wiki/EPEL">http://fedoraproject.org/wiki/EPEL</a>) 是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。</p>
+<p>默认的配置文件地址在 /etc/privoxy/config 目录下。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 把本地HTTP流量转发到本地1080 SOCKS5代理</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 即当我们发出HTTP(S)请求的时候，会将请求转为Socks5</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意最后的 <span class="string">&quot;.&quot;</span></span></span><br><span class="line">forward-socks5 / 127.0.0.1:1080 .</span><br><span class="line"><span class="meta">#</span><span class="bash"> 可选，默认监听本地连接端口为8118</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> listen-address 127.0.0.1:8118</span></span><br></pre></td></tr></table></figure><br>接下里启动：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start privoxy</span><br></pre></td></tr></table></figure><br>配置完成以后还没有结束！请考虑一下，目前我们只是设定了如果有对于所有HTTP(S)的访问（即foward-sock5后面的“/”）都将转为socks5送入被ss客户端监听的1080端口中去，但是并没有设定HTTP(S)代理服务器！，所以，最后你还需要在.bash_profile（或者是.bashrc）中设定代理服务器的环境变量：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export http_proxy=http://127.0.0.1:8118</span><br><span class="line">export https_proxy=https://127.0.0.1:8118</span><br><span class="line"><span class="meta">#</span><span class="bash"> 最后再<span class="built_in">source</span>一下</span></span><br></pre></td></tr></table></figure><br>最后，我们再以一个整体拓扑来表达一下我们的访问流程：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/flow.png" alt="flow"></p>
+
+    </div>
 
     
-  </div>
+    
+    
 
-</article>
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/shadowsocks/" rel="tag"># shadowsocks</a>
+              <a href="/tags/privoxy/" rel="tag"># privoxy</a>
+          </div>
 
-</div>
-
-
-  <a id="backTop" class="back-top">
-    <i class="icon-angle-up"></i>
-  </a>
-
-
+        
 
 
-  <script type="text/javascript">
-  function loadScript(url, callback) {
-    var script = document.createElement('script')
-    script.type = 'text/javascript';
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/04/18/2017-04-18-JavaString%E6%8E%A2%E8%AE%A8/" rel="prev" title="Java String的探讨">
+      <i class="fa fa-chevron-left"></i> Java String的探讨
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/08/22/2017-08-22-JavaInteger%E5%B0%8F%E8%AE%B0/" rel="next" title="Java中的Integer">
+      Java中的Integer <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
 
-    if (script.readyState) { //IE
-      script.onreadystatechange = function() {
-        if (script.readyState == 'loaded' ||
-          script.readyState == 'complete') {
-          script.onreadystatechange = null;
-          callback();
-        }
-      };
-    } else { //Others
-      script.onload = function() {
-        callback();
-      };
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
     }
-
-    script.src = url;
-    document.getElementsByTagName('head')[0].appendChild(script);
-  }
-
-  window.onload = function() {
-    loadScript('/js/bundle.js?235683', function() {
-      // load success
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
     });
   }
 </script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8ss%E5%91%A2%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">为什么要用ss呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Privoxy%E4%BD%9C%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">Privoxy作用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
 
 </body>
 </html>
