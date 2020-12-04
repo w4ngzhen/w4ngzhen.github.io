@@ -186,7 +186,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-12-04 16:14:12" itemprop="dateModified" datetime="2020-12-04T16:14:12+08:00">2020-12-04</time>
+                <time title="Modified: 2020-12-04 16:42:49" itemprop="dateModified" datetime="2020-12-04T16:42:49+08:00">2020-12-04</time>
               </span>
 
           
@@ -275,7 +275,7 @@
 <p> <img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/opts.hosted_path-analysis.png" alt=""></p>
 <p>我们自底向上分析。</p>
 <p><code>host</code>变量取决于从环境变量中检查名称为<code>&#39;npm_config_&#39; + opts.module_name + &#39;_binary_host_mirror&#39;</code>的环境变量。如果不存在，则使用<code>package_json.binary.host</code>。正常使用的时候，我们并不会设定环境变量，所以这里就进入<code>package_json.binary</code>进行获取。这个<code>package_json</code>是<code>evaluate</code>函数被调用时候传入的，在<code>node-pre-gyp/install.js</code>中能够看到：</p>
-<p><img src="C:\Users\w4ngzhen\AppData\Roaming\Typora\typora-user-images\image-20201204101751333.png" alt="image-20201204101751333"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/import-gyp.png" alt=""></p>
 <p>一开始分析的时候，看到这里，本人以为<code>package_json</code>就是<code>node-pre-gyp/package.json</code>，于是本人去检查该<code>json</code>发现很奇怪，并没有binary属性，更别提host了。一番思考才明白，<code>node-pre-gyp install</code>的运行时调用者是谁呀？不是应该是<code>sqlite3</code>吗？所以这个地方的<code>require(&#39;./package.json&#39;)</code>实际上是指代的是<code>sqlite3/package.json</code>。查看<code>sqlite3/package.json</code>，果然发现了对应的元素：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/sqlite3-binary.png" alt=""></p>
 <p>在<code>binary</code>属性中，我们还能看到<code>remote_path</code>也在其中。</p>
@@ -291,7 +291,7 @@
 <p>代码中，<code>gyp</code>由调用install的时候，传入：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/gyp-from-install.png" alt=""></p>
 <p>那么我们又将回到调用install的地方。实际上，gyp就是node-pre-gyp.js导出的模块：</p>
-<p><img src="C:\Users\w4ngzhen\AppData\Roaming\Typora\typora-user-images\image-20201204124050917.png" alt="image-20201204124050917"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-pre-gyp-export.png" alt=""></p>
 <p>也就是说在<code>do_build</code>中进行操作就是，放置了一个<code>build</code>任务在队列中。所以我们按照先前的分析，直接去看<code>build.js</code></p>
 <p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/build-buildjs.png" alt=""></p>
 <p>看源码调用了当前模块中的<code>do_build</code>，且其中最核心的就是<code>compile</code>模块：</p>
