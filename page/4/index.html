@@ -155,6 +155,83 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/04/08/2018-04-08-Linux%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%8Einode%E3%80%81Block%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/04/08/2018-04-08-Linux%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%8Einode%E3%80%81Block%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Linux文件系统与inode、Block笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-04-08 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-08T00:00:00+08:00">2018-04-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在Linux下一切都是文件，无论是设备还是接口，亦或是网卡等均被抽象成了文件，并且有相关的内核代码进行调度。然而，在一切都是文件的前提下，最需要进行探讨的则是文件存储的根源：文件系统。文件系统的好坏能够更加完美的解决在一个操作系统中对于文件的管理。</p>
+<p>Linux下的文件系统是按照inode + block模式来进行了的。通俗一点讲，类似于指针一样的形式存在。即inode作为“指针”记录并指向了真正的”数据块“block。 </p>
+<p><strong>环境</strong></p>
+<p>为了方便后面的实际操作，我们按照如下进行环境的搭建<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 首先在<span class="built_in">test</span>目录下创建一个名为temp的文件夹与一个普通的文件test.txt</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">pwd</span></span></span><br><span class="line">/root/test</span><br><span class="line"><span class="meta">$</span><span class="bash"> mkdir temp &amp;&amp; touch test.txt</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 文件结构如下</span></span><br><span class="line">test</span><br><span class="line">├── temp</span><br><span class="line">└── test.txt</span><br><span class="line">1 directory, 1 file</span><br><span class="line"><span class="meta">#</span><span class="bash"> 向test.txt写入一句话</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">&quot;Its&#x27;s a test.txt&quot;</span> &gt;&gt; test.txt</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>inode</strong></p>
+<p>在Linux中，每一份文件都对应了独一无二的inode编号，通过使用命令ls加参数-i，则可以在显示的文件前显示inode编号。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ls -i</span></span><br><span class="line">33933113 temp 17414066 test.txt</span><br><span class="line"><span class="meta">#</span><span class="bash"> 前面的数字就是inode且独一无二</span></span><br></pre></td></tr></table></figure><br>除此之外，inode中还存储更加关键的文件元信息：权限、属性等。例如当我们使用ls -l显示文件的相关属性时，这里面的信息就存储在inode：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ls -l</span></span><br><span class="line">total 4</span><br><span class="line">drwxr-xr-x. 2 root root  6 Apr  8 13:05 temp</span><br><span class="line">-rw-r--r--. 1 root root 16 Apr  8 13:08 test.txt</span><br><span class="line"><span class="meta">#</span><span class="bash"> 文件夹、文件名前面的诸如读、写、执行权限，修改时间等均存储在inode中</span></span><br></pre></td></tr></table></figure><br>当然，对于inode来说，既然它本身能够记录这些信息，所以自身是有大小的，每个inode 大小均固定为128 bytes，虽然不大，但是记录元信息完全足够了。同时，它本身还记录此文件数据所在的block数据块的编号。inode记录一个block编号需要花掉4bytes</p>
+<p><strong>block</strong></p>
+<p>既然inode是记录文件的元信息的，那么一般文件本身的数据记录在何处呢？答案则是block数据块。在Linux中，block文件快大小通常选择4KB，当然我们还可以选择1KB、2KB等。这是不定的，但是如果选择的太小，那么inode需要记录block编号就要增多，如果太大，容易造成存储碎片。如何理解？其实我们可以把block看作是文件的基本单位，例如，我们现在有一个22KB大小的文件，一个简单的计算，倘若我们使用4KB的block需要6块才能完全装下，不过会有2KB是浪费了的。如果我们采用2KB的block则刚好11块可以装下。这里虽然是选择2KB是最合适的，但是在一般Linux系统中是4KB，为什么？请自行查阅相关的资料，不再赘述。</p>
+<p><strong>综合inode与block进行探讨</strong></p>
+<p>上面的inode与block只是大致介绍了相关的，下面才是更加实在的内容。</p>
+<p>inode具体包含了哪些东西？<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1、文件的字节数</span><br><span class="line">2、文件拥有者的User ID</span><br><span class="line">3、文件的Group ID</span><br><span class="line">4、文件的读、写、执行权限</span><br><span class="line">5、文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间。</span><br><span class="line">6、链接数，即有多少文件名指向这个inode</span><br><span class="line">7、文件数据block的位置</span><br></pre></td></tr></table></figure><br>1-5点不难理解，第6点在后面的软硬连接再叙，第七点这里要提一下。上面说过inode本身128 Bytes，还是能记录很多信息的，这里1-6点不至于花光128 Bytes，而对于第7点，inode本身能够记录12个block，如果采用4KB block显然，我们只能存储12 <em> 4KB大小的文件，这显然是不现实的。为了解决这个问题，inode中在第12个记录block编号之后，还能动态的增加二级、甚至三级间接指向，这里我们使用如下的图更为形象的说明：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-08-inode-block/inode-block.png" alt="inode-block"><br>在上图的情况下，我们可以知道假设我们使用4KB大小的block，并且刚好使用满二次间接，能够存储的数据大小为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">12*4KB + 1024*4KB + 1024*1024*4KB</span><br><span class="line">&#x3D; 48KB + 4MB + 4GB</span><br><span class="line">≈ 4GB</span><br></pre></td></tr></table></figure><br><em>*关于文件夹的inode、block</em></em></p>
+<p>上面讨论inode与block我们都是以一个普通文件的角度来看待的。然而，文件夹inode与block与普通文件是有一定的差别的。对于一个文件夹来说，inode与普通文件类似，包含了关于文件夹的属性、读写执行权限、时间戳等。然而，文件夹inode中的直接block通常不会超过12个直接的。为什么呢？因为文件夹所指向的block只会存储这个文件夹拥有的文件的inode编号，并不会存储实际的文件内容。</p>
+<p>例如，当我们拥有一个文件夹dir，这个文件夹下面只有一份文件大小为4GB的inode为1234的文件，那么实际上，文件夹inode中存储的block中只会存储类似inode=1234这样的信息。下图能够更加形象的展示：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-08-inode-block/dir-inode-block.png" alt="dir-inode-block"><br>总结一下，文件夹的block只会存储对应文件夹下面的文件的inode。所以当我们访问某一个文件的时候，譬如我问需要查看/root/test.txt的时候，流程如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">首先检查根目录下的权限“&#x2F;”，符合权限</span><br><span class="line">通过之后，检查根目录的block是否存储有“root&#x2F;”目录以及对应inode</span><br><span class="line"></span><br><span class="line">查找成功，找到&#x2F;root&#x2F;目录的inode，检查权限等信息，符合权限</span><br><span class="line">通过之后，检查&#x2F;root&#x2F;inode下的block中是否存在test.txt以及inode</span><br><span class="line"></span><br><span class="line">查找成功，找到&#x2F;root&#x2F;test.txt的inode检查权限等信息，符合</span><br><span class="line">查询inode中的直接或间接block将数据读出</span><br></pre></td></tr></table></figure><br>那么，通过以上的分析，我们也很容易的能够理解，如果我们没有对文件夹有写的权限，是不能够删除文件夹下面的文件或者是创建文件的。因为当我们删除一个文件的时候，是对<strong>文件夹</strong>inode对应的block中存储的文件信息进行删除或添加。由于root用户的特殊性，我们使用一个普通用户zhen，并在zhen用户的home目录下创建一个temp文件夹<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ~</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls -l</span></span><br><span class="line">drwxrwxr-x. 2 zhen zhen  6 Apr  8 13:05 temp</span><br><span class="line"><span class="meta">#</span><span class="bash"> temp文件夹对于zhen用户有读写以及执行的权限，所以我们（zhen）可以自由的在里面添加删除文件</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ./temp</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> touch <span class="built_in">test</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">test</span><br><span class="line"><span class="meta">$</span><span class="bash"> rm <span class="built_in">test</span></span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 创建删除都没有问题</span></span><br></pre></td></tr></table></figure><br>接下来我们首先在temp文件夹中创建一个test2文件，再回到上一目录，将temp的写权限移除<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 创建test2文件</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> touch test2</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line">test2</span><br><span class="line"><span class="meta">#</span><span class="bash"> 回到上一目录</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ..</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 将temp对于zhen的写权限移除</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> chmod 500 ./temp</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls -l</span></span><br><span class="line">total 4</span><br><span class="line">dr-x------. 2 zhen zhen  6 Apr  8 14:52 temp</span><br></pre></td></tr></table></figure><br>然后，我们再次进入temp文件夹，试图创建文件，发现失败：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ./temp</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> touch test3</span></span><br><span class="line">touch: cannot touch ‘test3’: Permission denied</span><br><span class="line"><span class="meta">$</span><span class="bash"> rm test2</span></span><br><span class="line">rm: cannot rm ‘test3’: Permission denied</span><br></pre></td></tr></table></figure><br>操作发现，无论是在该文件夹下创建还是删除文件，都是失败的。那么，我们还能不能编辑该文件夹该文件夹下面的文件呢？譬如想test2文件插入一句“Hello”？理论上来讲，是可以的，因为我们修改test2文件内容，并不会影响temp文件夹的block内容，而事实上也是如此：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">&quot;Hello&quot;</span> &gt; test2</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> cat test2</span></span><br><span class="line">Hello</span><br><span class="line"><span class="meta">#</span><span class="bash"> 没有问题</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/30/2018-03-30-Java%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E8%AE%A8%E8%AE%BA%EF%BC%88%E5%A4%8D%E5%8F%A4%E4%BD%86%E8%83%BD%E5%8A%A0%E6%B7%B1%E5%AF%B9Java%E9%A1%B9%E7%9B%AE%E7%9A%84%E7%90%86%E8%A7%A3%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -861,116 +938,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/06/2018-03-06-%E5%9C%A8macOS%E4%B8%8A%E9%80%9A%E8%BF%87%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%90%AD%E5%BB%BA%E5%9F%BA%E7%A1%80CentOS%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="w4ngzhen">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="CompileMind">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2018/03/06/2018-03-06-%E5%9C%A8macOS%E4%B8%8A%E9%80%9A%E8%BF%87%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%90%AD%E5%BB%BA%E5%9F%BA%E7%A1%80CentOS%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83/" class="post-title-link" itemprop="url">在macOS上通过虚拟机搭建基础CentOS7系统环境</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2018-03-06 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-06T00:00:00+08:00">2018-03-06</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>尽管从Mac的Terminal可以看出，macOS与UNIX、Linux或多或少都有血缘关系（shell、bash等），但是在mac进行Linux开发，或者把macOS直接当作Linux来使用依然是说不过去的，这其中包括一些命令行的使用，一些基本的文件夹体系等（如，在Linux上的/home目录与在macOS下的/Users）不一致。如果想要在macOS上进行Linux的学习，或者进行Linux开发，最完美的方案自然是安装虚拟机。</p>
-<h3 id="虚拟机的选择"><a href="#虚拟机的选择" class="headerlink" title="虚拟机的选择"></a>虚拟机的选择</h3><p>mac平台上的主流虚拟机有VMWare Fusion、Parallels Desktop、VrtualBox。前两者均是付费产品，价格虽不是很贵（参考JetBrains、Adobe系列），但是对于只是在Linux上进行学习或者是进行一些简单的开发颇有些大材小用了。所以，本次教程选择免费的VirtualBox进行搭建。</p>
-<p>地址：<a target="_blank" rel="noopener" href="https://www.virtualbox.org/">VirtualBox</a></p>
-<p>下载好以后，打开dmg双击pkg正常安装即可。</p>
-<ul>
-<li><p><strong>注意</strong></p>
-<p>VirtualBox在安装的时候需要安装内核扩展（Kernel extenstion）由于macOS 10.13 High Sierra的新安全特性会阻止外部内核扩展的安装，所以安装总是会被系统拦截，出现安装失败的情况，这时候打开“系统偏好设置 - 安全性与隐私”在界面下方会出现提示“来自Oracle America, Inc….”，点击“允许”再次安装即可。</p>
-</li>
-<li><p><strong>点击“允许”没反应？</strong></p>
-<p>本人安装VBox还有其他软件曾经出现过点击“允许”没有反应的情况，可能是macOS存在的一个BUG。此时首先关闭“安全性与隐私”，进入“系统偏好设置 - 键盘 - 快捷键”，选择“所有控制”，然后在此进入“安全性与隐私”，按tab键移动光标焦点到“允许”按钮处按空格键即可点击成功。</p>
-</li>
-</ul>
-<h3 id="Linux的选择"><a href="#Linux的选择" class="headerlink" title="Linux的选择"></a>Linux的选择</h3><p>本人选择CentOS 7作为本次的教程的Linux版本。</p>
-<p>官方地址：<a target="_blank" rel="noopener" href="https://www.centos.org/">CentOS</a></p>
-<p>在download界面我们可以看到三种iso镜像：</p>
-<ul>
-<li>DVD.iso 可以用安装程序安装的所有安装包。</li>
-<li>Everything.iso 包含centos7的一套完整的软件包，可以用来安装系统或者填充本地镜像。</li>
-<li>Minimal.iso 最小安装盘，只有必要的软件，自带的软件最少。（<strong>只有命令行界面</strong>）</li>
-</ul>
-<p>这里我们选择minimal，首先因为它是最精炼的一个，其次，一步一步定制我们的系统才能够更好的熟悉Linux系统。<br>下载好以后，打开VirtualBox安装CentOS系统。</p>
-<p><strong>开始安装</strong></p>
-<p>打开VirtualBox，点击“新建” - “专家模式”<br>按照如下的方式配置<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/create-v.png" alt="create-v.png"><br>内存大小会使用到你mac的运行时内存，请合理分配，这里我们分配1G内存<br>点击创建，进入下一步：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/create-v2.png" alt="create-v2.png"><br>创建完成之后界面如下（CentOS7是我们创建的）：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/create-v3.png" alt="create-v3.png"><br>由于我们只是为虚拟机分配了相关的空间以及配置，但是并没有将系统挂载，点击“启动”会提示我们选择镜像文件，点击右侧小图标来选择镜像文件：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/chooseimg-detail.png" alt="chooseimg-detail"><br>选择完毕，准备启动：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/chooseimg.png" alt="chooseimg"><br>接下来点击“start”，经过短暂的等待，我们进入到系统安装界面，我们点击该界面，直接进入虚拟机内部（mac上退出虚拟机操控请按 command 键），此时可以操作方向键来选择我们接下来的步骤，这里我们选择“Install CentOS 7”并回车：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/installUI.png" alt="installUI"><br>接下来我们会进入到一个鼠标操控极差的界面来安装我们的系统，这里我们选择中文语言来进行系统安装：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/chooseEn.png" alt="chooseCN"><br>选择过语言之后，会看到“安装位置”有红色警告提示是自动分区，这里CentOS已经为我们选择好了“自动分区”<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/installCentos.png" alt="installCentos"><br>此时只需要点击进去然后在左上角点击“完成”即可，只做一个确认即可：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/partition.png" alt="partition"><br>回到主界面我们可以点击“开始安装”进行安装了。这里还要说一下，在安装过程中，就像下面的图示，系统是一直在安装的，但是此时系统中只有一个没有设置密码的root用户，就连管理员用户也没有，这里<strong>需要</strong>你设置root用户密码，可以不配置新的管理员用户：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/installing.png" alt="installing"><br>密码设置短一点没有事儿，毕竟是练习机：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/setpasswd.png" alt="setpasswd"><br>然后完成配置<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/completeInstall.png" alt="completeInstall"><br>之后等待最后的收尾工作结束，点击“重启”，进入命令行界面（选择的minimal，只有命令行界面），选择第一个系统，登陆root用户：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/chooseFirst.png" alt="chooseFirst"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/login.png" alt="login"><br>至此，虚拟机下Linux基本配置完成。</p>
-<h3 id="配置双网卡实现虚拟机-与主机（mac）与外网通信"><a href="#配置双网卡实现虚拟机-与主机（mac）与外网通信" class="headerlink" title="配置双网卡实现虚拟机 与主机（mac）与外网通信"></a>配置双网卡实现虚拟机 与主机（mac）与外网通信</h3><p>在上面的配置中，我们已经搭建好了一个最基本的，不具备网络通信的CentOS7操作系统，但是不能与外网通信，我们不能通过在线安装我们需要的软件，这样的单机操作系统用处是不大的。接下来我将介绍如何通过双网卡的方式来实现实现虚拟机 与主机（mac）与外网通信。</p>
-<h4 id="配置仅仅与主机通信的仅主机模式网卡"><a href="#配置仅仅与主机通信的仅主机模式网卡" class="headerlink" title="配置仅仅与主机通信的仅主机模式网卡"></a>配置仅仅与主机通信的仅主机模式网卡</h4><p>以下配置方式是不能与外网通信的，仅仅与主机通信，但好处在于我们可以使用静态IP地址，避免IP地址的变动。如果你没有这方面的需求，可以直接进入下一节。</p>
-<p>无论是哪一台计算机，要进行网络通信，都必须要至少有一块网卡来进行通信，当然，我们可以通过软件来虚拟出网卡，让这个虚拟的网卡获取IP来通信，更多的细节需要你有计算机网络的相关知识来支撑，这里不多提。这里既然我们需要让虚拟机中的系统来与我们的主机（mac）来通信，自然而然，需要让我们mac有一块网卡，虚拟机有一块网卡，让它们处于同一网段，这样一来，我们自然就实现了虚拟机与主机（mac）之间的通信。主机上怎么创建一块虚拟网卡呢？这里VirtualBox就可以帮我们实现。</p>
-<p>点击主界面上的“全局工具” - “主机网络管理器”，进入后点击“创建”（<strong>注意</strong>：这里可能会存在显示BUG，导致你点击创建之后没反应，<strong>请不要</strong>连续点击创建，点了一次之后切换一下画面），之后你就会在主机上（mac）创建一块用于和VirtualBox中的虚拟机进行通信的虚拟网卡：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/createHostNetworkUI.png" alt="createHostNetworkUI"><br>这里VBox自动为我们在mac主机上创建了一块名称为vboxnet0的网卡<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/createHostNetwork.png" alt="createHostNetwork"><br>我们进入mac终端，显示当前的所有的网卡信息也能看到这块网卡在我们的mac主机上已经创建成功了：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ifconfig</span></span><br><span class="line">...</span><br><span class="line">vboxnet0: flags=8943&lt;UP,BROADCAST,RUNNING,PROMISC,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">	ether 0a:00:27:00:00:00</span><br><span class="line">	inet 192.168.56.1 netmask 0xffffff00 broadcast 192.168.56.255</span><br><span class="line"><span class="meta">#</span><span class="bash"> 我们看到这块网卡已经有一个IP地址为192.168.56.1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 要让我们的虚拟机与我们的主机通信，只要虚拟机中有一块我们主机在同一网段的网卡就行了</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure><br><strong>注意：请明确以上操作是为我们的主机mac，不是为我们的虚拟机创建网卡：）</strong></p>
-<p>接下来，我们可以通过VirtualBox给CentOS配置一块网卡，用于我们的虚拟机中的操作系统与我们的主机（mac）之间的通信，所以首先我们要配置一块“仅主机（Host-Only）网络”：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/host-only.png" alt="host-only"><br>我们可以看到，VirtualBox已经很智能的为我们选择了我们刚刚为主机mac创建的网卡。点击“OK”之后，我们虚拟机与主机之间的通信网卡配置完成（<strong>注意</strong>：仅仅是虚拟网卡配置好了，IP地址什么还没有配置）。接下来我们登录我们的虚拟机查看网卡的配置情况。<br>进入系统之后，我们使用命令ip addr来查看CentOS下的网卡配置情况（默认是没有ifconfig命令的，我们之后再装）<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ip_addr.png" alt="ip_addr"><br>注意查看此处第二块网卡，我们可以看到它的硬件地址是08:00…:3d，和我们上面的配置Host-Only处显示的硬件MAC地址是一样的，同时请记住这块网卡的名称。</p>
-<p><strong>配置网络</strong></p>
-<p>在CentOS7中，我们进入/etc/sysconfig/network-script目录，显示当前目录下的文件：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> /etc/sysconfig/network-script</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ls</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 在众多的配置文件中，我们应该是能够找到和我们上面ip addr命令中显示的那块网卡名称一样的带有“ifcfg-”前缀的配置文件</span></span><br><span class="line">...</span><br><span class="line">ifcfg-enp0s3</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br><strong>注意</strong>：在CentOS6.x及一下，网卡的命名规则和7不一样，相关的差别请自行搜索。</p>
-<p>接下来我们需要配置网卡的具体信息，由于我们选择的是minimal版本的CentOS，所以使用vi来打开编辑它：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> vi ifcfg-enp0s3</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 同时为了配合上面的我们主机的IP网段，我们按照如下的方式来配置</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 类型=以太网</span></span><br><span class="line">TYPE=Ethernet(默认)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 设备名</span></span><br><span class="line">DEVICE=enp0s3(默认)</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash">BOOTPROTO=dhcp(dhcp为自动分配ip地址,我们把他注释了，在下面另外加)</span></span><br><span class="line">BOOTPROTO=static(新添加)</span><br><span class="line"><span class="meta">#</span><span class="bash"> IP地址</span></span><br><span class="line">IPADDR=192.168.56.66(新添加)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 子网掩码</span></span><br><span class="line">NETMASK=255.255.255.0(新添加)</span><br><span class="line"></span><br><span class="line">ONBOOT=yes(默认为no,修改为yes意为每次启动之后自动启动该网卡)</span><br><span class="line"><span class="meta">#</span><span class="bash"> 以上就是一个最精简的网卡配置文件</span></span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ifcfg.png" alt="ifcfg"><br>接下来reboot重启CentOS，重启之后通过ip addr再次查看我们网卡信息，也可以看到其网卡已经配置好了IP地址：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ipaddrNew.png" alt="ipaddrNew"><br>最后来进行测试，由于mac本身的安全防火墙是打开的，所以我们通过虚拟机（ip=192.168.56.66）去ping我们mac主机（ip=192.168.56.1）是ping不通的，我们只有在mac终端下去ping我们的虚拟机，发现已经ping通：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ping.png" alt="ping"></p>
-<h4 id="配置既能与主机通信同时还能与外网通信的桥接模式"><a href="#配置既能与主机通信同时还能与外网通信的桥接模式" class="headerlink" title="配置既能与主机通信同时还能与外网通信的桥接模式"></a>配置既能与主机通信同时还能与外网通信的桥接模式</h4><p>配置第二块网卡的原理十分简单，就是我们将我们主机的一块能够上网的网卡作为桥接网卡（可以理解为抽象成一台路由器上的网卡），这样，首先毫无疑问，我们的既然都是我们主机上的网卡了，自然主机与虚拟机之间是能够通信的，同时，我们的虚拟机还能够通过这块桥接网卡来与外界通信。</p>
-<p>以上的简略了解以后，我们首先可以知道，我们可以不再需要Host-Only这样的主机模式了。所以我们不再选择主机模式。</p>
-<p>选择桥接模式之前，我们首先查看我们当前能够使用的桥接的网络，在本次实验中，本人mac使用的是无线网卡en0连接的网络本地的局域网：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ifconfig</span></span><br><span class="line">...</span><br><span class="line">en0: flags=8863&lt;UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST&gt; mtu 1500</span><br><span class="line">	...</span><br><span class="line">	inet 172.20.10.12 netmask 0xfffffff0 broadcast 172.20.10.15</span><br><span class="line">	nd6 options=201&lt;PERFORMNUD,DAD&gt;</span><br><span class="line">	media: autoselect</span><br><span class="line">	status: active</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br>在此基础之上，我们设置虚拟机的网络为桥接模式，取消仅主机模式网络，并且选择我们的无线网卡：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/nohostonly.png" alt="nohostonly"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/en0.png" alt="en0"><br>接下来进入系统，验证网卡是否配置成功，之后在测试ping外网：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/ipaddrBridgeAndPing.png" alt="ipaddrBridgeAndPing"><br>再使用主机ping我们的虚拟机，发现没有问题<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/pingVM.png" alt="pingVM"><br>综上，我们的虚拟机 + 网络完全配置完成！</p>
-<h3 id="安装VirtaulBox增强工具包"><a href="#安装VirtaulBox增强工具包" class="headerlink" title="安装VirtaulBox增强工具包"></a>安装VirtaulBox增强工具包</h3><p>VirtualBox的增强工具包通常不需要我们再去下载，它通常伴随VirtualBox下载好了。一般会存放在对应应用的根目录下（在Windows中就是安装根目录），在mac中我们知道应用的根目录就是当我们安装的应用的包内容中：找到VitualBox应用，右键，“显示包内容”，“Contents”，“MacOS”，可以看到一个名为VBoxGuestAddition.iso镜像文件：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/additioniso.png" alt="additioniso"><br>接下来，就需要我们将这个iso镜像文件挂载到我们的Linux系统中。<strong>注意，一定要明确这个增强工具是给我们虚拟机中的Linux系统安装的</strong>。</p>
-<h4 id="为CentOS安装必要的开发库工具库"><a href="#为CentOS安装必要的开发库工具库" class="headerlink" title="为CentOS安装必要的开发库工具库"></a>为CentOS安装必要的开发库工具库</h4><p>进入Linux中，在前面安装配置好网络的基础上，我们使用yum安装如下待会增强功能包需要用到的工具库：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> yum update</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> yum install gcc gcc-c++ make kernel-headers kernel-devel bzip2</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 务必注意先安装gcc、gcc-c++、make，这三个工具是后面编译的基础工具</span></span><br></pre></td></tr></table></figure><br>安装完成以后，reboot重启。<strong>(务必要重启，为了更新kernel内核系统信息)</strong></p>
-<h4 id="挂载增强功能镜像文件"><a href="#挂载增强功能镜像文件" class="headerlink" title="挂载增强功能镜像文件"></a>挂载增强功能镜像文件</h4><p>这里必须要提到Linux中的一个概念：<strong>挂载（mount）</strong>。根文件系统之外的其他文件要想能够被访问，都必须通过“关联”至根文件系统上的某个目录来实现，此关联操作即为“挂载”，此目录即为“挂载点”,解除此关联关系的过程称之为“卸载”。实际上，我们Windows上同样也有挂载，比如U盘的插入并读写，新添加的硬盘并读写等等。这一切由于在Windows上已经有对应的驱动程序帮助我们自动的进行了，所以我们不太熟悉这个过程。而在Linux上，特别是在命令行界面下，我们要去读取一些系统以外的文件（就比如上面的U盘，光驱等），就必须要手动的去做这样一个操作。</p>
-<p>挂在的过程我们需要明确最主要的两点：设备以及挂载点。设备其实就是Linux操作系统中/dev/目录下显示那一些设备。挂载点其实就是Linux文件系统中的我们可以自定义的文件夹，在到时候使用挂在命令的时候，将外部文件系统与Linux内部文件系统关联起来的入口。可能还有些模糊，下面安装增强功能包会进一步根据实际来解释的。</p>
-<p>在上面我们已经安装好了开发工具并重启之后，我们首先点击VirtualBox上的“devices”选项，找到“Install Guest Addition CD image”：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/installdevices.png" alt="installdevices"><br>找到这一栏以后，我们点击它，现在是没有任何反应的，但是这里VirtualBox已经为我们将CD镜像“连接”到了Linux中了，就好像我们普通电脑装入光驱一个道理。</p>
-<p>补充：VirtualBox上的devices其实就是我们的外设接口一样。我们可以看到devices显示的Optical Drivers、Audio、Network以及USB，实际上就是为我们虚拟化的接口。假设我们想要将U盘数据传到Linux中，就可以现在电脑上插入U盘，然后在USB中找到我们这个插入的U盘对应的驱动选项，VirtualBox就会为我们读入U盘，之后在Linux中我们把对应的设备挂载到某一文件夹就可以读取了。</p>
-<p>继续上面的安装。接下来我们创建一个挂载点，挂载点通常就是创建一个临时的文件夹：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir tempdir</span></span><br></pre></td></tr></table></figure><br>创建完成以后，我们将cd设备挂载到这个文件夹上：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mount -t auto /dev/cdrom ./tempdir</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 完成挂载以后会打印设备的访问权限</span></span><br></pre></td></tr></table></figure><br>接下来，我们就可以进入刚刚创建的tempdir，我们可以看到这个文件中，出现了一些新的文件，这些文件其实就是刚刚增强功能包中的文件：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/tempdir.png" alt="tempdir"><br>看到这里，读者应该就能对挂载有基本更形象的认识了吧。其实就是将外部文件通过某一个我们内部创建的文件夹（挂载点）连接到我们Linux内部文件系统。<br>这个增强包中包含了Linux、Windows以及macOS系统的增强工具包。我们是Linux系统，所以运行VBoxLinuxAdditions.sh即可：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sh ./VBoxLinuxAdditions.sh</span></span><br></pre></td></tr></table></figure><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/building.png" alt="building"><br>完成以后，我们会发现系统的分辨率发生了变化，并且通过输出也知道增强工具安装成功了。</p>
-<p>最后请类似于像Windows上弹出U盘一样，卸载挂载点<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> umount tempdir</span></span><br></pre></td></tr></table></figure></p>
-<h3 id="设置共享文件夹"><a href="#设置共享文件夹" class="headerlink" title="设置共享文件夹"></a>设置共享文件夹</h3><p>VirtualBox为我们设计了“共享文件夹”，方便Linux与主机之间的文件传输。这一功能需要增强功能包安装完成了才可以使用。</p>
-<p>这一步其实很简单，同样是在VirtualBox上的devices选项中，我们点击“Shared Folders” - “Shared Folders Settings”，点击新建共享文件夹按钮：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/newsf.png" alt="newsf"><br>在弹出来的界面设置在主机上的共享文件夹，这里我在桌面上创建了一个名为“sharefolder”的文件夹，并选择了它，同时为了方便，文件名我设置为了“sf”。下方第一条“只读”按需勾选（以后可以修改），“Auto-mount”自动挂载选上，方便系统中自动挂载读取，“Make Permanet”永久化一般也选上，以后一直用这个文件夹与虚拟机中的Linux进行文件共享。</p>
-<p>回到Linux中，我们为了方便文件的管理，创建一个名为myshare的文件夹作为挂载点。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mkdir myshare</span></span><br></pre></td></tr></table></figure><br>接下来使用如下的命令将主机上的共享文件夹挂载进来：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mount -t vboxsf sf ./myshare</span></span><br></pre></td></tr></table></figure><br>于是，当我们在主机上往共享文件夹中操作文件的时候，刷新Linux中的文件夹，就可以实时的看到（反之亦然）：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/sharefile.png" alt="sharefile"><br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-03-06-Linux/deleteshare.png" alt="deleteshare"></p>
-<p>在此基础上，整个使用VirtualBox进行Linux虚拟机的搭建工作完成！</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1042,14 +1009,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>

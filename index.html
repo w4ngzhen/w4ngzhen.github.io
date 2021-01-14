@@ -155,6 +155,123 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/01/12/2021-01-12-%E4%BD%BF%E7%94%A8CEF%EF%BC%881%EF%BC%89-%E8%B5%B7%E6%AD%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/01/12/2021-01-12-%E4%BD%BF%E7%94%A8CEF%EF%BC%881%EF%BC%89-%E8%B5%B7%E6%AD%A5/" class="post-title-link" itemprop="url">使用CEF（1）-起步</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-01-12 00:00:00" itemprop="dateCreated datePublished" datetime="2021-01-12T00:00:00+08:00">2021-01-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-14 16:59:27" itemprop="dateModified" datetime="2021-01-14T16:59:27+08:00">2021-01-14</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="使用CEF（1）-起步"><a href="#使用CEF（1）-起步" class="headerlink" title="使用CEF（1）-起步"></a>使用CEF（1）-起步</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Chromium Embedded Framework (CEF)是个基于Google Chromium项目的开源Web browser控件，支持Windows, Linux, Mac平台。除了提供C/C++接口外，也有其他语言的移植版。</p>
+<p>因为基于Chromium，所以CEF支持<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/Webkit">Webkit</a> &amp; Chrome中实现的<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/HTML5">HTML5</a>的特性，并且在性能上面，也比较接近Chrome。</p>
+<h2 id="CEF架构"><a href="#CEF架构" class="headerlink" title="CEF架构"></a>CEF架构</h2><p><a target="_blank" rel="noopener" href="http://dev.chromium.org/developers/design-documents/multi-process-architecture">Chromium架构文档</a></p>
+<h2 id="libcef-dll-wrapper"><a href="#libcef-dll-wrapper" class="headerlink" title="libcef_dll_wrapper"></a>libcef_dll_wrapper</h2><p>在网上，大多数所谓编译CEF的教程，实际上只是编译针对CEF源码的C++包装库：<strong>libcef_dll_wrapper</strong>，并不是真正的编译CEF。libcef动态链接库导出 C API 使得使用者不用关心CEF运行库和基础代码。libcef_dll_wrapper 工程把 C API 封装成 C++ API同时包含在客户端应用程序工程中。C/C++ API的转换层代码是由转换工具自动生成。实际上，想要编译CEF源码是一件非常麻烦的事情，你需要梯子、良好的网速以及不错的电脑。回归正题，我们开始编译libcef_dll_wrapper。</p>
+<h3 id="编译前准备"><a href="#编译前准备" class="headerlink" title="编译前准备"></a>编译前准备</h3><p>cmake：<a target="_blank" rel="noopener" href="https://cmake.org/download/">https://cmake.org/download/</a></p>
+<p>vs2019：<a target="_blank" rel="noopener" href="https://visualstudio.microsoft.com/zh-hans/vs/">https://visualstudio.microsoft.com/zh-hans/vs/</a></p>
+<p>CEF以及Wrapper源码：<a target="_blank" rel="noopener" href="https://cef-builds.spotifycdn.com/index.html">https://cef-builds.spotifycdn.com/index.html</a></p>
+<h3 id="下载libcef以及wrapper"><a href="#下载libcef以及wrapper" class="headerlink" title="下载libcef以及wrapper"></a>下载libcef以及wrapper</h3><p>我们首先从CDN上下载ceflib静态库以及wrapper源码：Windows64bit，标准分发（Standard Distribution）。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/download-cef.jpg" alt=""></p>
+<p>下载完成后，我们解压到工作目录下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/cef-decompression-dir.jpg" alt=""></p>
+<p>在这个目录下，会看到很多的文件夹和目录。其中主要的几个文件夹：</p>
+<ul>
+<li><p><strong>cmake</strong>：该目录下存放了配置和构建以Windows作为编译环境的cmake配置文件，具体内容可以自行查看。</p>
+</li>
+<li><p><strong>Debug和Release</strong>：这两个文件夹中，打开会看到已经编译好的CEF核心库文件：</p>
+</li>
+</ul>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/libcef-files.jpg" alt=""></p>
+<ul>
+<li><strong>include</strong>：libcef本身提供的头文件以及wrapper会使用到的头文件。</li>
+<li><p><strong>libcef_dll</strong>：存放了<strong>libcef_dll_wrapper</strong>源码。</p>
+</li>
+<li><p><strong>Resources</strong>：CEF作为内核的浏览器运行时需要用到的资源文件。</p>
+</li>
+<li><strong>tests</strong>：存放了利用libcef、以及wrapper作为库来编写的浏览器Demo。其中，cefsimple编译出来的是一个简单的浏览器，而cefclient编译出来的是一个展示了cef许多API功能的exe。</li>
+</ul>
+<h3 id="使用cmake进行配置构建"><a href="#使用cmake进行配置构建" class="headerlink" title="使用cmake进行配置构建"></a>使用cmake进行配置构建</h3><p>打开cmake-gui.exe程序，在<code>Where is the source code</code>栏中选择源码所在目录，在下方的<code>Where to build the binaries</code>栏目中我们可以自定义任意位置，但是为了方便管理，我们选择在源码所在目录下增加一个build文件夹，所以综合来看，当前cmake-gui的配置为：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/cmakegui-config.jpg" alt=""></p>
+<p>接下来我们直接点击下方的<code>Configure</code>按钮，cmake-gui会弹框提示没有build文件夹，会帮助你ui创建一个build文件夹，以及让你选择构建工具：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/create-build-dir.jpg" alt=""></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/select-vs.jpg" alt=""></p>
+<p>完成配置后，我们进行cmake的生成操作（Generate），并打开该解决方案：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/generate-and-open.jpg" alt=""></p>
+<h3 id="编译libcef-dll-wrapper"><a href="#编译libcef-dll-wrapper" class="headerlink" title="编译libcef_dll_wrapper"></a>编译libcef_dll_wrapper</h3><p>上述使用cmake配置构建后，在Windows下，我们得到了一个解决方案：cef.sln。使用vs2019打开后，我们会看到解决方案中已经存在了几个工程：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/projects-in-sln.jpg" alt=""></p>
+<ul>
+<li><strong>ALL_BUILD与ZERO_CHECK</strong>：是cmake自动生成的辅助工程。</li>
+<li><strong>cef_gtest与ceftests</strong>：都是测试模块,这里不关心。</li>
+<li><strong>cefclient</strong>：一个包含CEF各种API演示的浏览器程序Demo。</li>
+<li><strong>cefsimple</strong>：一个简单的CEF浏览器程序Demo。</li>
+<li><strong>libcef_dll_wrapper</strong>：对libcef库的C++代码封装。上述cefclient与cefsimple都会用它。</li>
+</ul>
+<p>我们首先完成libcef_dll_wrapper的编译，然后对cefclient以及cefsimple完成编译。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2&gt;libcef_dll_wrapper.vcxproj -&gt; D:\Projects\cef\cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64\build\libcef_dll_wrapper\Debug\libcef_dll_wrapper.lib</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Build: 2 succeeded, 0 failed, 0 up-to-date, 0 skipped &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1&gt;   Creating library D:&#x2F;Projects&#x2F;cef&#x2F;cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64&#x2F;build&#x2F;tests&#x2F;cefsimple&#x2F;Debug&#x2F;cefsimple.lib and object D:&#x2F;Projects&#x2F;cef&#x2F;cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64&#x2F;build&#x2F;tests&#x2F;cefsimple&#x2F;Debug&#x2F;cefsimple.exp</span><br><span class="line">1&gt;cefsimple.vcxproj -&gt; D:\Projects\cef\cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64\build\tests\cefsimple\Debug\cefsimple.exe</span><br><span class="line">1&gt;Adding manifest...</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Build: 1 succeeded, 0 failed, 2 up-to-date, 0 skipped &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1&gt;   Creating library D:&#x2F;Projects&#x2F;cef&#x2F;cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64&#x2F;build&#x2F;tests&#x2F;cefclient&#x2F;Debug&#x2F;cefclient.lib and object D:&#x2F;Projects&#x2F;cef&#x2F;cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64&#x2F;build&#x2F;tests&#x2F;cefclient&#x2F;Debug&#x2F;cefclient.exp</span><br><span class="line">1&gt;cefclient.vcxproj -&gt; D:\Projects\cef\cef_binary_87.1.13+g481a82a+chromium-87.0.4280.141_windows64\build\tests\cefclient\Debug\cefclient.exe</span><br><span class="line">1&gt;Adding manifest...</span><br><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D; Build: 1 succeeded, 0 failed, 2 up-to-date, 0 skipped &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br></pre></td></tr></table></figure>
+<p>完成了编译以后，我们可以直接进入cefclient或者是cefsimple里面的输出中运行对应的浏览器程序：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/demo-show.jpg" alt=""></p>
+<p>注意，cefsimple.exe打开白屏是因为demo代码中默认访问的Google，cefclient.exe其实默认也访问的Google，但是因为可以输入任意的地址，所以这里不太容易发现。</p>
+<p>cefsimple中的默认访问地址修改为国内即可（cefclient中的自行搜索）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-01-12-start-cef/change-init-url.jpg" alt=""></p>
+<p>下一节，将从零开始，使用cef来编写一个简单Demo。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://compilemind.com/2020/11/27/2020-11-27-node-pre-gyp%E4%BB%A5%E5%8F%8Anode-gyp%E7%9A%84%E6%BA%90%E7%A0%81%E7%AE%80%E5%8D%95%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BB%A5%E5%AE%89%E8%A3%85sqlite3%E4%B8%BA%E4%BE%8B%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1275,82 +1392,6 @@ FIRST(\alpha), & \text{if} \quad \varepsilon \notin FIRST(\alpha) \\
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2020/02/04/2020-02-04-%E5%9F%BA%E4%BA%8ETesseract%E7%BB%84%E4%BB%B6%E7%9A%84OCR%E8%AF%86%E5%88%AB%E5%AD%A6%E4%B9%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="w4ngzhen">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="CompileMind">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2020/02/04/2020-02-04-%E5%9F%BA%E4%BA%8ETesseract%E7%BB%84%E4%BB%B6%E7%9A%84OCR%E8%AF%86%E5%88%AB%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">基于Tesseract组件的OCR识别</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2020-02-04 00:00:00" itemprop="dateCreated datePublished" datetime="2020-02-04T00:00:00+08:00">2020-02-04</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h2 id="背景以及介绍"><a href="#背景以及介绍" class="headerlink" title="背景以及介绍"></a>背景以及介绍</h2><p>欲研究C#端如何进行图像的基本OCR识别，找到一款开源的OCR识别组件。该组件当前已经已经升级到了4.0版本。和传统的版本（3.x）比，4.0时代最突出的变化就是基于LSTM神经网络。Tesseract本身是由C++进行编写，但为了同时适配不同的语言进行调用，开放调用API并产生了诸如Java、C#、Python等主流语言在内的封装版本。本次主要研究C#封装版。</p>
-<h2 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h2><p>Tesseract本身由C++编写并开源在<a target="_blank" rel="noopener" href="https://github.com/tesseract-ocr/tesseract">Github</a>，在3.X版本中，Tesseract的识别模式为字符识别，该种识别方式识别能力较低，所以在后来的4.X版本中，引入了LSTM（Long short-term memory，长短期记忆神经网络），极大的提升了识别率。为了让不同的语言均能够使用Tesseract进行OCR识别，Tesseract也是开放了API并产生了诸如Java、C#、Python等主流语言在内的封装版本。而本次C#端的封装版也开源在了<a target="_blank" rel="noopener" href="https://github.com/charlesw/tesseract">Github</a>，目前已知的C#封装版已发布在nuget上，封装了对应Tesseract的版本为3.05.02。所以目前的项目结构如下：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/版本封装.png" alt="版本封装"></p>
-<h2 id="Demo实验"><a href="#Demo实验" class="headerlink" title="Demo实验"></a>Demo实验</h2><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><h4 id="文本识别数据包准备"><a href="#文本识别数据包准备" class="headerlink" title="文本识别数据包准备"></a>文本识别数据包准备</h4><p>因为图像识别本身需要文本识别数据进行匹配，所以我们需要下载对应Tesseract官方的文本数据包：<br><a target="_blank" rel="noopener" href="https://tesseract-ocr.github.io/tessdoc/Data-Files">https://tesseract-ocr.github.io/tessdoc/Data-Files</a><br>注意，针对不同版本的Tesseract-OCR（3.X和4.X底层的实现方式不同，所以文本识别数据包是不同的），我们需要找到对应的不同的文本训练数据包，官网为了更好的兼容性，4.X版本的文本数据包是兼容了3.X版本的。</p>
-<p>&gt;<br>the third set in tessdata is the only one that supports the legacy recognizer. The 4.00 files from November 2016 have both legacy and older LSTM models. The current set of files in tessdata have the legacy models and newer LSTM models (integer versions of 4.00.00 alpha models in tessdata_best).<br>&gt;</p>
-<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/数据包下载.png" alt="数据包下载"></p>
-<p>为了Demo，我下载了中文简体和英文的数据包作为实验对象</p>
-<h4 id="开发环境准备"><a href="#开发环境准备" class="headerlink" title="开发环境准备"></a>开发环境准备</h4><p>为了实验并对比上面两个封装版本的识别效果，这里在同一解决方案中创建了两个项目：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/项目创建.png" alt="项目创建"></p>
-<p>BaseNewBeta使用的是封装了4.1版本Tesseract的C#封装版Tesseract.4.1.0-beta1，因为该版本还还没有上传只Nuget，所以只能从github上下载，放到本地，然后把对应的C++的底层库（leptonica-1.78.0.dll，tesseract41.dll）放置到了x86和x64文件夹下面且需要输出。</p>
-<p>BaseNuget是已经上传至Nuget的封装了底层库3.05.20版本的C#封装版3.3.0.0，因为使用nuget进行组件安装，所以x64和x86的Tesseract组件会在编译输出时候自动输出到对应的生成目录。</p>
-<h4 id="核心代码"><a href="#核心代码" class="headerlink" title="核心代码"></a>核心代码</h4><figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (openFileDialog1.ShowDialog() == DialogResult.OK)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">//PictureBox控件显示图片</span></span><br><span class="line">    pictureBox1.Load(openFileDialog1.FileName);</span><br><span class="line">    <span class="comment">//获取用户选择文件的后缀名 </span></span><br><span class="line">    <span class="keyword">string</span> extension = Path.GetExtension(openFileDialog1.FileName);</span><br><span class="line">    <span class="comment">//声明允许的后缀名 </span></span><br><span class="line">    <span class="keyword">string</span>[] str = <span class="keyword">new</span> <span class="keyword">string</span>[] &#123; <span class="string">&quot;.jpg&quot;</span>, <span class="string">&quot;.png&quot;</span> &#125;;</span><br><span class="line">    <span class="keyword">if</span> (!str.Contains(extension))</span><br><span class="line">    &#123;</span><br><span class="line">        MessageBox.Show(<span class="string">&quot;仅能上传jpg,png格式的图片！&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//识别图片文字</span></span><br><span class="line">        Bitmap img = <span class="keyword">new</span> Bitmap(openFileDialog1.FileName);</span><br><span class="line">        <span class="comment">// 构建识别引擎</span></span><br><span class="line">        TesseractEngine orcEngine = <span class="keyword">new</span> TesseractEngine(<span class="string">&quot;./tessdata&quot;</span>, <span class="string">&quot;eng&quot;</span>);</span><br><span class="line">        <span class="comment">// 识别并获取文本数据</span></span><br><span class="line">        Page page = orcEngine.Process(img);</span><br><span class="line">        richTextBox1.Text = page.GetText();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="最终效果"><a href="#最终效果" class="headerlink" title="最终效果"></a>最终效果</h4><h5 id="英文识别效果"><a href="#英文识别效果" class="headerlink" title="英文识别效果"></a>英文识别效果</h5><p>先是3.X版本识别：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/EnNuget.png" alt="EnNuget"><br>可以看到文本中还有很多识别的错误的，特别是把英文字符C识别为了括号（。<br>而封装了新版本的识别结果比起之前更好：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/EnNewBeta.png" alt="EnNewBeta"></p>
-<h5 id="中文识别效果"><a href="#中文识别效果" class="headerlink" title="中文识别效果"></a>中文识别效果</h5><p>先是3.X版本识别：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/CNNuget.png" alt="CNNuget"><br>然后是封装的版本：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-02-04-tesseract/CNNewBeta.png" alt="CNNewBeta"><br>看的出来，官方的数据包对于中文的识别还是有很大问题的，不过庆幸的是，4.X版本的后的Tesseract支持我们使用的自己的数据进行识别训练。这样一来，虽然该组件还比不上市面上大多数的商业OCR识别，但是我们可以使用训练数据，来训练适用于我们特定业务的文字识别（比如XX码的提取之类）</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1422,14 +1463,14 @@ FIRST(\alpha), & \text{if} \quad \varepsilon \notin FIRST(\alpha) \\
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">45</span>
+          <span class="site-state-item-count">46</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-count">44</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
