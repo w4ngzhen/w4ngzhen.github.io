@@ -155,6 +155,80 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/07/2018-03-07-IntelliJ%E4%B8%ADSpring%E6%8F%90%E7%A4%BABUG/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/03/07/2018-03-07-IntelliJ%E4%B8%ADSpring%E6%8F%90%E7%A4%BABUG/" class="post-title-link" itemprop="url">IntelliJ中Spring识别BUG</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-07 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-07T00:00:00+08:00">2018-03-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近开始学习Spring，在看《Spring实战4th》3.3“处理自动装配的歧义性”那一部分时，书上提到（也从网上看到了类似的用法）:<br>通过在一个类上加注@Component以及@Qualifier(“x”)可以为其配置限定符来标识区分同一个接口下的不同实现类，用以在需要进行@Autowired自动装配的地方使用@Qualifier(“x”)来指定特定的实现类对象bean。<br>但是本人在练习过程中，IntelliJ通过上述方式识别不了，只能在@Bean处添加@Qualifier(“x”)，在后续的测试中才能识别。如下：</p>
+<p>在Dessert的实现类Cake上加上@Component以及@Qualifier(“Lovely”)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Qualifier(&quot;Lovely&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cake</span> <span class="keyword">implements</span> <span class="title">Dessert</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+<p>然后是配置类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function">Dessert <span class="title">cake</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Cake();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function">Dessert <span class="title">iceCream</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> IceCream();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试类中无法识别：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(classes = JavaConfig.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PlateTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;Lovely&quot;)</span> <span class="comment">// IDEA 提示&quot;Cannot find bean with qualifier &#x27;Lovely&#x27; &quot;</span></span><br><span class="line">    Dessert dessert;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testNotNull</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Assert.assertNotNull(dessert);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是，测试能PASS，应该是IntelliJ中的识别BUG。虽然是一个BUG，但是个人的理解是推荐在配置Bean中，进行限定，而不是在每一个类处进行限定。如下在JavaConfig类中进行配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@Qualifier(&quot;Lovely&quot;)</span></span><br><span class="line"><span class="function">Dessert <span class="title">cake</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Cake();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样就不会出现报提示错。<br><strong>以上在运行过程均没有错误，只是IDE辅助出现了问题。</strong></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/06/2018-03-06-%E5%9C%A8macOS%E4%B8%8A%E9%80%9A%E8%BF%87%E8%99%9A%E6%8B%9F%E6%9C%BA%E6%90%AD%E5%BB%BA%E5%9F%BA%E7%A1%80CentOS%E7%B3%BB%E7%BB%9F%E7%8E%AF%E5%A2%83/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -334,7 +408,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EPrivoxy%E5%8E%9F%E7%90%86/">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EProxy%E5%8E%9F%E7%90%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -348,7 +422,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EPrivoxy%E5%8E%9F%E7%90%86/" class="post-title-link" itemprop="url">理解$hadow$ocks与Privoxy原理</a>
+            <a href="/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EProxy%E5%8E%9F%E7%90%86/" class="post-title-link" itemprop="url">理解$hadow$ocks与Proxy原理</a>
         </h2>
 
         <div class="post-meta">
@@ -365,7 +439,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+                <time title="Modified: 2021-01-25 10:07:50" itemprop="dateModified" datetime="2021-01-25T10:07:50+08:00">2021-01-25</time>
               </span>
 
           
@@ -775,7 +849,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
