@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 终极 第一种：在MySQL中修改：mysql&gt; set password for root@localhost &#x3D; password(‘新密码’);当然，你也可以在root账户下去修改其他账户的密码，只需要将ro">
+  <meta name="description" content="曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 终极">
 <meta property="og:type" content="article">
 <meta property="og:title" content="修改MySql Root密码（包含忘记密码的方式）">
 <meta property="og:url" content="http://compilemind.com/2017/04/04/2017-04-04-%E4%BF%AE%E6%94%B9MysqlRoot%E5%AF%86%E7%A0%81/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 终极 第一种：在MySQL中修改：mysql&gt; set password for root@localhost &#x3D; password(‘新密码’);当然，你也可以在root账户下去修改其他账户的密码，只需要将ro">
+<meta property="og:description" content="曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 终极">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2017-04-03T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-10-13T07:20:30.186Z">
+<meta property="article:modified_time" content="2021-01-25T02:38:13.431Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Mysql">
 <meta name="twitter:card" content="summary">
@@ -191,7 +191,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+                <time title="Modified: 2021-01-25 10:38:13" itemprop="dateModified" datetime="2021-01-25T10:38:13+08:00">2021-01-25</time>
               </span>
 
           
@@ -206,6 +206,7 @@
 
       
         <p>曾几何时，我也是记得MySQL root密码的人，想要修改root密码还不是轻而易举的事？下面前三种修改改方式都是在记得密码的情况下进行修改，如果你忘记了原本的root，请直接跳至 <strong>终极</strong></p>
+<a id="more"></a>
 <p><strong>第一种：</strong><br>在MySQL中修改：mysql&gt; set password for root@localhost = password(‘新密码’);<br>当然，你也可以在root账户下去修改其他账户的密码，只需要将root换为其他账户即可<br>（注意：后面的localhost是指只能在本地登陆的账户，在修改其他账户密码时一定要对应其可登录范围修改@后面的字段属性）</p>
 <p><strong>第二种：</strong><br>直接进入mysql数据库中，修改user表中的root的password。<br>mysql&gt; use mysql;<br>mysql&gt; update user set password = password(‘新密码’) where user = ‘root’ and host = ‘localhost’;<br>(注意：这个host后面的东西的意义和上面一样)<br>mysql&gt; flush privileges; （记得刷新权限）</p>
 <p><strong>第三种：</strong><br>不要忘了mysqladmin<br><figure class="highlight plain"><figcaption><span>-u root -p 123456 password 123``` 就行了</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">然而重点来了，在以上的几种方法，都是针对于我们还记得root用户密码。可是一开始就忘了root密码了怎么办？</span><br><span class="line">**终极：**</span><br><span class="line">1．首先确认服务器出于安全的状态，也就是没有人能够任意地连接MySQL数据库。</span><br><span class="line"></span><br><span class="line">2．修改MySQL的登录设置：</span><br><span class="line">&#96;&#96;&#96;# vi &#x2F;etc&#x2F;my.cnf&#96;&#96;&#96;</span><br><span class="line"></span><br><span class="line">在[mysqld]的段中加上一句：skip-grant-tables （这一句话表示，绕过所有的用户权限）</span><br><span class="line">例如：</span><br></pre></td></tr></table></figure><br>[mysqld]<br>datadir=/var/lib/mysql<br>socket=/var/lib/mysql/mysql.sock<br>skip-grant-tables<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">保存并且退出vi。</span><br><span class="line"></span><br><span class="line">3．重新启动mysqld</span><br><span class="line">&#96;&#96;&#96;service mysqld restart&#96;&#96;&#96;</span><br><span class="line">好了，在此基础上，你就可以直接mysql进入数据库了</span><br><span class="line"></span><br><span class="line">4．登录并修改MySQL的root密码</span><br></pre></td></tr></table></figure><br>mysql<br>mysql&gt; USE mysql ;<br>mysql&gt; UPDATE user SET Password = password ( ‘新密码’ ) WHERE User = ‘root’ ;<br>mysql&gt; flush privileges ;<br>mysql&gt; quit<br>Bye</p>

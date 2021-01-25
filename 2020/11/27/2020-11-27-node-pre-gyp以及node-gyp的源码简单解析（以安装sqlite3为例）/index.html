@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="前言简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C&#x2F;C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。 项目建立建立一个简单的node项目，我们开始安装SQLite3 1234567891011121">
+  <meta name="description" content="前言简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C&#x2F;C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例）">
 <meta property="og:url" content="http://compilemind.com/2020/11/27/2020-11-27-node-pre-gyp%E4%BB%A5%E5%8F%8Anode-gyp%E7%9A%84%E6%BA%90%E7%A0%81%E7%AE%80%E5%8D%95%E8%A7%A3%E6%9E%90%EF%BC%88%E4%BB%A5%E5%AE%89%E8%A3%85sqlite3%E4%B8%BA%E4%BE%8B%EF%BC%89/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="前言简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C&#x2F;C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。 项目建立建立一个简单的node项目，我们开始安装SQLite3 1234567891011121">
+<meta property="og:description" content="前言简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C&#x2F;C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/hosted_tarball_download.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/analysis_hosted_path.png">
@@ -41,7 +41,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-gyp-GYP.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-11-27-node-native-install/node-gyp-build-flow.png">
 <meta property="article:published_time" content="2020-11-26T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-12-04T08:42:49.913Z">
+<meta property="article:modified_time" content="2021-01-25T02:29:56.629Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="node">
 <meta property="article:tag" content="native">
@@ -207,7 +207,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-12-04 16:42:49" itemprop="dateModified" datetime="2020-12-04T16:42:49+08:00">2020-12-04</time>
+                <time title="Modified: 2021-01-25 10:29:56" itemprop="dateModified" datetime="2021-01-25T10:29:56+08:00">2021-01-25</time>
               </span>
 
           
@@ -222,6 +222,7 @@
 
       
         <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>简单来说，node是跨平台的，那么对于任何的node模块理论也是应该是跨平台的。然而，有些node模块直接或间接使用原生C/C++代码，这些东西要跨平台，就需要使用源码根据实际的操作平台环境进行原生模块编译。SQLite3就是一个经典的原生模块，让我们以安装该模块为例，探索一下安装原生模块的流程。</p>
+<a id="more"></a>
 <h1 id="项目建立"><a href="#项目建立" class="headerlink" title="项目建立"></a>项目建立</h1><p>建立一个简单的node项目，我们开始安装<code>SQLite3</code></p>
 <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">$ mkdir sqlite3-install-demo </span><br><span class="line">$ <span class="built_in">cd</span> sqlite3-install-demo</span><br><span class="line">$ npm init</span><br><span class="line"><span class="comment"># 初始化项目</span></span><br><span class="line">Press ^C at any time to quit.</span><br><span class="line">package name: (projects) sqlite3-install-demo</span><br><span class="line">version: (1.0.0)</span><br><span class="line">description:</span><br><span class="line">entry point: (index.js)</span><br><span class="line"><span class="built_in">test</span> <span class="built_in">command</span>:</span><br><span class="line">git repository:</span><br><span class="line">keywords:</span><br><span class="line">author:</span><br><span class="line">license: (ISC) MIT</span><br><span class="line">About to write to D:\Projects\package.json:</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;name&quot;</span>: <span class="string">&quot;sqlite3-install-demo&quot;</span>,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: <span class="string">&quot;1.0.0&quot;</span>,</span><br><span class="line">  <span class="string">&quot;description&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">  <span class="string">&quot;main&quot;</span>: <span class="string">&quot;index.js&quot;</span>,</span><br><span class="line">  <span class="string">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;test&quot;</span>: <span class="string">&quot;echo \&quot;Error: no test specified\&quot; &amp;&amp; exit 1&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">&quot;author&quot;</span>: <span class="string">&quot;&quot;</span>,</span><br><span class="line">  <span class="string">&quot;license&quot;</span>: <span class="string">&quot;MIT&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h1 id="安装SQLite3"><a href="#安装SQLite3" class="headerlink" title="安装SQLite3"></a>安装<code>SQLite3</code></h1><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install -S sqlite3</span><br></pre></td></tr></table></figure>

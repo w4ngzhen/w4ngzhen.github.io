@@ -20,17 +20,17 @@
     var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="在Linux下一切都是文件，无论是设备还是接口，亦或是网卡等均被抽象成了文件，并且有相关的内核代码进行调度。然而，在一切都是文件的前提下，最需要进行探讨的则是文件存储的根源：文件系统。文件系统的好坏能够更加完美的解决在一个操作系统中对于文件的管理。 Linux下的文件系统是按照inode + block模式来进行了的。通俗一点讲，类似于指针一样的形式存在。即inode作为“指针”记录并指向了真正的">
+  <meta name="description" content="在Linux下一切都是文件，无论是设备还是接口，亦或是网卡等均被抽象成了文件，并且有相关的内核代码进行调度。然而，在一切都是文件的前提下，最需要进行探讨的则是文件存储的根源：文件系统。文件系统的好坏能够更加完美的解决在一个操作系统中对于文件的管理。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux文件系统与inode、Block笔记">
 <meta property="og:url" content="http://compilemind.com/2018/04/08/2018-04-08-Linux%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%8Einode%E3%80%81Block%E7%AC%94%E8%AE%B0/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="在Linux下一切都是文件，无论是设备还是接口，亦或是网卡等均被抽象成了文件，并且有相关的内核代码进行调度。然而，在一切都是文件的前提下，最需要进行探讨的则是文件存储的根源：文件系统。文件系统的好坏能够更加完美的解决在一个操作系统中对于文件的管理。 Linux下的文件系统是按照inode + block模式来进行了的。通俗一点讲，类似于指针一样的形式存在。即inode作为“指针”记录并指向了真正的">
+<meta property="og:description" content="在Linux下一切都是文件，无论是设备还是接口，亦或是网卡等均被抽象成了文件，并且有相关的内核代码进行调度。然而，在一切都是文件的前提下，最需要进行探讨的则是文件存储的根源：文件系统。文件系统的好坏能够更加完美的解决在一个操作系统中对于文件的管理。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-08-inode-block/inode-block.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-08-inode-block/dir-inode-block.png">
 <meta property="article:published_time" content="2018-04-07T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-10-13T07:20:30.192Z">
+<meta property="article:modified_time" content="2021-01-25T02:36:21.979Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="inode">
@@ -196,7 +196,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+                <time title="Modified: 2021-01-25 10:36:21" itemprop="dateModified" datetime="2021-01-25T10:36:21+08:00">2021-01-25</time>
               </span>
 
           
@@ -211,6 +211,7 @@
 
       
         <p>在Linux下一切都是文件，无论是设备还是接口，亦或是网卡等均被抽象成了文件，并且有相关的内核代码进行调度。然而，在一切都是文件的前提下，最需要进行探讨的则是文件存储的根源：文件系统。文件系统的好坏能够更加完美的解决在一个操作系统中对于文件的管理。</p>
+<a id="more"></a>
 <p>Linux下的文件系统是按照inode + block模式来进行了的。通俗一点讲，类似于指针一样的形式存在。即inode作为“指针”记录并指向了真正的”数据块“block。 </p>
 <p><strong>环境</strong></p>
 <p>为了方便后面的实际操作，我们按照如下进行环境的搭建<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 首先在<span class="built_in">test</span>目录下创建一个名为temp的文件夹与一个普通的文件test.txt</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">pwd</span></span></span><br><span class="line">/root/test</span><br><span class="line"><span class="meta">$</span><span class="bash"> mkdir temp &amp;&amp; touch test.txt</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 文件结构如下</span></span><br><span class="line">test</span><br><span class="line">├── temp</span><br><span class="line">└── test.txt</span><br><span class="line">1 directory, 1 file</span><br><span class="line"><span class="meta">#</span><span class="bash"> 向test.txt写入一句话</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">echo</span> <span class="string">&quot;Its&#x27;s a test.txt&quot;</span> &gt;&gt; test.txt</span></span><br></pre></td></tr></table></figure></p>

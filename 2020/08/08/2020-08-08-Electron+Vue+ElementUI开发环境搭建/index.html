@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="Node环境搭建本文假定你完成了nodejs的环境基础搭建：镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量 12345678910 $ node -v v12.18.1 $ npm -v 6.14.5 $ yarn -v 1.22.4  $ npm list -g --depth 0 +-- hexo@4.2.1 &#x2F;&#x2F; 忽略He">
+  <meta name="description" content="本文将从零开始，进行Electron+Vue+ElementUI的开发环境搭建">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Electron+Vue+ElementUI开发环境搭建">
 <meta property="og:url" content="http://compilemind.com/2020/08/08/2020-08-08-Electron+Vue+ElementUI%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="Node环境搭建本文假定你完成了nodejs的环境基础搭建：镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量 12345678910 $ node -v v12.18.1 $ npm -v 6.14.5 $ yarn -v 1.22.4  $ npm list -g --depth 0 +-- hexo@4.2.1 &#x2F;&#x2F; 忽略He">
+<meta property="og:description" content="本文将从零开始，进行Electron+Vue+ElementUI的开发环境搭建">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-08-07T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-10-13T07:20:30.203Z">
+<meta property="article:modified_time" content="2021-01-25T02:32:06.485Z">
 <meta property="article:author" content="w4ngzhen">
 <meta name="twitter:card" content="summary">
 
@@ -190,7 +190,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+                <time title="Modified: 2021-01-25 10:32:06" itemprop="dateModified" datetime="2021-01-25T10:32:06+08:00">2021-01-25</time>
               </span>
 
           
@@ -204,7 +204,9 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="Node环境搭建"><a href="#Node环境搭建" class="headerlink" title="Node环境搭建"></a>Node环境搭建</h2><p>本文假定你完成了nodejs的环境基础搭建：<br>镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量</p>
+        <p>本文将从零开始，进行Electron+Vue+ElementUI的开发环境搭建</p>
+<a id="more"></a>
+<h2 id="Node环境搭建"><a href="#Node环境搭建" class="headerlink" title="Node环境搭建"></a>Node环境搭建</h2><p>本文假定你完成了nodejs的环境基础搭建：<br>镜像配置（暂时只配置node包镜像源，部分包的二进制镜像源后续讨论）、全局以及缓存路径配置，全局路径加入到了环境变量</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"> $</span><span class="bash"> node -v</span></span><br><span class="line"> v12.18.1</span><br><span class="line"><span class="meta"> $</span><span class="bash"> npm -v</span></span><br><span class="line"> 6.14.5</span><br><span class="line"><span class="meta"> $</span><span class="bash"> yarn -v</span></span><br><span class="line"> 1.22.4</span><br><span class="line"> </span><br><span class="line"><span class="meta"> $</span><span class="bash"> npm list -g --depth 0</span></span><br><span class="line"> +-- hexo@4.2.1 // 忽略Hexo，本人写博用的</span><br><span class="line">`-- yarn@1.22.4</span><br></pre></td></tr></table></figure>
 <h2 id="vue脚手架安装"><a href="#vue脚手架安装" class="headerlink" title="vue脚手架安装"></a>vue脚手架安装</h2><p>为了更加便捷的创建一个vue项目，我们安装脚手架@vue/cli和@vue/init（vue-cli已经deprecated了）。之所以要安装@vue/init，是因为@vue/cli是3的版本，创建项目使用命令<strong>vue create app-name</strong>，且无法暂时无法使用模板，但是下文要用electron-vue模板进行创建，还是需要vue2的init命令来通过指定模板创建项目，为了兼容vue2的init特性，官方提供@vue/init作为桥接方式。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm install -g @vue/cli</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> npm install -g @vue/cli-init</span></span><br><span class="line"></span><br><span class="line"><span class="meta">$</span><span class="bash"> npm list -g --depth 0</span></span><br><span class="line">+-- @vue/cli@4.4.6</span><br><span class="line">+-- @vue/cli-init@4.4.6</span><br><span class="line">+-- hexo@4.2.1</span><br><span class="line">`-- yarn@1.22.4</span><br><span class="line"></span><br><span class="line">关于init说明：</span><br><span class="line">vue init [options] &lt;template&gt; &lt;app-name&gt;       generate a project from a remote template (legacy API, requires @vue/cli-init)</span><br></pre></td></tr></table></figure>

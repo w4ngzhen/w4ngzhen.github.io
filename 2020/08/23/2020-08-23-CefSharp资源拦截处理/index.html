@@ -20,12 +20,12 @@
     var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="CefSharp请求资源拦截及自定义处理前言在CefSharp中，我们不仅可以使用Chromium浏览器内核，还可以通过Cef暴露出来的各种Handler来实现我们自己的资源请求处理。 什么是资源请求呢？简单来说，就是前端页面在加载的过程中，请求的各种文本（js、css以及html）。在以Chromium内核的浏览器上，我们可以使用浏览器为我们提供的开发者工具来检查每一次页面加载发生的请求。 准备">
+  <meta name="description" content="CefSharp请求资源拦截及自定义处理前言在CefSharp中，我们不仅可以使用Chromium浏览器内核，还可以通过Cef暴露出来的各种Handler来实现我们自己的资源请求处理。 什么是资源请求呢？简单来说，就是前端页面在加载的过程中，请求的各种文本（js、css以及html）。在以Chromium内核的浏览器上，我们可以使用浏览器为我们提供的开发者工具来检查每一次页面加载发生的请求。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CefSharp请求资源拦截及自定义处理">
 <meta property="og:url" content="http://compilemind.com/2020/08/23/2020-08-23-CefSharp%E8%B5%84%E6%BA%90%E6%8B%A6%E6%88%AA%E5%A4%84%E7%90%86/index.html">
 <meta property="og:site_name" content="CompileMind">
-<meta property="og:description" content="CefSharp请求资源拦截及自定义处理前言在CefSharp中，我们不仅可以使用Chromium浏览器内核，还可以通过Cef暴露出来的各种Handler来实现我们自己的资源请求处理。 什么是资源请求呢？简单来说，就是前端页面在加载的过程中，请求的各种文本（js、css以及html）。在以Chromium内核的浏览器上，我们可以使用浏览器为我们提供的开发者工具来检查每一次页面加载发生的请求。 准备">
+<meta property="og:description" content="CefSharp请求资源拦截及自定义处理前言在CefSharp中，我们不仅可以使用Chromium浏览器内核，还可以通过Cef暴露出来的各种Handler来实现我们自己的资源请求处理。 什么是资源请求呢？简单来说，就是前端页面在加载的过程中，请求的各种文本（js、css以及html）。在以Chromium内核的浏览器上，我们可以使用浏览器为我们提供的开发者工具来检查每一次页面加载发生的请求。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-08-23-cefsharp-resource-intercept/webbrowser.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-08-23-cefsharp-resource-intercept/src-web-page.png">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-08-23-cefsharp-resource-intercept/css-select.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-08-23-cefsharp-resource-intercept/load-with-intercept.png">
 <meta property="article:published_time" content="2020-08-22T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-10-13T07:20:30.203Z">
+<meta property="article:modified_time" content="2021-01-25T02:31:18.253Z">
 <meta property="article:author" content="w4ngzhen">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-08-23-cefsharp-resource-intercept/webbrowser.png">
@@ -201,7 +201,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+                <time title="Modified: 2021-01-25 10:31:18" itemprop="dateModified" datetime="2021-01-25T10:31:18+08:00">2021-01-25</time>
               </span>
 
           
@@ -217,6 +217,7 @@
       
         <h1 id="CefSharp请求资源拦截及自定义处理"><a href="#CefSharp请求资源拦截及自定义处理" class="headerlink" title="CefSharp请求资源拦截及自定义处理"></a>CefSharp请求资源拦截及自定义处理</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在CefSharp中，我们不仅可以使用Chromium浏览器内核，还可以通过Cef暴露出来的各种Handler来实现我们自己的资源请求处理。</p>
 <p>什么是资源请求呢？简单来说，就是前端页面在加载的过程中，请求的各种文本（js、css以及html）。在以Chromium内核的浏览器上，我们可以使用浏览器为我们提供的开发者工具来检查每一次页面加载发生的请求。</p>
+<a id="more"></a>
 <h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>鉴于本文的重心是了解CefSharp的资源拦截处理，所以我们不讨论前端的开发以及客户端嵌入CefSharp组件的细节。我们首先完成一个基本的嵌入CefSharp的WinForm程序：该程序界面如下，拥有一个地址输入栏和一个显示网页的Panel：</p>
 <p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2020-08-23-cefsharp-resource-intercept/webbrowser.png" alt=""></p>
 <p>并且编写一个<strong>极其简单</strong>的页面，该页面会请求1个js资源和1个css资源：</p>

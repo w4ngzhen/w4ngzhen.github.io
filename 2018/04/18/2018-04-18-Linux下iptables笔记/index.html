@@ -37,7 +37,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/finalConfig.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/enableAndStart.png">
 <meta property="article:published_time" content="2018-04-17T16:00:00.000Z">
-<meta property="article:modified_time" content="2020-10-13T07:20:30.194Z">
+<meta property="article:modified_time" content="2021-01-25T02:36:04.366Z">
 <meta property="article:author" content="w4ngzhen">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="iftables">
@@ -202,7 +202,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2020-10-13 15:20:30" itemprop="dateModified" datetime="2020-10-13T15:20:30+08:00">2020-10-13</time>
+                <time title="Modified: 2021-01-25 10:36:04" itemprop="dateModified" datetime="2021-01-25T10:36:04+08:00">2021-01-25</time>
               </span>
 
           
@@ -217,6 +217,7 @@
 
       
         <p>在Centos7版本之后，防火墙应用已经由从前的iptables转变为firewall这款应用了。但是，当今绝大多数的Linux版本（特别是企业中）还是使用的6.x以下的Centos版本，所以对iptables的了解还是很有必要的。此外，需要说明的是iptables自身并不具备防火墙的功能，它需要通过内核netfilter（网络过滤器）来实现，与firewalld一样，他们的作用都是用于维护规则，而真正使用规则干活的是内核的netfilter，只不过firewalld和iptables的结构以及使用方法不一样，他们都只是一个外壳应用罢了。打个比方，就好像有一本书，同样的内容，一种是纸质的，另一种是电子的，我们翻阅它的方式不同，给它做笔记的方式不同，但是内容（内核）一样。</p>
+<a id="more"></a>
 <h3 id="iptables"><a href="#iptables" class="headerlink" title="iptables"></a>iptables</h3><p><strong>iptables概念</strong></p>
 <p>iptables中的规则（rule）。在我看来，规则是iptables中进行数据包检查的基本单元。每一条规则都定义了对于数据包的条件验证，譬如网络地址的验证、端口验证、协议验证等。</p>
 <p>iptables中的链（chain）。链是数据包传播的路径，每一条链其实就是众多规则中的一个检查清单，每一条链中可以有一条或数条规则。就像这里，我们有一个INPUT链（INPUT概念之后再作解释），数据包来到这条链时，就会根据该链中的规则进行检查，譬如源、目的地址是否符合规则；源、目的端口是否符合规则等等。当一个数据包到达一个<strong>链</strong>时，iptables就会从INPUT链中规则1开始检查，看该数据包是否满足规则所定义的条件——如果满足，系统就会根据该条规则所定义的方法处理该数据包；否则iptables将继续检查下一条规则2，如果该数据包不符合链中任一条规则，iptables就会根据该链预先定义的默认策略来处理数据包。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2018-04-18-iptables/inputchain.png" alt="inputchain"></p>
