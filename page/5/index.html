@@ -155,6 +155,83 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/11/2018-03-11-Spring%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E6%AD%A7%E4%B9%89%E6%80%A7%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/03/11/2018-03-11-Spring%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D%E6%AD%A7%E4%B9%89%E6%80%A7%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Spring自动装配歧义性笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-03-11 00:00:00" itemprop="dateCreated datePublished" datetime="2018-03-11T00:00:00+08:00">2018-03-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-25 10:36:56" itemprop="dateModified" datetime="2021-01-25T10:36:56+08:00">2021-01-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <a id="more"></a>
+<p><a href="/2018/03/10/Spring-Bean装配笔记/">前情提要</a>，如果系统中存在两个都实现了同一接口的类，Spring在进行@Autowired自动装配的时候，会选择哪一个？如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 一下两个类均被标记为bean</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;CD is playing...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Video</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">play</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Video is playing...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//配置类仅打开自动扫描</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@ComponentScan(basePackages = &quot;zhen&quot;</span></span><br><span class="line"><span class="meta">public class MyConfig &#123;</span></span><br><span class="line"><span class="meta">&#125;</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">//测试类</span></span><br><span class="line"><span class="meta">@RunWith(SpringJUnit4ClassRunner.class)</span></span><br><span class="line"><span class="meta">@ContextConfiguration(classes = MyConfig.class)</span></span><br><span class="line"><span class="meta">public class MyConfigTest &#123;</span></span><br><span class="line"><span class="meta">    @Autowired</span></span><br><span class="line"><span class="meta">    Playable playable;</span></span><br><span class="line"><span class="meta">    @Test</span></span><br><span class="line"><span class="meta">    public void checkNULL() &#123;</span></span><br><span class="line"><span class="meta">        Assert.assertNotNull(playable);</span></span><br><span class="line"><span class="meta">    &#125;</span></span><br><span class="line"><span class="meta">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>此时再次运行测试类会发现，FAILD并且报错：</p>
+<p>Unsatisfied dependency expressed through field ‘playable’; nested exception is org.springframework.beans.factory.NoUniqueBeanDefinitionException: No qualifying bean of type ‘zhen.Playable’ available: <strong>expected single matching bean but found 2: CD,video</strong> //  找到了两个都bean都能匹配</p>
+<p><strong>自动装配歧义性问题</strong></p>
+<p>上面的异常就是出现了歧义性。Spring为我们扫描了我们代码中的bean（这个部分是没有问题的），但是，在自动装配的过程中却由于歧义性而报错，并且，造成这样的歧义性还有由于Autowired这个注解仅仅按照类型进行装配——上面的CD与Video都实现了Playable接口，Autowired注解仅告诉Spring在测试类中的playable接受一个Playable类型的对象但是这里有两个bean：CD、video都是Playable类型的，所以Spring不知道。</p>
+<p>为了解决这个问题，我们需要通过一定的手段来限定：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">声明首选的bean</span><br><span class="line">限定自动转配的bean</span><br></pre></td></tr></table></figure><br><strong>声明首选的bean</strong></p>
+<p>根据名字我们很容易理解，就是声明在有歧义性情况下，Spring到底选择哪一个bean来装配。方式就是在bean组件下添加@Primary注解,例如在原先的CD的@Component下加上首选注解，再次运行测试代码，PASS。但是，这种方式通常只在同类型bean较少的或者是系统简单的情况使用，而且还存在一个情况：假如目前有两位开发人员，在各自的环境编写bean，他们都希望自己的bean是Primary的，都加该注解，实际上还是会报错，因为系统现在同样有两个Primary bean，Spring还是不能判断选择哪一个bean注入。</p>
+<p><strong>限定自动装配的bean——@Qualifier注解</strong></p>
+<p>首先，我们可以通过在@Component中加入字符串来更明确的指定bean id而不是使用Spring的默认bean id策略。就像如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component(&quot;myCD&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Component(&quot;myVideo&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Video</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当这样指定以后，我们在自动转配的地方，使用@Qualifier(“指定id”)来限定我们要注入的确定的bean：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="meta">@Qualifier(&quot;myCD&quot;)</span></span><br><span class="line">  Playable playable;</span><br><span class="line">...</span><br></pre></td></tr></table></figure><br>再次运行不会报错。</p>
+<p>关于@Qualifier，最佳的情形应该是来标记bean特性。但是，如果多个bean都有相同的特性，都是用了相同的标记的@Qualifier注解，那么同样又会出现歧义性问题。所以我们又要添加新的@Qualifier注解来进一步限定，这样做没有问题，但是Java语法规定，不允许在同一条目上重复出现相同类型的多个注解。你<strong>不能</strong>这么做：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 编译器会报错</span></span><br><span class="line"><span class="meta">@Qualifier(&quot;myCD&quot;)</span></span><br><span class="line"><span class="meta">@Qaulifier(&quot;JayChou&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>为了结局这样的问题，我们可以创建自己的注解：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD&#125;)</span> <span class="comment">//字段注解  </span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span> <span class="comment">//在运行期保留注解信息</span></span><br><span class="line"><span class="meta">@Qualifier</span> <span class="comment">// 需要使用@Qualifier注解来限定</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> MyCD &#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">@Target(&#123;ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.TYPE, ElementType.METHOD&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Qualifier</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> JayChou &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>如此定义了注解以后，我们就可以在原先的@Component下如下定义：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@MyCD</span></span><br><span class="line"><span class="meta">@JayChou</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CD</span> <span class="keyword">implements</span> <span class="title">Playable</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>并且在测试类下如下声明：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="meta">@MyCD</span></span><br><span class="line"><span class="meta">@JayChou</span></span><br><span class="line">Playable playable;</span><br></pre></td></tr></table></figure><br>测试通过！</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://compilemind.com/2018/03/10/2018-03-10-Spring%20Bean%E8%A3%85%E9%85%8D%E7%AC%94%E8%AE%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -814,158 +891,10 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/02/21/2017-02-21-Java%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E3%80%90%E8%BD%AC%E3%80%91/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpg">
-      <meta itemprop="name" content="w4ngzhen">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="CompileMind">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2017/02/21/2017-02-21-Java%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF%E3%80%90%E8%BD%AC%E3%80%91/" class="post-title-link" itemprop="url">Java学习路线【转】</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2017-02-21 00:00:00" itemprop="dateCreated datePublished" datetime="2017-02-21T00:00:00+08:00">2017-02-21</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-01-25 10:38:24" itemprop="dateModified" datetime="2021-01-25T10:38:24+08:00">2021-01-25</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <a id="more"></a>
-<ol>
-<li><strong>第一阶段：JavaSE（Java基础部分）</strong></li>
-</ol>
-<ul>
-<li>Java开发前奏<br>计算机基本原理，Java语言发展简史以及开发环境的搭建，体验Java程序的开发，环境变量的设置，程序的执行过程，相关反编译工具介绍，java开发工具Eclipse的安装和使用，javadoc的说明。</li>
-<li>Java基础语法<br>Java语法格式，常量和变量，变量的作用域，方法和方法的重载，运算符，程序流程控制，数组和操作数组的类，对数组循环遍历以及针对数组的常用查找、排序算法原理，最后使用Java程序进行功能实现。</li>
-<li>面向对象编程<br>理解对象的本质，以及面向对象，类与对象之间的关系，如何用面向对象的思想分析和解决显示生活中的问题，并java程序的手段编写出来。如何设计类，设计类的基本原则，类的实例化过程，类元素：构造函数、this关键字、方法和方法的参数传递过程、static关键字、内部类，Java的垃圾对象回收机制。对象的三大特性：封装、继承和多态。子类对象的实例化过程、方法的重写和重载、final关键字、抽象类、接口、继承的优点和缺点。 对象的多态性：子类和父类之间的转换、父类纸箱子类的引用、抽象类和接口在多态中的应用、多态优点。常用设计模式如单利、模版等模式。什么是异常 异常的捕捉和抛出 异常捕捉的原则 finally的使用，package的应用import关键字。</li>
-<li>多线程应用<br>多线程的概念，如何在程序中创建多线程(Thread、Runnable)，线程安全问题，线程的同步，线程之间的通讯、死锁问题的剖析。</li>
-<li>JavaAPI详解<br>JavaAPI介绍、String和StringBuffer、各种基本数据类型包装类，System和Runtime类，Date和DateFomat类等。常用的集合类使用如下：Java Collections Framework：Collection、Set、List、ArrayList、Vector、LinkedList、Hashset、TreeSet、Map、HashMap、TreeMap、Iterator、Enumeration等常用集合类API。</li>
-<li>IO技术<br>什么是IO，File及相关类，字节流InputStream和OutputStream，字符流Reader和Writer，以及相应缓冲流和管道流，字节和字符的转化流，包装流，以及常用包装类使用，分析java的IO性能。</li>
-<li>网络编程<br>Java网络编程，网络通信底层协议TCP/UDP/IP，Socket编程。网络通信常用应用层协议简介：HTTP、FTP等，以及WEB服务器的工作原理。</li>
-<li>Java高级特性<br>递归程序，Java的高级特性：反射、代理和泛型、枚举、Java正则表达式API详解及其应用。</li>
-</ul>
-<ol>
-<li><strong>第二阶段：数据库技术</strong></li>
-</ol>
-<ul>
-<li>ORACLE基础管理<br>Oracle背景简介，数据库的安装，数据库的用户名和密码，客户端登录数据库服务SQLPLUS，数据库基本概。</li>
-<li>SQL语句<br>数据库的创建，表的创建，修改，删除，查询，索引的创建，主从表的建立，数据控制授权和回收，事务控制，查询语句以及运算符的详解，sql中的函数使用。</li>
-<li>多表连接和字查询<br>等值和非等值连接，外连接，自连接；交叉连接，自然连接，using子句连接，完全外连接和左右外连接，子查询使用以及注意事项。</li>
-<li>触发器、存储过程<br>触发器和存储过程使用场合， 通过实例进行详解。</li>
-<li>数据库设计优化<br>WHERE子句中的连接顺序，选择最有效率的表名顺序，SELECT子句中避免使用 ‘ * ’计算记录条数等等。</li>
-<li>数据备份与移植<br>移植技巧，备份方案；导入导出等。</li>
-</ul>
-<ol>
-<li><strong>第三阶段：JDBC技术</strong></li>
-</ol>
-<ul>
-<li>JDBC基础<br>JDBC Connection、Statement、PreparedStatement、CallableStatement、ResultSet等不同类的使用。</li>
-<li>连接池技术<br>了解连接池的概念，掌握连接池的建立、治理、关闭和配置。</li>
-<li>ORM与DAO封装<br>对象关系映射思想，JDBC的DAO封装，实现自己的JDBC。</li>
-</ul>
-<ol>
-<li><strong>第四阶段：WEB基础技术</strong></li>
-</ol>
-<ul>
-<li>XML技术<br>使用jdom和dom4j来对xml文档的解析和生成操作，xml的作用和使用场合。</li>
-<li>HTML/CSS<br>Java掌握基本的html标签的格式和使用，css层叠样式表对div的定义，实现对网站布局的基本实现。</li>
-<li>JavaScript<br>了解javascript的基本语法以及相关函数的使用，并结合html页面实现流程控制和页面效果展示。什么是异常 异常的捕捉和抛出 异常捕捉的原则 finally的使用，package的应用import关键字。</li>
-<li>JSP/Servlet<br>Servlet和JSP技术、上传下载、Tomcat服务器技术、servlet过滤器和监听器。</li>
-<li>JSTL与EL<br>JSTL核心标签库、函数标签库、格式化标签库、自定义标签技术、EL表达式在jsp页面的使用。</li>
-<li>AJAX及框架技术<br>AJAX框架Jquery渲染页面效果和相关的强大的第三方类库，dwr如何和后台服务进行数据传输，以及页面逻辑控制等。</li>
-<li>JSON高级应用<br>Java使用JSON支持的方式对字符串进行封装和解析，实现页面和Java后台服务的数据通信。</li>
-<li>Fckeditor编辑器<br>FCKEditor在线编辑器技术、配置、处理图片和文件上传。</li>
-<li>JavaMail技术<br>了解域名解析与MX记录、电子邮件工作原理、邮件传输协议：SMTP、POP3、IMAP、邮件组织结构：RFC822邮件格式、MIME协议、邮件编码、复合邮件结构分析、JavaMail API及其体系结构、编程创建邮件内容：简单邮件内容、包含内嵌图片的复杂邮件、包含内嵌图片和附件的复杂邮件。</li>
-<li>JfreeChart报表<br>统计报表；图表处理。</li>
-<li>BBS项目实战<br>采用Jquery+dwr+jsp+servlet+Fckeditor+JfreeChart+tomcat+jdbc(oracle)完成BBS项目的实战。学完此实战你至少已经是拥有近1年开发经验的程序员了，但是你不应该满足现状，继续下去！</li>
-</ul>
-<ol>
-<li><strong>第五阶段：WEB主流框架技术（项目实战）</strong></li>
-</ol>
-<ul>
-<li>Struts2.x<br>struts2框架的工作原理和架构分析，struts-default.xml与default.properties文件的作用，struts。Xml中引入多个配置文件。OGNL表达式、Struts2 UI和非UI标签、输入校验、使用通配符定义action、动态方法调用、多文件上传、自定义类型转换器、为Action的属性注入值、自定义拦截器、异常处理、使用struts2实现的CRUD操作的案例。</li>
-<li>Hibernate<br>Hibernate应用开发基础； ORM基础理论； 关系映射技术； 性能调优技术； 性能优化 一级缓存 二级缓存 查询缓存 事务与并发 悲观锁、乐观锁。</li>
-<li>Spring4.x<br>Spring IoC技术；Spring AOP技术；Spring声明事务管理；Spring常用功能说明，spring4.x的新特性，Spring整合Struts2和Hibernate3的运用。</li>
-<li>Log4j与Junit<br>Logging API；JUnit单元测试技术； 压力测试技术：badboy进行测试计划跟踪获取以及JMeter压力测试。</li>
-<li>在线支付技术<br>完成支付宝的支付接口的在线支付功能。</li>
-<li>电子商务网站实战<br>采用Spring4.x + Hibernate3 + Struts2 + Jquery + dwr + FckEditor + Tomcat完成电子商务网站实战开发。</li>
-</ul>
-<ol>
-<li><strong>第六阶段：WEB高级进阶（项目实战）</strong></li>
-</ol>
-<ul>
-<li>OpenJPA技术<br>JPA介绍及开发环境搭建、单表实体映射、一对多/多对一、一对一、多对多关联、实体继承、复合主键、JPQL语句、EntityManager API、事务管理，了解一下jpa2.0的新特性以及应用。</li>
-<li>Lucene搜索引擎<br>了解全文搜索原理、全文搜索引擎、什么是OSEM、OSEM框架Compass、基于使用Lucene使用Compass实现全文增量型索引创建和搜索、探索Lucene 3.0以及API。</li>
-<li>电子商务重构<br>此项目采用了Lucene+compass+openJpa+上一版电子商务网站的技术进行重构。</li>
-<li>Excel/PDF文档处理技术<br>Java对Excel和pdf文档分别利用poi和itext来进行解析和生成。此技术在企业级系统的报表中经常使用。</li>
-<li>OA工作流技术JBPM<br>工作流是什么、JBPM介绍、JBPM的主要用法、各类节点的用法、任务各种分派方式、JBPM的整体架构原理、工作流定义模型分析、运行期工作流实例模型分析、数据库表模型分析、流程定义管理、流程实例监控、对JBPM的相关接口进行封装，构建自己的工作流应用平台等。</li>
-<li>WebService技术<br>WebService技术原理、WebService技术的应用、Soap服务的创建与管理、WSDL描述文档规范、UDDI注册中心运行原理;使用Axis和Xfire创建WEB服务、Webservice客户端的编写、使用TCPMonitor监听SOAP协议、异构平台的整合。</li>
-<li>Linux操作系统<br>Linux系统安装，卸载、linux使用的核心思想、Linux下的用户管理，文件管理,系统管理、程序的安装，使用，卸载。Linux下作为server的基本应用：web服务器，j2ee服务器，ftp服务器的安装和项目的部署。</li>
-<li>CRM项目实战<br>此项目能了解和熟悉客户关系管理的基本流程以及功能的实现，采用上面几个阶段学到的主流框架实现，同时加入了JBPM的技术。！</li>
-</ul>
-<ol>
-<li><strong>第七阶段：大型高并发网站优化解决（项目实战）</strong></li>
-</ol>
-<ul>
-<li>如何构建一个高性能网站详解<br>什么样的网站需要高性能，高性能的指标体系，构建高性能网站需要做哪些工作，注意哪些细节。</li>
-<li>SSI技术<br>什么是SSI，使用他有什么好处，什么样的系统才使用SSI，SSI技术详解和使用，应用到项目中。</li>
-<li>静态页面生成技术<br>什么是静态页，为什么需要静态页以及带来的好处，生成静态页的模版技术Velocity和Freemark，生成静态页的访问规则等。</li>
-<li>缓存技术<br>为什么使用缓存技术，oscache缓存技术的介绍和使用，memcached缓存技术的介绍和使用、两者缓存技术的比较和如何去使用。</li>
-<li>经典WEb服务器<br>什么是web服务器，什么是JavaWeb服务器，他们存在什么关系，当前技术主流中常用的Web服务器有哪些，WEB服务器Apache和Nginx的应用。</li>
-<li>Nginx架构实战<br>什么是反向代理，负载均衡以及集群，在Nginx中如何实现这些高性能的系统架构。</li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="Previous page"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
   </nav>
 
 
@@ -1033,14 +962,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">50</span>
+          <span class="site-state-item-count">51</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-count">47</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
