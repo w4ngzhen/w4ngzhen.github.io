@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="前言使用Electron进行打包通常会用到electron-builder或者electron-packager两种工具。在使用electron-builder的时候，由于对机制的不熟悉，我们在打包过程中常常遇到很多环境错误，但最终只是一些简单的错误信息，难以排查问题。本文将介绍electron-builder进行DEBUG输出的正确方式来帮助排查打包过程中的各种问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="electron-builder进行DEBUG输出的正确方式">
+<meta property="og:url" content="http://compilemind.com/2021/04/18/2021-04-18-electron-builder%E8%BF%9B%E8%A1%8CDEBUG%E8%BE%93%E5%87%BA%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="前言使用Electron进行打包通常会用到electron-builder或者electron-packager两种工具。在使用electron-builder的时候，由于对机制的不熟悉，我们在打包过程中常常遇到很多环境错误，但最终只是一些简单的错误信息，难以排查问题。本文将介绍electron-builder进行DEBUG输出的正确方式来帮助排查打包过程中的各种问题。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/test-show-version1.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/test-show-version2.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/show-local-and-inner-version.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/images-install-and-run-install-app-deps.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/install-app-deps-with-DEBUG.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/electron-cannot-recognise-verbose.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/after-use-two-scripts-output.png">
+<meta property="article:published_time" content="2021-04-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-05-17T06:41:27.014Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="electron">
+<meta property="article:tag" content="electron-builder">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/test-show-version1.png">
+
+<link rel="canonical" href="http://compilemind.com/2021/04/18/2021-04-18-electron-builder%E8%BF%9B%E8%A1%8CDEBUG%E8%BE%93%E5%87%BA%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>electron-builder进行DEBUG输出的正确方式 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/04/18/2021-04-18-electron-builder%E8%BF%9B%E8%A1%8CDEBUG%E8%BE%93%E5%87%BA%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          electron-builder进行DEBUG输出的正确方式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-04-18 00:00:00" itemprop="dateCreated datePublished" datetime="2021-04-18T00:00:00+08:00">2021-04-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-05-17 14:41:27" itemprop="dateModified" datetime="2021-05-17T14:41:27+08:00">2021-05-17</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>使用Electron进行打包通常会用到electron-builder或者electron-packager两种工具。在使用electron-builder的时候，由于对机制的不熟悉，我们在打包过程中常常遇到很多环境错误，但最终只是一些简单的错误信息，难以排查问题。本文将介绍electron-builder进行DEBUG输出的正确方式来帮助排查打包过程中的各种问题。</p>
+<a id="more"></a>
+<h1 id="本地node与electron内部的node"><a href="#本地node与electron内部的node" class="headerlink" title="本地node与electron内部的node"></a>本地node与electron内部的node</h1><p>在对Electron进行打包的时候，需要对当前Electron项目中使用到的node原生C/C++模块进行额外的平台编译，这个过程被称为<code>rebuild</code>。有这样的一个步骤，是因为electron在运行主进程脚本的时候，是跑在了electron内部的一个nodejs环境的，electron内部的nodejs与开发机器上的nodejs并不一定是相同的。为了验证这一论点，我们进行如下的一个测试，来分别打印本地机器安装的node的版本和electon内部的node版本：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/test-show-version1.png" alt=""></p>
+<p>接下来是electron主进程脚本的node版本显示（main.js）：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/test-show-version2.png" alt=""></p>
+<p>接下来是分别运行<code>npm run show-local-node-version</code>和<code>npm run start</code>：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/show-local-and-inner-version.png" alt=""></p>
+<p>可以看到输出确实和我们的理解是一致的，版本为11.2.0的electron内部的node版本呢是12，而我们本地机器上的node是14。这也侧面说明了为什么一般的electron应用程序会很大，因为一份electron应用程序，就有一个node的运行时。</p>
+<h1 id="electron-builder调试输出正确方式"><a href="#electron-builder调试输出正确方式" class="headerlink" title="electron-builder调试输出正确方式"></a>electron-builder调试输出正确方式</h1><p>electron-builder进行打包的时候，会建议你在此之前使用<code>electron-builder install-app-deps</code>的命令。该命令的作用就是针对即将打包的electron程序对应的node版本进行原生模块的编译工作，以达到模块运行时匹配。实际上，<code>install-app-deps</code>内部依然使用了<code>node-gyp</code>相关知识，关于这一块的知识，读者可以翻阅我之前的文章《node-pre-gyp以及node-gyp的源码简单解析（以安装sqlite3为例）》来了解，这里不再赘述。本文着重介绍electron-builder如何进行debug打印，好知道打包的过程中发生了什么。</p>
+<ol>
+<li>首先我们准备在项目中，安装一个需要根据平台原生编译的npm包：<code>images</code>。</li>
+<li>然后在package.json中的scripts中添加一段脚本：<code>&quot;installappdeps&quot;: &quot;electron-builder install-app-deps&quot;</code></li>
+<li>最后调用命令<code>npm rum installappdeps</code>执行该脚本</li>
+</ol>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/images-install-and-run-install-app-deps.png" alt=""></p>
+<h2 id="DEBUG环境变量"><a href="#DEBUG环境变量" class="headerlink" title="DEBUG环境变量"></a>DEBUG环境变量</h2><p>在<a target="_blank" rel="noopener" href="https://www.electron.build/#debug">官方文档</a>中指出了，你可以设置环境变量的方式来方便输出：</p>
+<p>Set the <code>DEBUG</code> environment variable to debug what electron-builder is doing:</p>
+<p>设置<code>DEBUG</code>环境变量值为字符串<code>electron-builder</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEBUG=electron-builder</span><br></pre></td></tr></table></figure>
+<p><code>FPM_DEBUG</code> 环境变量，将会显示更多关于构建Linux平台程序的细节（除了snap和appimage）。</p>
+<ul>
+<li><strong>cmd（Windows CMD）</strong></li>
+</ul>
+<p>On <a target="_blank" rel="noopener" href="https://github.com/visionmedia/debug#windows-command-prompt-notes">Windows</a> the environment variable is set using the set command：</p>
+<p>在Windows CMD设置环境变量可以使用如下命令：</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">set</span> DEBUG=electron-builder</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>PowerShell</strong></li>
+</ul>
+<p>PowerShell uses different syntax to set environment variables：</p>
+<p>PowerShell使用不同的语法来设置环境变量：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:DEBUG</span>=electron<span class="literal">-builder</span></span><br></pre></td></tr></table></figure>
+<p>在我们的机器上，我们同样设置该环境变量，然后执行：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/install-app-deps-with-DEBUG.png" alt=""></p>
+<p>发现输出了大量的关于electron-builder的DEBUG打印，为我们了解<code>electron-builder install-app-deps</code>提供了更多的信息。</p>
+<h2 id="verbose参数"><a href="#verbose参数" class="headerlink" title="verbose参数"></a>verbose参数</h2><p>然而，有的时候光是设置上述<code>DEBUG</code>环境变量还不够，因为electron-builder内部在进行rebuild操作的时候，还会以子进程方式调用<code>node-gyp</code>等工具，这些工具可不会查看上面的环境变量来输出调试信息的。我们需要在electron-builder调用node-gyp的时候，还能够打印这些工具的调试信息。熟悉node的读者可能会说，那我使用<code>electron-builder</code>的时候，传入<code>--verbose</code>怎么样？就像如下的方式：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;installappdeps&quot;: &quot;electron-builder install-app-deps --verbose&quot;</span><br></pre></td></tr></table></figure>
+<p>不幸的是，虽然<code>--verbose</code>能被node-gyp识别，无法被electron-builder识别，。当你直接这么调用的时候，会出错：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/electron-cannot-recognise-verbose.png" alt=""></p>
+<p>那么要如何解决这个问题呢？正确的做法是编写两个<code>scripts</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> &quot;scripts&quot;: &#123;</span><br><span class="line">......</span><br><span class="line">   &quot;installappdeps&quot;: &quot;electron-builder install-app-deps&quot;,</span><br><span class="line">   &quot;installappdeps-with-verbose&quot;: &quot;npm run installappdeps --verbose&quot;</span><br><span class="line"> &#125;,</span><br></pre></td></tr></table></figure>
+<p>然后在想要进行verbose打印的时候，执行<code>npm rum installappdeps-with-verbose</code>：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-04-18-electron-builder/after-use-two-scripts-output.png" alt=""></p>
+<p>可以看到，在install-app-deps的DEBUG打印前，我们还看到node给出的一些额外信息。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/electron/" rel="tag"># electron</a>
+              <a href="/tags/electron-builder/" rel="tag"># electron-builder</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/31/2021-03-31-%E4%BD%BF%E7%94%A8CEF%EF%BC%883%EF%BC%89%E2%80%94%20%E4%BB%8ECEF%E5%AE%98%E6%96%B9Demo%E6%BA%90%E7%A0%81%E5%85%A5%E6%89%8B%E8%A7%A3%E6%9E%90CEF%E6%9E%B6%E6%9E%84%E4%B8%8ECefApp%E3%80%81CefClient%E5%AF%B9%E8%B1%A1/" rel="prev" title="使用CEF（3）— 从CEF官方Demo源码入手解析CEF架构与CefApp、CefClient对象">
+      <i class="fa fa-chevron-left"></i> 使用CEF（3）— 从CEF官方Demo源码入手解析CEF架构与CefApp、CefClient对象
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/05/12/2021-05-12-%E4%BB%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90node-gyp%E6%8C%87%E5%AE%9Anode%E5%BA%93%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/" rel="next" title="从源码分析node-gyp指定node库文件下载地址">
+      从源码分析node-gyp指定node库文件下载地址 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0node%E4%B8%8Eelectron%E5%86%85%E9%83%A8%E7%9A%84node"><span class="nav-number">2.</span> <span class="nav-text">本地node与electron内部的node</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#electron-builder%E8%B0%83%E8%AF%95%E8%BE%93%E5%87%BA%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F"><span class="nav-number">3.</span> <span class="nav-text">electron-builder调试输出正确方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DEBUG%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="nav-number">3.1.</span> <span class="nav-text">DEBUG环境变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#verbose%E5%8F%82%E6%95%B0"><span class="nav-number">3.2.</span> <span class="nav-text">verbose参数</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

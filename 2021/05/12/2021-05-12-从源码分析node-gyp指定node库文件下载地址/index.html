@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="当我们安装node的C&#x2F;C++原生模块时，涉及到使用node-gyp对C&#x2F;C++原生模块的编译工作（configure、build）。这个过程，需要nodejs的头文件以及静态库参与（后续称库文件）对C&#x2F;C++项目编译和链接。库文件从哪里下载，会有一定逻辑进行处理，本文将从源码入手进行分析。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从源码分析node-gyp指定node库文件下载地址">
+<meta property="og:url" content="http://compilemind.com/2021/05/12/2021-05-12-%E4%BB%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90node-gyp%E6%8C%87%E5%AE%9Anode%E5%BA%93%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="当我们安装node的C&#x2F;C++原生模块时，涉及到使用node-gyp对C&#x2F;C++原生模块的编译工作（configure、build）。这个过程，需要nodejs的头文件以及静态库参与（后续称库文件）对C&#x2F;C++项目编译和链接。库文件从哪里下载，会有一定逻辑进行处理，本文将从源码入手进行分析。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/node-addon-simple-demo-proj-arch.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/node-headers-cache-dir.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/show-official-dist-url.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/where-is-node-gyp.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/search-create-nodedir.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/create-nodedir-and-download.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/get-the-release.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/distUrl-make-flow.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/overrideDistUrl.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/where-use-processRelease.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/debug-node-gyp-portal.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/the-run-func.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/what-is-gyp.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/Gyp-constructor-and-commands.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/before-handle-opts.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/parseArgv-portal.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/opts-build-1.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/opts-build-2-handle-argv-and-env.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/custom-url-by-set-dist-url.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/just-has-dist_url.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/official-dist-url.jpg">
+<meta property="article:published_time" content="2021-05-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-05-17T06:36:13.944Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="node-gyp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/node-addon-simple-demo-proj-arch.jpg">
+
+<link rel="canonical" href="http://compilemind.com/2021/05/12/2021-05-12-%E4%BB%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90node-gyp%E6%8C%87%E5%AE%9Anode%E5%BA%93%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>从源码分析node-gyp指定node库文件下载地址 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/05/12/2021-05-12-%E4%BB%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90node-gyp%E6%8C%87%E5%AE%9Anode%E5%BA%93%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从源码分析node-gyp指定node库文件下载地址
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-05-12 00:00:00" itemprop="dateCreated datePublished" datetime="2021-05-12T00:00:00+08:00">2021-05-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-05-17 14:36:13" itemprop="dateModified" datetime="2021-05-17T14:36:13+08:00">2021-05-17</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>当我们安装node的C/C++原生模块时，涉及到使用node-gyp对C/C++原生模块的编译工作（configure、build）。这个过程，需要nodejs的<strong>头文件</strong>以及<strong>静态库</strong>参与（后续称库文件）对C/C++项目编译和链接。库文件从哪里下载，会有一定逻辑进行处理，本文将从源码入手进行分析。</p>
+<a id="more"></a>
+<h1 id="编写简单的原生模块"><a href="#编写简单的原生模块" class="headerlink" title="编写简单的原生模块"></a>编写简单的原生模块</h1><p>为了方便进行分析，我们首先创建一个原生模块（关于如何编写原生模块的细节不再本文讨论）。</p>
+<p><strong>hello_world.cc</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;node.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Method</span><span class="params">(<span class="keyword">const</span> v8::FunctionCallbackInfo&lt;v8::Value&gt;&amp; args)</span> </span>&#123;</span><br><span class="line">  v8::Isolate* isolate = args.GetIsolate();</span><br><span class="line">  args.GetReturnValue().Set(v8::String::NewFromUtf8(</span><br><span class="line">      isolate, <span class="string">&quot;world&quot;</span>).ToLocalChecked());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Initialize</span><span class="params">(v8::Local&lt;v8::Object&gt; exports)</span> </span>&#123;</span><br><span class="line">  NODE_SET_METHOD(exports, <span class="string">&quot;hello&quot;</span>, Method);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)</span><br></pre></td></tr></table></figure>
+<p><strong>binding.gyp</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;targets&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;target_name&quot;: &quot;hello_world&quot;,</span><br><span class="line">      &quot;sources&quot;: [ &quot;hello_world.cc&quot; ]</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>index.js</strong></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> binding = <span class="built_in">require</span>(<span class="string">&#x27;./build/Release/hello_world&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(binding.hello());</span><br></pre></td></tr></table></figure>
+<p><strong>package.json</strong></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">...  </span><br><span class="line">  &quot;scripts&quot;: &#123;</span><br><span class="line">    &quot;build&quot;: &quot;node-gyp configure &amp;&amp; node-gyp build&quot;,</span><br><span class="line">    &quot;run:demo&quot;: &quot;node index.js&quot;</span><br><span class="line">  &#125;,</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p><strong>整体结构</strong></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/node-addon-simple-demo-proj-arch.jpg" alt=""></p>
+<p>按照如下命令依次运行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> npm run build</span></span><br><span class="line">// 使用node-gyp配置并构建</span><br><span class="line"><span class="meta">$</span><span class="bash"> npm run run:demo</span></span><br><span class="line">// 运行Demo</span><br></pre></td></tr></table></figure>
+<p>输出如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">D:\Projects\node-addon-demo&gt;npm run run:demo</span><br><span class="line"></span><br><span class="line">&gt; node-addon-demo@1.0.0 run:demo</span><br><span class="line">&gt; node index.js</span><br><span class="line"></span><br><span class="line">world</span><br></pre></td></tr></table></figure>
+<h1 id="从源码分析node-gyp下载库文件的路径"><a href="#从源码分析node-gyp下载库文件的路径" class="headerlink" title="从源码分析node-gyp下载库文件的路径"></a>从源码分析node-gyp下载库文件的路径</h1><p>首先要直接给出一个结论，库文件并不是每次都要从网络上下载，库文件下载后会缓存在本地一个目录，在Windows上为<code>C:\Users\用户\AppData\Local\node-gyp\Cache</code>中，并按照nodejs的版本进行存储：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/node-headers-cache-dir.jpg" alt=""></p>
+<p><em>本人电脑安装的node版本为14.15.0，且曾经已经缓存了对应的库文件。</em></p>
+<p>为了便于分析，我们首先删除该缓存文件，并且在原有的npm命令加上<code>--verbose</code>，输出更加详细的日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm run build --verbose</span><br></pre></td></tr></table></figure>
+<p>于是，我们可以从众多的输出中，看到一个关键信息：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/show-official-dist-url.jpg" alt=""></p>
+<p>从日志中可以看出，node-gyp在构建过程中，会创建缓存目录，然后从指定URL下载指定版本的headers文件。</p>
+<p>我们利用GrepWin（一款Windows下超好用的文本内容搜索工具，<a target="_blank" rel="noopener" href="https://tools.stefankueng.com/grepWin.html">官网</a>），在node-gyp目录中搜索<code>created nodedir</code>这个关键词，因为可以看到<code>gyp http GET</code>上面出现了这个关键词。那么现在有一个新的问题，node-gyp目录在哪儿？其实，从上面的日志往上查看，能够找到：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/where-is-node-gyp.jpg" alt=""></p>
+<p>这里是调用的我们全局安装的npm依赖的node-gyp，于是我们定位到node-gyp所在目录进行搜索：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/search-create-nodedir.jpg" alt=""></p>
+<p>进入该文件，我们找到：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/create-nodedir-and-download.jpg" alt=""></p>
+<p>找到关键词搜索后，继续往后续代码查阅，能够看到一个<code>download</code>函数的调用，入参最后一位是url，此时已经是成型的url，所以接下来我们需要确定，<code>release.tarballUrl</code>这个值，究竟是什么时候确定的。</p>
+<h2 id="tarballUrl如何得到"><a href="#tarballUrl如何得到" class="headerlink" title="tarballUrl如何得到"></a>tarballUrl如何得到</h2><p>继续向上翻阅代码，能够在入口处看到这个release是如何生成的：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/get-the-release.jpg" alt=""></p>
+<p>进入代码后，能够找到一段核心的构建：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/distUrl-make-flow.jpg" alt=""></p>
+<p>通过上述代码流程，我们总结出来，tarballUrl的baseUrl取决于是否存在overrideDistUrl，若存在，则直接使用；否则使用默认URL：<code>https://nodejs.org/dist</code>。</p>
+<p>再查看<code>overrideDistUrl</code>的传入点：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/overrideDistUrl.jpg" alt=""></p>
+<p>也就是说，gyp对象的opts属性存在<code>dist-url</code>或<code>disturl</code>时，就会使用该值作为库文件下载的baseUrl。</p>
+<h2 id="如何构建gyp-opts"><a href="#如何构建gyp-opts" class="headerlink" title="如何构建gyp.opts"></a>如何构建gyp.opts</h2><p>首先检查该函数的调用点：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/where-use-processRelease.jpg" alt=""></p>
+<p>发现configure和install.js都使用了该函数，且都是入口处进行的调用的：</p>
+<p><strong>configure.js</strong></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">configure</span> (<span class="params">gyp, argv, callback</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> python</span><br><span class="line">  <span class="keyword">var</span> buildDir = path.resolve(<span class="string">&#x27;build&#x27;</span>)</span><br><span class="line">  <span class="keyword">var</span> configNames = [<span class="string">&#x27;config.gypi&#x27;</span>, <span class="string">&#x27;common.gypi&#x27;</span>]</span><br><span class="line">  <span class="keyword">var</span> configs = []</span><br><span class="line">  <span class="keyword">var</span> nodeDir</span><br><span class="line">  <span class="keyword">var</span> release = processRelease(argv, gyp, process.version, process.release)</span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">module</span>.exports = configure</span><br></pre></td></tr></table></figure>
+<p><strong>install.js</strong></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">install</span> (<span class="params">fs, gyp, argv, callback</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> release = processRelease(argv, gyp, process.version, process.release)</span><br><span class="line">  ......</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span> (<span class="params">gyp, argv, callback</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> install(fs, gyp, argv, callback)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到confiigure.js和install.js都作为函数形式导出，也就是说，gyp这个对象是在这两个模块在被导入并以函数形式调用时被传入的。那么接下来我们需要看这两个模块在何处使用的。</p>
+<p>在上文我们查看当前执行的node-gyp目录的时候，我们就看到过：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gyp verb cli [</span><br><span class="line">gyp verb cli   &#39;D:\\Programs\\nodejs\\node.exe&#39;,</span><br><span class="line">gyp verb cli   &#39;D:\\Programs\\nodejs\\global_modules\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js&#39;,</span><br><span class="line">gyp verb cli   &#39;configure&#39;</span><br><span class="line">gyp verb cli ]</span><br></pre></td></tr></table></figure>
+<p>入口函数是：<code>node-gyp根目录/bin/node-gyp.js</code>。所以，我们将node-gyp以项目的形式添加到IDEA中，尝试以相同的形式调用这些命令，通过开启DEBUG模式，来一探究竟。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/debug-node-gyp-portal.jpg" alt=""></p>
+<p>在<code>bin/node-gyp.js</code>中的最下方进行了一个名为<code>run</code>的函数调用：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// bin/node-gyp.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ......</span></span><br><span class="line"><span class="comment">// 还有很多省略的代码......</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// start running the given commands!</span></span><br><span class="line">run()</span><br></pre></td></tr></table></figure>
+<p>根据注释可以，<code>run()</code>执行所提供的命令。翻阅该函数：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/the-run-func.jpg" alt=""></p>
+<p>总体分为两步：</p>
+<ol>
+<li>从对象prog的todo这个数组中取出首个command命令对象，不存在判定为所有命令执行完成。</li>
+<li>从对象prog的命令数组（commands）中找到对应命令名称（command.name），通过代码可知，该命令实际上对应一个函数。传入参数（command.args）完成该函数的调用。</li>
+</ol>
+<p>那么这个prog是什么呢？通过向上阅读代码，可以知道来自于上层目录提供的模块：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/what-is-gyp.jpg" alt=""></p>
+<p>而上层所指代的模块是通过package.json的<code>main</code>字段可知是<code>lib/node-gyp.js</code>：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 根目录下的package.json</span></span><br><span class="line">&quot;main&quot;: &quot;./lib/node-gyp.js&quot;,</span><br></pre></td></tr></table></figure>
+<p>进入该文件的gyp函数，返回的是类Gyp的实例，而Gyp实例的构造过程如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/Gyp-constructor-and-commands.jpg" alt=""></p>
+<ol>
+<li>使用self变量指代Gyp实例，并创建devDir和commands字段。</li>
+<li>遍历上方的commands字符串数组，给self（也就是Gyp实例）的commands属性中，逐步添加对应命令名称的函数，函数的实现是：require和command同名的js模块，这些模块又本身是以函数形式导出的，最终是调用对应模块函数。举例说明：当遍历到command为<code>configure</code>的时候，就是如下的形式：</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">self.commands[<span class="string">&#x27;configure&#x27;</span>] = <span class="function"><span class="keyword">function</span> (<span class="params">argv, callback</span>) </span>&#123;</span><br><span class="line">  log.verbose(<span class="string">&#x27;command&#x27;</span>, <span class="string">&#x27;configure&#x27;</span>, argv)</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">require</span>(<span class="string">&#x27;./configure&#x27;</span>)(self, argv, callback)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>那么在进行<code>node-gyp configure</code>时的调用栈就如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">执行node-gyp configure:</span><br><span class="line">=&gt; run()</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">=&gt; gyp.commands[<span class="string">&#x27;configure&#x27;</span>](argv, cb);</span><br><span class="line">=&gt; <span class="built_in">require</span>(<span class="string">&#x27;./configure&#x27;</span>)(self, argv, cb); <span class="comment">// self就是Gyp实例</span></span><br></pre></td></tr></table></figure>
+<p>前文我们已经知道了configure.js这个模块导出的就是一个函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// configure.js</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">configure</span> (<span class="params">gyp, argv, callback</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> python</span><br><span class="line">  <span class="keyword">var</span> buildDir = path.resolve(<span class="string">&#x27;build&#x27;</span>)</span><br><span class="line">  <span class="keyword">var</span> configNames = [<span class="string">&#x27;config.gypi&#x27;</span>, <span class="string">&#x27;common.gypi&#x27;</span>]</span><br><span class="line">  <span class="keyword">var</span> configs = []</span><br><span class="line">  <span class="keyword">var</span> nodeDir</span><br><span class="line">  <span class="comment">// 这个gyp，就是入参gyp，也就是上面的gyp实例</span></span><br><span class="line">  <span class="keyword">var</span> release = processRelease(argv, gyp, process.version, process.release)</span><br><span class="line">  ... ...</span><br><span class="line">&#125;</span><br><span class="line">... ...</span><br><span class="line"><span class="built_in">module</span>.exports = configure</span><br></pre></td></tr></table></figure>
+<p>所以，我们终于知道<code>processRelease</code>的入参的gyp，就是上面的gyp实例。那么gyp实例中的opts属性，是哪儿来的呢？使用IDEA的Debug进行断点调式，调试<code>bin/node-gyp.js</code>：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/before-handle-opts.jpg" alt=""></p>
+<p>可以看到，在执行<code>parseArgv</code>这个函数前，gyp实例里面还不存在opts属性，而执行后，又在使用opts属性的devdir。也就是说，<code>parseArgv</code>这个函数一定构建了opts，接下来我们重点分析这个函数。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/parseArgv-portal.jpg" alt=""></p>
+<p>入口的argv就是我们的运行时入参：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;dev&quot;: &quot;node .&#x2F;bin&#x2F;node-gyp.js configure&quot;</span><br></pre></td></tr></table></figure>
+<p>首先会经过<code>nopt</code>函数，看样子，是对命令行参数以及短命令的处理：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/opts-build-1.jpg" alt=""></p>
+<p>然后是该函数其他的部分：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/opts-build-2-handle-argv-and-env.jpg" alt=""></p>
+<p>主要分为两个部分：</p>
+<ol>
+<li>对argv的解析</li>
+<li>对环境变量的解析</li>
+</ol>
+<p>对argv的解析不涉及设置opts属性，我们重点看对环境变量的解析：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// support for inheriting config env variables from npm</span></span><br><span class="line"><span class="keyword">var</span> npmConfigPrefix = <span class="string">&#x27;npm_config_&#x27;</span></span><br><span class="line"><span class="built_in">Object</span>.keys(process.env).forEach(<span class="function"><span class="keyword">function</span> (<span class="params">name</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (name.indexOf(npmConfigPrefix) !== <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">var</span> val = process.env[name]</span><br><span class="line">  <span class="keyword">if</span> (name === npmConfigPrefix + <span class="string">&#x27;loglevel&#x27;</span>) &#123;</span><br><span class="line">    log.level = val</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// add the user-defined options to the config</span></span><br><span class="line">    name = name.substring(npmConfigPrefix.length)</span><br><span class="line">    <span class="comment">// gyp@741b7f1 enters an infinite loop when it encounters</span></span><br><span class="line">    <span class="comment">// zero-length options so ensure those don&#x27;t get through.</span></span><br><span class="line">    <span class="keyword">if</span> (name) &#123;</span><br><span class="line">      <span class="built_in">this</span>.opts[name] = val</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;, <span class="built_in">this</span>)</span><br></pre></td></tr></table></figure>
+<p>处理流程为：</p>
+<ol>
+<li>判断环境变量的名称（name），如果<strong>不是</strong>以<code>npm_config_</code>开头，则跳过该次处理，否则进入下一步。</li>
+<li>如果变量名是<code>npm_config_loglevel</code>（npm的日志等级变量），则使用该日志等级作为node-gyp在使用npm时候的日志变量（这是对日志等级的特殊处理）。</li>
+<li>否则（一般处理），截断该变量的名，例如<code>name = &#39;npm_config_my_key&#39;</code>，则得到<code>my_key</code>，设置到opts中：<code>opts[&#39;my_key&#39;] = 变量值</code>。</li>
+</ol>
+<p>至此，我们已经知道了，opts属性的值来源于上述的解析。</p>
+<p>那么，回到我们一开始的目的，我们知道了要实现从指定的地方下载node的库文件，只要opts里面存在<code>dist-url</code>或是<code>disturl</code>即可。有些读者可能会说，那这样就行了呀：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/custom-url-by-set-dist-url.jpg" alt=""></p>
+<p>实际上，并不行：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/just-has-dist_url.jpg" alt=""></p>
+<p>解析结束后，会发现，gyp.opts中是不存在<code>dist-url</code>字段的，只有<code>dist_url</code>。这一切的缘由，都是因为，npm在处理环境变量的时候，会将<code>-</code>替换为下划线<code>_</code>（<a target="_blank" rel="noopener" href="https://docs.npmjs.com/cli/v7/using-npm/config#environment-variables">config | npm Docs (npmjs.com)</a>）。</p>
+<p>好在，node-gyp还能够处理opts中的<code>disturl</code>字段。所以我们只需要在使用npm来使用node-gyp的时候，加入参数<code>--disturl</code>。现在，让我们回到我们一开始的node-addon-demo，添加设置变量的参数：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">  &quot;build&quot;: &quot;node-gyp configure &amp;&amp; node-gyp build&quot;,</span><br><span class="line">  &quot;build:custom&quot;: &quot;npm run build --verbose --disturl=this_is_my_custom_url&quot;,</span><br><span class="line">  &quot;run:demo&quot;: &quot;node index.js&quot;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<p>上述<code>build:custom</code>就是我们新加的配置，通过运行，果然，加载的是我们制定的url：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">gyp verb created nodedir C:\Users\w4ngzhen\AppData\Local\node-gyp\Cache\14.15.0</span><br><span class="line">&#x2F;&#x2F; 这里报错忽略，因为使用的是一个无效的url: &#39;this_is_my_custom_url&#39;</span><br><span class="line">&#x2F;&#x2F; 主要是为了验证确实是改变了</span><br><span class="line">gyp http GET this_is_my_custom_url&#x2F;v14.15.0&#x2F;node-v14.15.0-headers.tar.gz</span><br><span class="line">gyp WARN install got an error, rolling back install</span><br><span class="line">gyp verb command remove [ &#39;14.15.0&#39; ]</span><br></pre></td></tr></table></figure>
+<h2 id="node-gyp的直接使用和npm使用的区别"><a href="#node-gyp的直接使用和npm使用的区别" class="headerlink" title="node-gyp的直接使用和npm使用的区别"></a>node-gyp的直接使用和npm使用的区别</h2><p>那么，有的细心的读者可能会说，明明这里通过npm使用的时候会转为下划线，那在node-gyp的官方github，说是可以使用<code>dist-url</code>这个参数呢？。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/nodejs/node-gyp">nodejs/node-gyp: Node.js native addon build tool (github.com)</a></p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-05-12-node-gyp-dist-url/official-dist-url.jpg" alt=""></p>
+<p>实际上，官方文档给出的参数，需要你直接使用node-gyp方式进行设置，也就是说，—dist-url这个参数必须紧跟node-gyp的命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node-gyp configure --dist-url&#x3D;xxx</span><br></pre></td></tr></table></figure>
+<p>像是上面的<code>npm run $&#123;使用node-gyp的脚本名&#125; --dist-url=xxx</code>，这个dist-url是作为npm的参数来被识别，而非node-gyp。所以，对于demo，我们还可以如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">  &quot;build&quot;: &quot;node-gyp configure --dist-url=this_is_my_custom_url &amp;&amp; node-gyp build --dist-url=this_is_my_custom_url&quot;,</span><br><span class="line">  &quot;build:custom&quot;: &quot;npm run build --verbose&quot;,</span><br><span class="line">  &quot;run:demo&quot;: &quot;node index.js&quot;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+<p>注意，这一次，我把<code>--dist-url</code>是放在和node-gyp命令的参数的。但是，我们知道有些npm包，内部就直接使用node-gyp进行配置编译的操作，这个过程没法通过<code>--dist-url</code>紧跟<code>node-gyp</code>命令方式，所以只能在例如<code>.npmrc</code>文件中配置兼容的不会被下划线处理的<code>disturl</code>。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>要想让node-gyp下载node库文件的时候，能够走指定的镜像，可以通过配置<code>--dist-url</code>或是<code>--disturl</code>的方式，但配置<code>dist-url</code>形式参数只能是参数紧跟<code>node-gyp</code>的形式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node-gyp configure --dist-url&#x3D;xxx</span><br></pre></td></tr></table></figure>
+<p>而<strong>不能</strong>是如下的形式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 你的package.json scripts字段</span><br><span class="line">&quot;build&quot;: &quot;node-gyp configure&quot;</span><br><span class="line">&#x2F;&#x2F; 然后在命令行调用</span><br><span class="line">npm run build --dist-url&#x3D;xxx &#x2F;&#x2F; </span><br></pre></td></tr></table></figure>
+<p>因为此时<code>--dist-url</code>参数是npm的参数，且会被处理为<code>npm_config_dist_url</code>下划线形式，进而在gyp.opts只有dist_url属性。</p>
+<p>所以，最安全的方式是使用disturl参数：</p>
+<p>情况1：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node-gyp configure --disturl&#x3D;xxx</span><br></pre></td></tr></table></figure>
+<p>情况2：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 你的package.json scripts字段</span><br><span class="line">&quot;build&quot;: &quot;node-gyp configure&quot;</span><br><span class="line">&#x2F;&#x2F; 然后在命令行调用</span><br><span class="line">npm run build --disturl&#x3D;xxx</span><br></pre></td></tr></table></figure>
+<p>情况1下，disturl是作为node-gyp的参数进行解析，能够被设置到opts中。</p>
+<p>情况2，disturl是作为npm的参数被加入到npm环境变量：<code>npm_config_disturl</code>，此时，node-gyp解析process.env的时候，也能解析到<code>disturl</code>进而设置到opts。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/node-gyp/" rel="tag"># node-gyp</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/18/2021-04-18-electron-builder%E8%BF%9B%E8%A1%8CDEBUG%E8%BE%93%E5%87%BA%E7%9A%84%E6%AD%A3%E7%A1%AE%E6%96%B9%E5%BC%8F/" rel="prev" title="electron-builder进行DEBUG输出的正确方式">
+      <i class="fa fa-chevron-left"></i> electron-builder进行DEBUG输出的正确方式
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E7%AE%80%E5%8D%95%E7%9A%84%E5%8E%9F%E7%94%9F%E6%A8%A1%E5%9D%97"><span class="nav-number">1.</span> <span class="nav-text">编写简单的原生模块</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90node-gyp%E4%B8%8B%E8%BD%BD%E5%BA%93%E6%96%87%E4%BB%B6%E7%9A%84%E8%B7%AF%E5%BE%84"><span class="nav-number">2.</span> <span class="nav-text">从源码分析node-gyp下载库文件的路径</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#tarballUrl%E5%A6%82%E4%BD%95%E5%BE%97%E5%88%B0"><span class="nav-number">2.1.</span> <span class="nav-text">tarballUrl如何得到</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%9E%84%E5%BB%BAgyp-opts"><span class="nav-number">2.2.</span> <span class="nav-text">如何构建gyp.opts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#node-gyp%E7%9A%84%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8%E5%92%8Cnpm%E4%BD%BF%E7%94%A8%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">2.3.</span> <span class="nav-text">node-gyp的直接使用和npm使用的区别</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">49</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

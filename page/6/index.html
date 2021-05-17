@@ -155,6 +155,152 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/08/22/2017-08-22-JavaInteger%E5%B0%8F%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/08/22/2017-08-22-JavaInteger%E5%B0%8F%E8%AE%B0/" class="post-title-link" itemprop="url">Java中的Integer</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-08-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-08-22T00:00:00+08:00">2017-08-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-25 10:37:45" itemprop="dateModified" datetime="2021-01-25T10:37:45+08:00">2021-01-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <a id="more"></a>
+<p>众所周知，在Java中，存在着值比较与应用比较两种情况。例如，如下的比较，可以根据值比较与引用比较来跟容易的判断出结果来：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a = <span class="number">123</span>;</span><br><span class="line"><span class="keyword">int</span> b = <span class="number">123</span>;</span><br><span class="line">String s1 = <span class="keyword">new</span> String(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">String s2 = <span class="keyword">new</span> String(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">System.out.println(a == b); <span class="comment">//true</span></span><br><span class="line">System.out.println(s1 == s2); <span class="comment">//false</span></span><br></pre></td></tr></table></figure>
+<p>这里，a与b由于是基本类型，所以Java在比较的时候直接就是按值来比较，而下面的s1与s2则是由于分别指向内容为“123”的字符串对象引用（关于string的细节，见本人的另一篇文章），而这两个字符串的地址并不一样，所以结果是false。</p>
+<p>那么，今天要讨论的是，对于Java自动拆装箱的问题的深入探讨。如下所示，请问结果是什么呢？<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Integer a = <span class="number">666</span>;</span><br><span class="line">Integer b = <span class="number">666</span>;</span><br><span class="line">System.out.println(a == b);</span><br></pre></td></tr></table></figure></p>
+<p>结果是false，您可能会说，这有什么好问的，Integer对象的比较，引用的比较，而这两个只是值相同，而对象不同的Integer对象罢了，所以当然为false。好，那么我再问你，下面的结果是什么？<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Integer a = <span class="number">100</span>;</span><br><span class="line">Integer b = <span class="number">100</span>;</span><br><span class="line">System.out.println(a == b);</span><br></pre></td></tr></table></figure><br>您可能说，哇，当我傻吗，当然还是false了。可是，结果是true。</p>
+<p>为什么同样的情况下，当值变小了，结果就变为true了呢。</p>
+<p>其实，Java中，对于可装箱的对象类型，都存在一个1字节的范围：-128到127。在这个范围类的数字，Java认为是常用的数字，所以自动进行了值比较，而不是进行引用的比较。所以，无论是Long还是Integer，只有你的值在-128到127，这两个对象的比较直接按照其所存储的值来进行。就像如下的情况：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Integer a = <span class="number">128</span>;</span><br><span class="line">Integer b = <span class="number">128</span>;</span><br><span class="line">Integer c = <span class="number">127</span>;</span><br><span class="line">Integer d = <span class="number">127</span>;</span><br><span class="line">Long e = -<span class="number">129L</span>;</span><br><span class="line">Long f = -<span class="number">129L</span>;</span><br><span class="line">Long g = -<span class="number">128L</span>;</span><br><span class="line">Long h = -<span class="number">128L</span>;</span><br><span class="line">System.out.println(a == b); <span class="comment">//false</span></span><br><span class="line">System.out.println(c == d); <span class="comment">//true</span></span><br><span class="line">System.out.println(e == f); <span class="comment">//false</span></span><br><span class="line">System.out.println(g == h); <span class="comment">//true</span></span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EProxy%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2017/04/24/2017-04-24-%E7%90%86%E8%A7%A3$hadow$ocks%E4%B8%8EProxy%E5%8E%9F%E7%90%86/" class="post-title-link" itemprop="url">理解$hadow$ocks与Proxy原理</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2017-04-24 00:00:00" itemprop="dateCreated datePublished" datetime="2017-04-24T00:00:00+08:00">2017-04-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-01-25 10:37:54" itemprop="dateModified" datetime="2021-01-25T10:37:54+08:00">2021-01-25</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <a id="more"></a>
+<p><strong>以下所有提到$hadow$ocks的均以ss指代</strong></p>
+<h3 id="为什么要用ss呢？"><a href="#为什么要用ss呢？" class="headerlink" title="为什么要用ss呢？"></a>为什么要用ss呢？</h3><p>在早期（如今绝大多数也是），对于互联网的访问流程是及其简单的：浏览器（或其他客户端）向互联网服务器提出一个请求（request），然后等待互联网服务器回应（response），最后在本地解析渲染。麻烦一点的，中间会有多个代理帮助我们进行数据的请求。<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/requestresponse.png" alt="requestresponse"></p>
+<p>后来，墙出现了，我们不能再愉快的访问外网了。因为墙相当于一个巨大的墙阻挡着我们和外界，当我们想要访问外网的时候，这个请求数据包必然会经过墙的检查：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/checkbyw.png" alt="checkbyw"><br>当检查到被墙禁止访问的内容请求的时候，自然会被“过滤”或被“忽视”掉。但，有人还是想要往墙外看看。怎么办呢？有人想出了一个方法，如同最上面图中右边的拓扑，但是中间代理服务器本身就在国外，当我们想要访问外部内容的时候，首先和这个在国外的代理服务器进行ssh通信，告诉它，我想要请求xx资源，再让这台代理服务器去访问目标服务器，得到回应之后，再把我们想要的数据通过ssh传递给我们：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/byssh.png" alt="byssh"></p>
+<p>刚开始这样还不错。因为ssh本身基于RSA加密，所以首先，墙无法查看其请求内容（ip、内容等），所以也就无法分析你的请求关键词（用于筛选连接），避免了被重置链接的问题，但由于创建隧道和数据传输的过程中，ssh本身的特征是明显的，我们的墙研发人员根据相关的如连接频率、连接时间等进行分析，再通过一定的手段干预连接，于是后来墙愈来越强了。使用ssh tunnel的方式不太灵了！ </p>
+<p>既然ssh你还能看出连接时间、频率等特征值。那我干脆不用了，转换一下，我往外界发送合法的TCP数据包该没有问题吧？好，每次我访问某个资源的时候，首先将请求在本地转换为（拆分、加密等手段）一个个非常规端口的TCP数据包，里面的内容也是加密过的。当我发送给外部服务器的时候，墙只能知道你发送的是合法TCP数据包，它也不敢妄自丢弃和查看特征值，因为他没法保证这个TCP数据包究竟是要请求什么，外面看来本身就是个普通的数据包。等发到外部的代理服务器的时候，我运用相关的协议进行重组解密，得到原始请求。后面就和ssh tunnel有异曲同工之妙。于是，如下的拓扑出现了：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/bysock.png" alt="bysock"></p>
+<p>理解了这个之后，搭建服务器就是一件很简单的事情了。网上资源很多，这里不再赘述。</p>
+<h3 id="Privoxy作用"><a href="#Privoxy作用" class="headerlink" title="Privoxy作用"></a>Privoxy作用</h3><p>当我们搭建好了ss服务器之后，我们本地需要使用ss客户端监听1080（通常的默认端口），配置相关的命令，从而实现当我们本地机器访问外部网络的时候，请求数据首先经过本的1080端口进行加密拆分为原始的TCP数据包。然而需要注意的是，当我们监听了默认的1080端口之后，并不意味着，我们访问数据的时候，所有网络数据就走1080这个ss客户端监听的端口了。由于Windows和macOS客户端通常包含了相关的代理转发功能，所以我们在进行HTTP或者是HTTPS的时候，会默认的启动一个代理转发的模块，来替我们监听HTTP和HTTPS请求，并将这些请求数据送入1080端口应用（即ss客户端）。</p>
+<p>然而，在Linux下的ss客户端，并没有包含这个功能，所以，但我们进行HTTP(s)请求的时候，需要设置代理，当我们使用Privoxy的时候，安装Privoxy：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install epel-release</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo yum -y install privoxy</span></span><br></pre></td></tr></table></figure><br>第一步的安装epel这是因为像centos这类衍生出来的发行版，他们的源有时候内容更新的比较滞后，或者说有时候一些扩展的源根本就没有。EPEL(<a target="_blank" rel="noopener" href="http://fedoraproject.org/wiki/EPEL">http://fedoraproject.org/wiki/EPEL</a>) 是由 Fedora 社区打造，为 RHEL 及衍生发行版如 CentOS、Scientific Linux 等提供高质量软件包的项目。</p>
+<p>默认的配置文件地址在 /etc/privoxy/config 目录下。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 把本地HTTP流量转发到本地1080 SOCKS5代理</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 即当我们发出HTTP(S)请求的时候，会将请求转为Socks5</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 注意最后的 <span class="string">&quot;.&quot;</span></span></span><br><span class="line">forward-socks5 / 127.0.0.1:1080 .</span><br><span class="line"><span class="meta">#</span><span class="bash"> 可选，默认监听本地连接端口为8118</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> listen-address 127.0.0.1:8118</span></span><br></pre></td></tr></table></figure><br>接下里启动：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start privoxy</span><br></pre></td></tr></table></figure><br>配置完成以后还没有结束！请考虑一下，目前我们只是设定了如果有对于所有HTTP(S)的访问（即foward-sock5后面的“/”）都将转为socks5送入被ss客户端监听的1080端口中去，但是并没有设定HTTP(S)代理服务器！，所以，最后你还需要在.bash_profile（或者是.bashrc）中设定代理服务器的环境变量：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export http_proxy=http://127.0.0.1:8118</span><br><span class="line">export https_proxy=https://127.0.0.1:8118</span><br><span class="line"><span class="meta">#</span><span class="bash"> 最后再<span class="built_in">source</span>一下</span></span><br></pre></td></tr></table></figure><br>最后，我们再以一个整体拓扑来表达一下我们的访问流程：<br><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2017-04-26-ss/flow.png" alt="flow"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://compilemind.com/2017/04/18/2017-04-18-JavaString%E6%8E%A2%E8%AE%A8/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -515,14 +661,14 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">53</span>
+          <span class="site-state-item-count">55</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">48</span>
+        <span class="site-state-item-count">49</span>
         <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
