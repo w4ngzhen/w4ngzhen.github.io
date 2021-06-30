@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="当我们编写node原生模块的时候，免不了对node-gyp项目进行命名，在node-gyp进行build的时候，会跟binding.gyp配置文件中的target_name生成对应的原生模块。但是，如果target_name填写不规范，会触发编译问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="node-gyp项目命名BUG">
+<meta property="og:url" content="http://compilemind.com/2021/06/25/2021-06-25-node-gyp%E9%A1%B9%E7%9B%AE%E5%91%BD%E5%90%8DBUG/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="当我们编写node原生模块的时候，免不了对node-gyp项目进行命名，在node-gyp进行build的时候，会跟binding.gyp配置文件中的target_name生成对应的原生模块。但是，如果target_name填写不规范，会触发编译问题。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/compile-error.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/node-gyp-build-sln.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/demo-sln-in-vs.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/compile-err-in-vs.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/gen-i-file.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/i-file-generated.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/i-file-content.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/replace-macro-to-code.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/macro-unfold-error-point.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/macro-unfold-with-underline.jpg">
+<meta property="article:published_time" content="2021-06-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-06-30T08:22:40.157Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="node-gyp">
+<meta property="article:tag" content="C&#x2F;C++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/compile-error.jpg">
+
+<link rel="canonical" href="http://compilemind.com/2021/06/25/2021-06-25-node-gyp%E9%A1%B9%E7%9B%AE%E5%91%BD%E5%90%8DBUG/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>node-gyp项目命名BUG | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/06/25/2021-06-25-node-gyp%E9%A1%B9%E7%9B%AE%E5%91%BD%E5%90%8DBUG/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          node-gyp项目命名BUG
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-06-25 00:00:00" itemprop="dateCreated datePublished" datetime="2021-06-25T00:00:00+08:00">2021-06-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-06-30 16:22:40" itemprop="dateModified" datetime="2021-06-30T16:22:40+08:00">2021-06-30</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>当我们编写node原生模块的时候，免不了对node-gyp项目进行命名，在node-gyp进行build的时候，会跟binding.gyp配置文件中的target_name生成对应的原生模块。但是，如果target_name填写不规范，会触发编译问题。</p>
+<a id="more"></a>
+<h1 id="问题与解决"><a href="#问题与解决" class="headerlink" title="问题与解决"></a>问题与解决</h1><p>本人发现，当target_name使用了短中线的时候（”-“），会导致编译过程中触发编译问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">error C2143: 语法错误: 缺少“;”(在“-”的前面) </span><br></pre></td></tr></table></figure>
+<p>使用下划线命名以及各种驼峰命名不会出现此问题。出现问题的点为文件最后使用宏的时候：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)</span><br></pre></td></tr></table></figure>
+<p>解决方案，target_name名称不使用中横线：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">target_name: &quot;the-demo&quot; &#x3D;&gt; target_name: &quot;theDemo&quot;</span><br><span class="line">或</span><br><span class="line">target_name: &quot;the-demo&quot; &#x3D;&gt; target_name: &quot;the_demo&quot;</span><br></pre></td></tr></table></figure>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><p>接下来的问题分析，需要一定的C/C++知识。</p>
+<h2 id="编写样例"><a href="#编写样例" class="headerlink" title="编写样例"></a>编写样例</h2><p>这里不再赘述样例，直接使用这篇文章建立一个demo：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/383948462">使用node-gyp编写简单的node原生模块 - 知乎 (zhihu.com)</a>，或是<a target="_blank" rel="noopener" href="https://www.cnblogs.com/w4ngzhen/p/14931367.html">使用node-gyp编写简单的node原生模块 - w4ngzhen - 博客园 (cnblogs.com)</a>。</p>
+<p>Demo编写完成后，我们修改其中的target_name，使其带有中横线（”-“）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;targets&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;target_name&quot;: &quot;hello-world&quot;,</span><br><span class="line">      &quot;sources&quot;: [ &quot;hello_world.cc&quot; ]</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>修改为该target_name后，我们进行<code>node-gyp configure &amp;&amp; node-gyp build</code>，会发现编译器报错：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/compile-error.jpg" alt=""></p>
+<h2 id="使用IDE分析"><a href="#使用IDE分析" class="headerlink" title="使用IDE分析"></a>使用IDE分析</h2><p>我们曾经讲过，node-gyp实际上只是构建工具，他会根据各个操作平台，生成对应平台的项目。在Windows上，它最终会帮你生成一个解决方案。查看项目目录下，我们就能看到一个build文件夹，这个文件夹下面会有解决方案：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/node-gyp-build-sln.jpg" alt=""></p>
+<p>我们使用VS打开，开始进行分析：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/demo-sln-in-vs.jpg" alt=""></p>
+<p>通过IDE的智能提示，我们看到在下面的宏使用报错了：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/compile-err-in-vs.jpg" alt=""></p>
+<p>通常，对于宏报错，我们需要的第一步是进行宏展开，查看到底是什么导致了编译错误的。在VS中，我们进行进行如下的配置，让编译器首先生成宏展开的源码：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/gen-i-file.jpg" alt=""></p>
+<p>然后，我们重新进行编译，可以看到在对应的生成目录下，产生了一个<code>.i</code>后缀的文件。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/i-file-generated.jpg" alt=""></p>
+<p>这个宏展开后的源码文件，可以更见方便的便于我们分析。我们直接定位到这个文件的最下方，可以看到我们已经经过宏展开的代码：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/i-file-content.jpg" alt=""></p>
+<p>我们67404这行宏展开的代码拷贝到VS对应宏使用的地方，通过IDE来更加智能的检查这段有何问题：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/replace-macro-to-code.jpg" alt=""></p>
+<p>因为改行很长，这里我进行一下格式化代码的操作：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/macro-unfold-error-point.jpg" alt=""></p>
+<p>可以看到，宏展开里面模块名为”hello-world”，在上图指出的部分，被分割为了”hello - world”，而分割开来后，导致了语法错误。如果target_name使用的”hello_world”，则不会有这个问题：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-06-25-node-gyp-target-name-bug/macro-unfold-with-underline.jpg" alt=""></p>
+<p>实际上被<code>&quot;-&quot;</code>分割，是因为在宏展开的时候，作为了函数名的一部分，而函数名标识符是不能有<code>&quot;-&quot;</code>的。这里举例：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NAME hello-world</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TEST_MACRO(fn) static void fn(void);</span></span><br><span class="line"></span><br><span class="line">TEST_MACRO(NAME) <span class="comment">// 报错，因为最终展开后：static void hello-world(void);</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>C语言规定，标识符只能由字母（A~Z, a~z）、数字（0~9）和下划线（_）组成，并且第一个字符必须是字母或下划线，不能是数字。</p>
+</blockquote>
+<p>所以这就是为什么target_name使用有中横线的名称会报错了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/node-gyp/" rel="tag"># node-gyp</a>
+              <a href="/tags/C-C/" rel="tag"># C/C++</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/05/12/2021-05-12-%E4%BB%8E%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90node-gyp%E6%8C%87%E5%AE%9Anode%E5%BA%93%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%E5%9C%B0%E5%9D%80/" rel="prev" title="从源码分析node-gyp指定node库文件下载地址">
+      <i class="fa fa-chevron-left"></i> 从源码分析node-gyp指定node库文件下载地址
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/06/25/2021-06-25-%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84node%E5%8E%9F%E7%94%9F%E6%A8%A1%E5%9D%97/" rel="next" title="使用node-gyp编写简单的node原生模块">
+      使用node-gyp编写简单的node原生模块 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E5%86%B3"><span class="nav-number">1.</span> <span class="nav-text">问题与解决</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">问题分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E6%A0%B7%E4%BE%8B"><span class="nav-number">2.1.</span> <span class="nav-text">编写样例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8IDE%E5%88%86%E6%9E%90"><span class="nav-number">2.2.</span> <span class="nav-text">使用IDE分析</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">57</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">50</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
