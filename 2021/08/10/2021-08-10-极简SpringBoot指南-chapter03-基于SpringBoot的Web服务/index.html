@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="仓库地址w4ngzhen&#x2F;springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com) Chapter03-基于SpringBoot的Web服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="极简SpringBoot指南-Chapter03-基于SpringBoot的Web服务">
+<meta property="og:url" content="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter03-%E5%9F%BA%E4%BA%8ESpringBoot%E7%9A%84Web%E6%9C%8D%E5%8A%A1/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="仓库地址w4ngzhen&#x2F;springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com) Chapter03-基于SpringBoot的Web服务">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-08-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-08-10T01:22:15.764Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="SpringBoot">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter03-%E5%9F%BA%E4%BA%8ESpringBoot%E7%9A%84Web%E6%9C%8D%E5%8A%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>极简SpringBoot指南-Chapter03-基于SpringBoot的Web服务 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter03-%E5%9F%BA%E4%BA%8ESpringBoot%E7%9A%84Web%E6%9C%8D%E5%8A%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          极简SpringBoot指南-Chapter03-基于SpringBoot的Web服务
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-08-10 00:00:00 / Modified: 09:22:15" itemprop="dateCreated datePublished" datetime="2021-08-10T00:00:00+08:00">2021-08-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="仓库地址"><a href="#仓库地址" class="headerlink" title="仓库地址"></a>仓库地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/springboot-simple-guide">w4ngzhen/springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com)</a></p>
+<h1 id="Chapter03-基于SpringBoot的Web服务"><a href="#Chapter03-基于SpringBoot的Web服务" class="headerlink" title="Chapter03-基于SpringBoot的Web服务"></a>Chapter03-基于SpringBoot的Web服务</h1><a id="more"></a>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>终于，我们的教程来到了SpringBoot核心功能的介绍。对于本章，各位读者至少具备以下的知识：</p>
+<ol>
+<li>maven的使用</li>
+<li>HTTP</li>
+</ol>
+<h2 id="SpringBoot的maven配置介绍"><a href="#SpringBoot的maven配置介绍" class="headerlink" title="SpringBoot的maven配置介绍"></a>SpringBoot的maven配置介绍</h2><p>对于一个<strong>简单的maven结构</strong>的项目来说，以下结构：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">$&#123;basedir&#125;</span><br><span class="line">    |-- pom.xml</span><br><span class="line">    |-- src</span><br><span class="line">        |-- main</span><br><span class="line">            |-- java</span><br><span class="line">                || com.xxx.xxx 项目源码</span><br><span class="line">            |-- resources</span><br><span class="line">                || 项目配置文件 .xml等</span><br><span class="line">        |-- test</span><br><span class="line">            |-- java</span><br><span class="line">            |-- resources</span><br></pre></td></tr></table></figure>
+<p>在我们前面的教程中，我们都是在编写着代码，从未关注过maven的pom.xml究竟是如何配置的，因为项目脚手架已经配置完成了，也许有细心的同学已经看过了pom.xml文件的内容了：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span> <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">&lt;!-- ... 省略了当前项目本身信息的配置，如有需要，请读者查看源码 --&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!-- 当前pom的父级 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- springboot框架web功能starter --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">		<span class="comment">&lt;!-- springboot框架的测试依赖starter --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 构建流程使用SpringBoot的maven插件 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>对于一个普通的maven项目，其实核心的就是<code>dependencies节点-dependency节点</code>了。通过<code>dependency</code>节点，我们可以GAV坐标（Group-Artifact-Version）引入不同的库jar包，便于我们的项目使用这些库。</p>
+<p>那么为什么在上面的pom出现了一个parent节点呢？实际上，pom允许所谓的继承：我们可以把一堆的pom依赖和配置，放到一个公共的pom里面，然后各个项目通过parent节点去引用这个公共的pom文件。由于SpringBoot并不是一个单一的jar包构成的框架，它的内部其实依赖了下面的核心库：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">spring-core</span><br><span class="line">spring-beans</span><br><span class="line">spring-context</span><br><span class="line">...还有很多</span><br></pre></td></tr></table></figure>
+<p>如果手动一项又一项编写dependency来使用Spring框架，不仅仅容易遗漏，而且十分不方便进行这些依赖库的版本管理。基于此，SpringBoot官方提供了父级pom：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span> <span class="comment">&lt;!-- 2021/08/09最新 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>那么再看我们的pom文件中，还依赖了<code>spring-boot-starter-web</code>，这又是什么呢？难道有一个jar包叫做<code>spring-boot-starter-web</code>吗？其实不然。我们上面提到了parent POM，但是Spring框架下的依赖包特别多，并且有些包是核心的包，有些包则是在某些功能需要的情况下才依赖的包。如果一股脑的全部通过parent引入会让你的项目依赖十分臃肿，所以Spring官方再次按照包的功能进行了一定的组合，形成了所谓的starter，如果你只是想做web API的服务开发，用<code>spring-boot-starter-web</code>就可以了，要是需要使用AOP（面向切面编程，作切面开发），加上<code>spring-boot-starter-aop</code>依赖即可。</p>
+<h2 id="一个简单的Controller"><a href="#一个简单的Controller" class="headerlink" title="一个简单的Controller"></a>一个简单的Controller</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用注解 @RestController，表明当前类是一个基于REST 规范的HTTP API Controller</span></span><br><span class="line"><span class="meta">@RestController</span> </span><br><span class="line"><span class="comment">// @RequestMapping 注解放在Controller上，用于标记 HTTP url的路径入口，</span></span><br><span class="line"><span class="comment">// 例如 http://localhost:8080/hello/xxx 才会进入当前Controller</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;hello&quot;)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// @RequestMapping 注解放在Controller的里面的方法上，</span></span><br><span class="line">    <span class="comment">// 将会与Controller上的RequestMapping组合成：&quot;/hello/say&quot;</span></span><br><span class="line">    <span class="comment">// method用于指示通过何种HTTP方法访问</span></span><br><span class="line">    <span class="comment">// 在程序启动后，我们可以使用GET方法访问：http://localhost:8080/hello/say</span></span><br><span class="line">    <span class="meta">@RequestMapping(value = &quot;say&quot;, method = RequestMethod.GET)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">say</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;hello, world&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编写启动类，启动我们的SpringBoot程序：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Chapter03App</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        SpringApplication.run(Chapter03App.class, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>启动成功后，通过HTTP访问：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;localhost:8080&#x2F;hello&#x2F;say</span><br><span class="line"># 输出：hello, world</span><br></pre></td></tr></table></figure>
+<h2 id="关于Controller需要注意的点"><a href="#关于Controller需要注意的点" class="headerlink" title="关于Controller需要注意的点"></a>关于Controller需要注意的点</h2><p>上面的例子中，我们使用注解<code>@RestController</code>来标记了我们的Controller类，会有初学者使用<code>@Controller</code>来标记Controller，让我们改成它试试：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span> <span class="comment">// 改成使用 @Controller注解，其他不变，再次访问，看看有什么问题</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;hello&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重启启动应用后再次访问对应地址。如果是在浏览器中，你会看到：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Whitelabel Error Page</span><br><span class="line">This application has no explicit mapping for &#x2F;error, so you are seeing this as a fallback.</span><br><span class="line"></span><br><span class="line">Mon Aug 09 10:16:59 CST 2021</span><br><span class="line">There was an unexpected error (type&#x3D;Not Found, status&#x3D;404).</span><br></pre></td></tr></table></figure>
+<p><code>type=Not Found, status=404</code>，404！为什么会这样呢？</p>
+<ol>
+<li>如果使用<code>@Controller</code>标记，那么将使用SpringMVC架构（自行了解），如果对应的方法返回的是字符串，则这个字符串表明需要查找对应的视图（View）名称，并将对应的视图通过视图解析器（InternalResourceViewResolver）解析修改为前端web页面。</li>
+<li>如果使用<code>@RestController</code>注解Controller，则Controller中的方法无法返回jsp页面，或者html，配置的视图解析器不起作用，返回的内容就是return里的内容。</li>
+</ol>
+<p>针对情况1，解决方法就是在方法的返回上加上注解：<code>@ResponseBody</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ResponseBody</span> <span class="comment">// 如果当前Controller被@Controller注解，又想返回字符串或其他原始数据</span></span><br><span class="line"><span class="meta">@RequestMapping(value = &quot;say&quot;, method = RequestMethod.GET)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">say</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;hello, world&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Controller如何被加载的？"><a href="#Controller如何被加载的？" class="headerlink" title="Controller如何被加载的？"></a>Controller如何被加载的？</h2><p>在之前的文章，我们已经介绍了SpringBoot是如何初始化Bean并且将其放在IOC容器的。我们提到了三种方式：1、<code>@Component</code>；2、Java配置类；3、XML配置。对于第2、3点，好像目前我们的样例中并没有做手动配置的事情。那么是不是我们的Controller已经被<code>@Component</code>标记了呢？</p>
+<p>查看@RestController的定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.TYPE&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Controller</span> <span class="comment">// 原来你RestController也是一个Controller注解啊！</span></span><br><span class="line"><span class="meta">@ResponseBody</span> <span class="comment">// 并且，已经添加了@ResponseBody</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> RestController &#123;</span><br><span class="line">    <span class="meta">@AliasFor(</span></span><br><span class="line"><span class="meta">        annotation = Controller.class</span></span><br><span class="line"><span class="meta">    )</span></span><br><span class="line">    <span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>@RestController</code>其实组合了<code>@Controller</code>和<code>@ResponseBody</code>两个注解了。我们再看看<code>@Controller</code>的定义：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(&#123;ElementType.TYPE&#125;)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Component</span> <span class="comment">// 原来你Controller注解也组合了Component注解</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Controller &#123;</span><br><span class="line">    <span class="meta">@AliasFor(</span></span><br><span class="line"><span class="meta">        annotation = Component.class</span></span><br><span class="line"><span class="meta">    )</span></span><br><span class="line">    <span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>原来<code>@Controller</code>也已经组合了<code>@Component</code>注解啊，难怪我们的定义的Controller能被加载。</p>
+<h2 id="Controller如何处理HTTP请求的？"><a href="#Controller如何处理HTTP请求的？" class="headerlink" title="Controller如何处理HTTP请求的？"></a>Controller如何处理HTTP请求的？</h2><p>要回答这个问题，需要你有一定的关于Java Tomcat Web容器的知识。本系列主要是对SpringBoot的快速入门，不便于讲的过细。简单一点就是：</p>
+<ol>
+<li>Tomcat是一个用Java编写的Web容器，可以接受HTTP请求。</li>
+<li>SpringBoot内置了Tomcat容器，并且对于HTTP请求，转到了内部处理</li>
+<li>对于这些HTTP请求，根据请求的路径等上下文，匹配Bean容器中的Controller进行处理</li>
+</ol>
+<h2 id="仓库地址-1"><a href="#仓库地址-1" class="headerlink" title="仓库地址"></a>仓库地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/springboot-simple-guide">w4ngzhen/springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com)</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/SpringBoot/" rel="tag"># SpringBoot</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter04-%E5%9F%BA%E4%BA%8ESpringBoot%E7%9A%84%E4%B9%A6%E7%B1%8D%E7%AE%A1%E7%90%86Web%E6%9C%8D%E5%8A%A1/" rel="prev" title="极简SpringBoot指南-Chapter04-基于SpringBoot的书籍管理Web服务">
+      <i class="fa fa-chevron-left"></i> 极简SpringBoot指南-Chapter04-基于SpringBoot的书籍管理Web服务
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter02-Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%9A%84%E6%96%B9%E5%BC%8F/" rel="next" title="极简SpringBoot指南-Chapter02-Spring依赖注入的方式">
+      极简SpringBoot指南-Chapter02-Spring依赖注入的方式 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80"><span class="nav-number">1.</span> <span class="nav-text">仓库地址</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Chapter03-%E5%9F%BA%E4%BA%8ESpringBoot%E7%9A%84Web%E6%9C%8D%E5%8A%A1"><span class="nav-number"></span> <span class="nav-text">Chapter03-基于SpringBoot的Web服务</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SpringBoot%E7%9A%84maven%E9%85%8D%E7%BD%AE%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">SpringBoot的maven配置介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84Controller"><span class="nav-number">3.</span> <span class="nav-text">一个简单的Controller</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8EController%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E7%9A%84%E7%82%B9"><span class="nav-number">4.</span> <span class="nav-text">关于Controller需要注意的点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Controller%E5%A6%82%E4%BD%95%E8%A2%AB%E5%8A%A0%E8%BD%BD%E7%9A%84%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">Controller如何被加载的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Controller%E5%A6%82%E4%BD%95%E5%A4%84%E7%90%86HTTP%E8%AF%B7%E6%B1%82%E7%9A%84%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">Controller如何处理HTTP请求的？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80-1"><span class="nav-number">7.</span> <span class="nav-text">仓库地址</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">54</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

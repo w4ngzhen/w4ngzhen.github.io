@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="仓库地址w4ngzhen&#x2F;springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com) Chapter05-SpringBoot中的AOP面向切面编程简介">
+<meta property="og:type" content="article">
+<meta property="og:title" content="极简SpringBoot指南-Chapter05-SpringBoot中的AOP面向切面编程简介">
+<meta property="og:url" content="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter05-SpringBoot%E4%B8%AD%E7%9A%84AOP%E9%9D%A2%E5%90%91%E5%88%87%E9%9D%A2%E7%BC%96%E7%A8%8B%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="仓库地址w4ngzhen&#x2F;springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com) Chapter05-SpringBoot中的AOP面向切面编程简介">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-08-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-08-10T01:22:24.513Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="SpringBoot">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter05-SpringBoot%E4%B8%AD%E7%9A%84AOP%E9%9D%A2%E5%90%91%E5%88%87%E9%9D%A2%E7%BC%96%E7%A8%8B%E7%AE%80%E4%BB%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>极简SpringBoot指南-Chapter05-SpringBoot中的AOP面向切面编程简介 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter05-SpringBoot%E4%B8%AD%E7%9A%84AOP%E9%9D%A2%E5%90%91%E5%88%87%E9%9D%A2%E7%BC%96%E7%A8%8B%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          极简SpringBoot指南-Chapter05-SpringBoot中的AOP面向切面编程简介
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-08-10 00:00:00 / Modified: 09:22:24" itemprop="dateCreated datePublished" datetime="2021-08-10T00:00:00+08:00">2021-08-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="仓库地址"><a href="#仓库地址" class="headerlink" title="仓库地址"></a>仓库地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/springboot-simple-guide">w4ngzhen/springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com)</a></p>
+<h1 id="Chapter05-SpringBoot中的AOP面向切面编程简介"><a href="#Chapter05-SpringBoot中的AOP面向切面编程简介" class="headerlink" title="Chapter05-SpringBoot中的AOP面向切面编程简介"></a>Chapter05-SpringBoot中的AOP面向切面编程简介</h1><a id="more"></a>
+<p>在上一章中，我们编写了一款基于SpringBoot的书籍信息管理Web应用，实现了对书籍信息的增删查改操作。现在，我们有了一个新的需求：为了方便后台服务监管我们的Web服务的请求耗时，我们需要增强一下对我们的Web应用，希望对每个请求都能够打印一下处理耗时。</p>
+<h2 id="基本方式"><a href="#基本方式" class="headerlink" title="基本方式"></a>基本方式</h2><p>为了实现这样的需求，我们首先以<strong>获取指定ID的书籍信息</strong>这个API为例，开始进行编程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;&#123;id&#125;&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Book <span class="title">getBookById</span><span class="params">(<span class="meta">@PathVariable(&quot;id&quot;)</span> String id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 为了更加明显，我模拟了一个耗时</span></span><br><span class="line">        Thread.sleep(<span class="number">500</span>); </span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">    Optional&lt;Book&gt; first = <span class="keyword">this</span>.bookList</span><br><span class="line">            .stream()</span><br><span class="line">            .filter(b -&gt; b.getId().equals(id))</span><br><span class="line">            .findFirst();</span><br><span class="line">    System.out.printf(<span class="string">&quot;处理耗时：%d ms %n&quot;</span>, (System.currentTimeMillis() - currentTimeMillis));</span><br><span class="line">    <span class="keyword">return</span> first.orElse(<span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>为了模拟一个耗时，我在请求处理的时候对当前处理线程sleep500ms。然后使用对应postman进行请求调用，调用后查看控制台打印：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">处理耗时：513 ms </span><br></pre></td></tr></table></figure>
+<p>效果还行，但是现在需要对所有的调用都进行日志记录呢？有的同学可能会说，直接开写，一个一个加。牛！此外，我今天的需求是耗时打印，我以后可能需要耗时上传进行预警了，再后来我还希望统计各个API的调用接口，似乎我们愈来愈无法控制这些需求了。每变更一个需求，都需要我们去对每个API进行修改。</p>
+<p>还好，我们还有一大杀器：AOP。</p>
+<h2 id="AOP"><a href="#AOP" class="headerlink" title="AOP"></a>AOP</h2><p>AOP全称<code>Aspect Oriented Programming</code>意为面向切面编程，也叫做面向方法编程，是通过预编译方式和运行期动态代理的方式实现不修改源代码的情况下给程序动态统一添加功能的技术。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">流程起点</span><br><span class="line"> |</span><br><span class="line"> |</span><br><span class="line">---&gt; 切入点1</span><br><span class="line"> |</span><br><span class="line"> |</span><br><span class="line">---&gt; 切入点2</span><br><span class="line"> |</span><br><span class="line"> V</span><br><span class="line">流程终点</span><br></pre></td></tr></table></figure>
+<p>上图的流程中，我们可以在任何希望的时候<strong>切入</strong>处理。其好处的就是是的业务逻辑各个部分之间的耦合度降低，提高程序的可重用性。我们可以在完全不侵入业务逻辑代码的情况下就完成各个阶段的切入处理。</p>
+<h3 id="核心术语"><a href="#核心术语" class="headerlink" title="核心术语"></a>核心术语</h3><h4 id="连接点（JoinPoint）"><a href="#连接点（JoinPoint）" class="headerlink" title="连接点（JoinPoint）"></a>连接点（JoinPoint）</h4><p>连接点是在应用执行过程中能够插入切面（Aspect）的一个点。这些点可以是调用方法时、甚至修改一个字段时。它是一个虚拟的概念，例如坐地铁的时候，每一个站都可以下车，那么这每一个站都是一个连接点。假如一个对象中有多个方法，那么这个每一个方法就是一个连接点。</p>
+<h4 id="切入点（Pointcut）"><a href="#切入点（Pointcut）" class="headerlink" title="切入点（Pointcut）"></a>切入点（Pointcut）</h4><p>切入点是一些特殊的连接点，是具体附加通知的地方。例如坐地铁的时候，具体在某个站下车，那这个站就是切入点。</p>
+<h4 id="通知（Advice）"><a href="#通知（Advice）" class="headerlink" title="通知（Advice）"></a>通知（Advice）</h4><p>在某个特定的Pointcut切点上需要的执行的动作，如日志记录，权限校验等具体要应用切入点的代码。</p>
+<p>五种通知类型：</p>
+<ul>
+<li>环绕通知：<strong>@Around</strong></li>
+<li>前置通知：<strong>@Before</strong></li>
+<li>返回通知：<strong>@After</strong></li>
+<li>正常返回通知：<strong>@AfterReturning</strong></li>
+<li>异常返回通知：<strong>@AfterThrowing</strong></li>
+</ul>
+<h4 id="切面（Aspect）"><a href="#切面（Aspect）" class="headerlink" title="切面（Aspect）"></a>切面（Aspect）</h4><p>切面是<strong>通知</strong>和<strong>切入点</strong>的结合，通知规定了在什么时机干什么事，切入点规定了在什么地方。如“在8点钟在天府广场站下车“ 就是一个切面：时间8点，动作下车就是一个通知；西站就是一个切入点。</p>
+<p>对于概念术语还是很抽象，我们直接编写一个切面吧。编写切面之前，首先需要引入相关的依赖。因为切面相关的模块是可选模块，我们在pom中添加如下的依赖：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- 其他依赖 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-aop<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>完成依赖导入后，我们编写一个切面类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 定义一个日志切面</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="meta">@Component</span> <span class="comment">// 切面不是Bean，需要添加注解</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LogAspect</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(LogAspect.class);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 定义切点表明要通知的地方</span></span><br><span class="line"><span class="comment">     * 这里使用了pointcut expression表达式，具体语法请自行搜索</span></span><br><span class="line"><span class="comment">     * 这里解释为包 com.compilemind.guide包以及子包的所有类的所有公共方法</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Pointcut(&quot;execution(* com.compilemind.guide..*.*(..))&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">webLog</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 指代上面的切点：webLog，并且是调用前执行</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Before(&quot;webLog()&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doBefore</span><span class="params">(JoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        ServletRequestAttributes requestAttributes =</span><br><span class="line">                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();</span><br><span class="line">        <span class="keyword">if</span> (requestAttributes == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        HttpServletRequest request = requestAttributes.getRequest();</span><br><span class="line">        LOGGER.info(<span class="string">&quot;发生请求：&quot;</span> + request.getRequestURI());</span><br><span class="line">        LOGGER.info(<span class="string">&quot;调用方法：&quot;</span> + joinPoint.getSignature());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 一个关于对应切点的环绕执行的处理</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Around(&quot;webLog()&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">around</span><span class="params">(ProceedingJoinPoint joinPoint)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 调用参数</span></span><br><span class="line">        Object[] invokeArgs = joinPoint.getArgs();</span><br><span class="line">        <span class="comment">// 返回数据</span></span><br><span class="line">        Object returnObj;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 执行对应的方法，得到结果</span></span><br><span class="line">            returnObj = joinPoint.proceed(invokeArgs);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">            LOGGER.error(<span class="string">&quot;统计某方法执行耗时环绕通知出错&quot;</span>, e);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        LOGGER.info(<span class="string">&quot;处理耗时：&#123;&#125; ms&quot;</span>, System.currentTimeMillis() - currentTimeMillis);</span><br><span class="line">        <span class="keyword">return</span> returnObj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这个切面由以下几个部分组成：</p>
+<ol>
+<li>在类上使用<code>@Aspect</code>注解标记为切面，使用<code>@Component</code>注解标记为组件，由Spring管理；</li>
+<li>编写方法<code>webLog</code>，并在其方法上添加注解<code>@Pointcut</code>，并按照规则填写切点的位置；</li>
+<li>分别编写由<code>@Before</code>和<code>@Around</code>注解标记的方法，用以处理对应的切点位置<strong>处理前</strong>和<strong>整个环绕</strong>的处理代码。</li>
+</ol>
+<p>最后，让我们再次启动程序，进行相关的API调用，可以看到输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2021-08-09 16:42:46.494  INFO 18528 --- [nio-8080-exec-2] c.c.guide.chapter04_05.aspect.LogAspect  : 发生请求：&#x2F;books&#x2F;1</span><br><span class="line">2021-08-09 16:42:46.495  INFO 18528 --- [nio-8080-exec-2] c.c.guide.chapter04_05.aspect.LogAspect  : 调用方法：Book com.compilemind.guide.chapter04_05.controller.BookController.getBookById(String)</span><br><span class="line">处理耗时：502 ms </span><br><span class="line">2021-08-09 16:42:47.004  INFO 18528 --- [nio-8080-exec-2] c.c.guide.chapter04_05.aspect.LogAspect  : 处理耗时：510 ms</span><br></pre></td></tr></table></figure>
+<h2 id="仓库地址-1"><a href="#仓库地址-1" class="headerlink" title="仓库地址"></a>仓库地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/springboot-simple-guide">w4ngzhen/springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com)</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/SpringBoot/" rel="tag"># SpringBoot</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/07/16/2021-07-06-IDEA%20Web%E6%B8%B2%E6%9F%93%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91%EF%BC%88%E4%B8%80%EF%BC%89%E2%80%94%20%E4%BD%BF%E7%94%A8JCEF/" rel="prev" title="IDEA Web渲染插件开发（一）— 使用JCEF">
+      <i class="fa fa-chevron-left"></i> IDEA Web渲染插件开发（一）— 使用JCEF
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter04-%E5%9F%BA%E4%BA%8ESpringBoot%E7%9A%84%E4%B9%A6%E7%B1%8D%E7%AE%A1%E7%90%86Web%E6%9C%8D%E5%8A%A1/" rel="next" title="极简SpringBoot指南-Chapter04-基于SpringBoot的书籍管理Web服务">
+      极简SpringBoot指南-Chapter04-基于SpringBoot的书籍管理Web服务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80"><span class="nav-number">1.</span> <span class="nav-text">仓库地址</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Chapter05-SpringBoot%E4%B8%AD%E7%9A%84AOP%E9%9D%A2%E5%90%91%E5%88%87%E9%9D%A2%E7%BC%96%E7%A8%8B%E7%AE%80%E4%BB%8B"><span class="nav-number"></span> <span class="nav-text">Chapter05-SpringBoot中的AOP面向切面编程简介</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%96%B9%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">基本方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOP"><span class="nav-number">2.</span> <span class="nav-text">AOP</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%9C%AF%E8%AF%AD"><span class="nav-number">2.1.</span> <span class="nav-text">核心术语</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E7%82%B9%EF%BC%88JoinPoint%EF%BC%89"><span class="nav-number">2.1.1.</span> <span class="nav-text">连接点（JoinPoint）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%87%E5%85%A5%E7%82%B9%EF%BC%88Pointcut%EF%BC%89"><span class="nav-number">2.1.2.</span> <span class="nav-text">切入点（Pointcut）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E7%9F%A5%EF%BC%88Advice%EF%BC%89"><span class="nav-number">2.1.3.</span> <span class="nav-text">通知（Advice）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%87%E9%9D%A2%EF%BC%88Aspect%EF%BC%89"><span class="nav-number">2.1.4.</span> <span class="nav-text">切面（Aspect）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80-1"><span class="nav-number">3.</span> <span class="nav-text">仓库地址</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">54</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

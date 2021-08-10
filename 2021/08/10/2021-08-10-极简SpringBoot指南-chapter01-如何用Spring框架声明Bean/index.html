@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="仓库地址w4ngzhen&#x2F;springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com) Chapter01-如何用Spring框架声明Bean">
+<meta property="og:type" content="article">
+<meta property="og:title" content="极简SpringBoot指南-Chapter01-如何用Spring框架声明Bean">
+<meta property="og:url" content="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter01-%E5%A6%82%E4%BD%95%E7%94%A8Spring%E6%A1%86%E6%9E%B6%E5%A3%B0%E6%98%8EBean/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="仓库地址w4ngzhen&#x2F;springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com) Chapter01-如何用Spring框架声明Bean">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-08-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-08-10T01:22:04.450Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="SpringBoot">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter01-%E5%A6%82%E4%BD%95%E7%94%A8Spring%E6%A1%86%E6%9E%B6%E5%A3%B0%E6%98%8EBean/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>极简SpringBoot指南-Chapter01-如何用Spring框架声明Bean | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter01-%E5%A6%82%E4%BD%95%E7%94%A8Spring%E6%A1%86%E6%9E%B6%E5%A3%B0%E6%98%8EBean/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          极简SpringBoot指南-Chapter01-如何用Spring框架声明Bean
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-08-10 00:00:00 / Modified: 09:22:04" itemprop="dateCreated datePublished" datetime="2021-08-10T00:00:00+08:00">2021-08-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="仓库地址"><a href="#仓库地址" class="headerlink" title="仓库地址"></a>仓库地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/springboot-simple-guide">w4ngzhen/springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com)</a></p>
+<h1 id="Chapter01-如何用Spring框架声明Bean"><a href="#Chapter01-如何用Spring框架声明Bean" class="headerlink" title="Chapter01-如何用Spring框架声明Bean"></a>Chapter01-如何用Spring框架声明Bean</h1><a id="more"></a>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在上一章中，我们已经掌握了Spring最基本的使用方式：</p>
+<ol>
+<li>通过使用<code>@Component</code>注解标记我们的类作为一个Bean组件。</li>
+<li>使用Spring上下文对象从IOC容器中拿到Bean组件。</li>
+</ol>
+<p>在这一章中，我们将进一步学习使用Spring框架声明Bean的三种方式：</p>
+<ol>
+<li><code>@Component</code>注解</li>
+<li>XML配置声明</li>
+<li>Java类配置声明（<code>@Configuration</code>）</li>
+</ol>
+<p><em>PS：Spring声明Bean的方式不止这三种，请自行搜索了解：Spring声明Bean的方式。</em></p>
+<h2 id="一-使用-Component注解"><a href="#一-使用-Component注解" class="headerlink" title="一 使用@Component注解"></a>一 使用<code>@Component</code>注解</h2><p><code>@Component</code>注解我们已经很熟悉了，这里还是需要简单提一下。创建类Apple：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用注解 @Component 标记，并且我们还自定义了Bean的名称</span></span><br><span class="line"><span class="meta">@Component(&quot;myApple&quot;)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Apple</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Apple</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Apple 无参构造函数&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取并打印：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Chapter01App</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ConfigurableApplicationContext context =</span><br><span class="line">                SpringApplication.run(Chapter01App.class, args);</span><br><span class="line">        <span class="comment">// 注意BeanName我们填写的&quot;myApple&quot;，和 @Component(&quot;myApple&quot;) 对应</span></span><br><span class="line">        Object myApple = context.getBean(<span class="string">&quot;myApple&quot;</span>);</span><br><span class="line">        System.out.println(myApple);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="二-Java类配置声明"><a href="#二-Java类配置声明" class="headerlink" title="二 Java类配置声明"></a>二 Java类配置声明</h2><p>Java类配置声明是指，我们使用某个Java作为Spring的配置，通过Java代码本身来定义Bean。这样做的好处我们后文会提到。</p>
+<p>首先编写我们的Bean类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Banana类，不需要使用任何注解</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Banana</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Banana</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Banana 无参构造函数&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后，我们编写一个<strong>配置类</strong>，其特征是在类上有注解<code>@Configuration</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span> <span class="comment">// 添加注解表明是一个Spring配置类</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Chapter01Configuration</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Bean</span> <span class="comment">// 使用&#x27;@Bean&#x27;在方法上，表明我们声明了一个Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Banana <span class="title">myBanana</span><span class="params">()</span> </span>&#123; <span class="comment">// 方法名即为Bean的名称</span></span><br><span class="line">        System.out.println(<span class="string">&quot;进入Banana Bean创建函数&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Banana();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后，我们在启动类上添加注入，表明扫描该配置类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="comment">// &#x27;@Import&#x27; 注解用于指定我们需要的配置类</span></span><br><span class="line"><span class="comment">// 默认情况下，会自动扫描当前启动类所在包及其子包的Configuration，</span></span><br><span class="line"><span class="comment">// 所以不需要特别指定，这里主要是演示</span></span><br><span class="line"><span class="meta">@Import(Chapter01Configuration.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Chapter01App</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ConfigurableApplicationContext context =</span><br><span class="line">                SpringApplication.run(Chapter01App.class, args);</span><br><span class="line">        Object myBanana = context.getBean(<span class="string">&quot;myBanana&quot;</span>);</span><br><span class="line">        System.out.println(myBanana);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这个例子中，各位读者可能会比较绕，这里再整理以下思路。</p>
+<p>首先，我们创建了一个普普通通的Java类Banana，对于这个类，我们没有用到任何有关Spring框架的东西。</p>
+<p>其次，我们创建了一个配置类Chapter01Configuration，通过类名我们知道，Spring对于配置类的名称没有任何的限制，只要是合法的都行。这个类与Spring框架唯一的联系就是使用了注解<code>@Configuration</code>，意味着我们标记了这个类为一个Spring的配置类。</p>
+<p>那么配置类能干什么呢？就是我们第三步的操作：我们在配置类中编写了一个方法<code>public Banana myBanana();</code>，并且在其方法上使用了注解<code>@Bean</code>，通过该注解，表明我们定义了一个Bean，这个Bean的名称就是方法名”myBanana”，这个Bean的类型就是Banana。</p>
+<h2 id="三-XML配置声明Bean（选读）"><a href="#三-XML配置声明Bean（选读）" class="headerlink" title="三 XML配置声明Bean（选读）"></a>三 XML配置声明Bean（选读）</h2><p>还记得上面的我们通过注解的形式来声明我们的Bean吗？实际上，初期的Spring的IOC容器的初始化，是通过配置文件进行的，尽管如今Spring以及SpringBoot项目绝大多数情况都使用的是<strong>注解方式</strong>以及<strong>Java类配置</strong>，但是使用XML的配置方式，我也希望大家能够了解。</p>
+<p>首先，我们依然创建一个普通的Java类Coconut：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Coconut</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 定义字段：重量，可以通过下面的getter和setter获取和设置该值</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> weight;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Coconut</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Coconut 无参构造函数&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getWeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> weight;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setWeight</span><span class="params">(<span class="keyword">int</span> weight)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.weight = weight;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从这个类可以看到，我们没有使用任何的有关Spring相关的注解（尤其是<code>@Component</code>注解），但是注意，这个类我们稍微添加了些内容，增加了一个字段weight，用于记录Coconut的重量。那么接下来，Spring的IOC容器，如何初始化我们的Coconut实例呢？只需两步：</p>
+<ol>
+<li>创建一个xml文件，在xml文件中，使用Spring框架约定的格式定义Bean</li>
+<li>在启动类上，指定Spring框架加载该xml</li>
+</ol>
+<p><strong>首先我们看步骤1，创建xml文件。</strong>在<code>项目目录/src/main/resources</code>目录下，创建任意自定义的名称的XML文件，为了便于我们识别，本人创建的是：<code>chapter01_03_use_xml_beans.xml</code>，初始内容下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><em>PS：使用IDEA的时候，可以在相关文件夹上<code>右键 — New — XML Configuration File — Spring Config</code>来快速创建具有初始内容的xml。</em></p>
+<p>可以看到xml初始内容的根节点<code>&lt;beans&gt;</code>就可以猜测到我们可以在其中添加子节点<code>&lt;bean&gt;</code>。OK，我们来定义我们的bean：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 定义了一个Bean，名称是myCoconut --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bean</span> <span class="attr">name</span>=<span class="string">&quot;myCoconut&quot;</span> <span class="attr">class</span>=<span class="string">&quot;com.compilemind.guide.chapter01._03_use_xml.Coconut&quot;</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 对于Coconut的weight属性，我们设置它的初始值100 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;weight&quot;</span> <span class="attr">value</span>=<span class="string">&quot;100&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>其实，通过xml，我认为不需要赘述什么。我们首先使用节点<code>&lt;bean&gt;</code>来定义我们的Bean，指明了他的name，以及他是由哪个类来创建的。并且，我们还在其子节点<code>&lt;propertiy&gt;</code>定义了Coconut的weight的初始值。</p>
+<p>现在，我们已经通过xml，配置好了我们的Bean。怎么让Spring框架识别并初始化我们的Bean呢？很简单，只需要使用<code>@ImportResource</code>来配置我们要加载的xml是哪个即可：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="comment">// &#x27;@ImportResource&#x27; 注解用于加载我们指定的xml配置</span></span><br><span class="line"><span class="meta">@ImportResource(&quot;classpath:chapter01_03_use_xml_beans.xml&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Chapter01App</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        ConfigurableApplicationContext context =</span><br><span class="line">                SpringApplication.run(Chapter01App.class, args);</span><br><span class="line">        </span><br><span class="line">		Object myCoconut = context.getBean(<span class="string">&quot;myCoconut&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (myCoconut <span class="keyword">instanceof</span> Coconut) &#123;</span><br><span class="line">            <span class="keyword">int</span> weight = ((Coconut) myCoconut).getWeight();</span><br><span class="line">            System.out.println(<span class="string">&quot;Coconut重量是：&quot;</span> + weight);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>PS：对于<code>classpath:xxx</code>的知识点，请自行了解，搜索关键字：<code>Spring classpath</code>。</em></p>
+<h2 id="仓库地址-1"><a href="#仓库地址-1" class="headerlink" title="仓库地址"></a>仓库地址</h2><p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/springboot-simple-guide">w4ngzhen/springboot-simple-guide: This is a project that guides SpringBoot users to get started quickly through a series of examples (github.com)</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/SpringBoot/" rel="tag"># SpringBoot</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter02-Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%9A%84%E6%96%B9%E5%BC%8F/" rel="prev" title="极简SpringBoot指南-Chapter02-Spring依赖注入的方式">
+      <i class="fa fa-chevron-left"></i> 极简SpringBoot指南-Chapter02-Spring依赖注入的方式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/08/10/2021-08-10-%E6%9E%81%E7%AE%80SpringBoot%E6%8C%87%E5%8D%97-chapter00-%E5%AD%A6%E4%B9%A0SpringBoot%E5%89%8D%E7%9A%84%E5%9F%BA%E6%9C%AC%E7%9F%A5%E8%AF%86/" rel="next" title="极简SpringBoot指南-Chapter00-学习SpringBoot前的基本知识">
+      极简SpringBoot指南-Chapter00-学习SpringBoot前的基本知识 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80"><span class="nav-number">1.</span> <span class="nav-text">仓库地址</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Chapter01-%E5%A6%82%E4%BD%95%E7%94%A8Spring%E6%A1%86%E6%9E%B6%E5%A3%B0%E6%98%8EBean"><span class="nav-number"></span> <span class="nav-text">Chapter01-如何用Spring框架声明Bean</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80-%E4%BD%BF%E7%94%A8-Component%E6%B3%A8%E8%A7%A3"><span class="nav-number">2.</span> <span class="nav-text">一 使用@Component注解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C-Java%E7%B1%BB%E9%85%8D%E7%BD%AE%E5%A3%B0%E6%98%8E"><span class="nav-number">3.</span> <span class="nav-text">二 Java类配置声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89-XML%E9%85%8D%E7%BD%AE%E5%A3%B0%E6%98%8EBean%EF%BC%88%E9%80%89%E8%AF%BB%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">三 XML配置声明Bean（选读）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%93%E5%BA%93%E5%9C%B0%E5%9D%80-1"><span class="nav-number">5.</span> <span class="nav-text">仓库地址</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">65</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">54</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
