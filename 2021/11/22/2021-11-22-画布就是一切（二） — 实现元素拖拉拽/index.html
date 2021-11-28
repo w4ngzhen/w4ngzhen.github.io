@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="在《画布就是一切（一） — 基础入门》中，我们介绍了利用画布进行UI编程的基本模式以及利用基本模式，分析了如何实现鼠标悬浮在元素上，元素变色的功能。在本文中，我们依然利用画布编程的基本模式进行编程，但这一次我们将会提升一定的难度，实现元素拖拉拽的效果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="画布就是一切（二） — 实现元素拖拉拽">
+<meta property="og:url" content="http://compilemind.com/2021/11/22/2021-11-22-%E7%94%BB%E5%B8%83%E5%B0%B1%E6%98%AF%E4%B8%80%E5%88%87%EF%BC%88%E4%BA%8C%EF%BC%89%20%E2%80%94%20%E5%AE%9E%E7%8E%B0%E5%85%83%E7%B4%A0%E6%8B%96%E6%8B%89%E6%8B%BD/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="在《画布就是一切（一） — 基础入门》中，我们介绍了利用画布进行UI编程的基本模式以及利用基本模式，分析了如何实现鼠标悬浮在元素上，元素变色的功能。在本文中，我们依然利用画布编程的基本模式进行编程，但这一次我们将会提升一定的难度，实现元素拖拉拽的效果。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/010-rect-drag.gif">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/020-mouse-offset-desc.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/030-drag-show-case.gif">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/040-drag-show-case-perfect.gif">
+<meta property="article:published_time" content="2021-11-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-11-28T07:34:29.891Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="h5">
+<meta property="article:tag" content="canvas">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/010-rect-drag.gif">
+
+<link rel="canonical" href="http://compilemind.com/2021/11/22/2021-11-22-%E7%94%BB%E5%B8%83%E5%B0%B1%E6%98%AF%E4%B8%80%E5%88%87%EF%BC%88%E4%BA%8C%EF%BC%89%20%E2%80%94%20%E5%AE%9E%E7%8E%B0%E5%85%83%E7%B4%A0%E6%8B%96%E6%8B%89%E6%8B%BD/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>画布就是一切（二） — 实现元素拖拉拽 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2021/11/22/2021-11-22-%E7%94%BB%E5%B8%83%E5%B0%B1%E6%98%AF%E4%B8%80%E5%88%87%EF%BC%88%E4%BA%8C%EF%BC%89%20%E2%80%94%20%E5%AE%9E%E7%8E%B0%E5%85%83%E7%B4%A0%E6%8B%96%E6%8B%89%E6%8B%BD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          画布就是一切（二） — 实现元素拖拉拽
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-11-22 00:00:00" itemprop="dateCreated datePublished" datetime="2021-11-22T00:00:00+08:00">2021-11-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-11-28 15:34:29" itemprop="dateModified" datetime="2021-11-28T15:34:29+08:00">2021-11-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在《画布就是一切（一） — 基础入门》中，我们介绍了利用画布进行UI编程的基本模式以及利用基本模式，分析了如何实现鼠标悬浮在元素上，元素变色的功能。在本文中，我们依然利用画布编程的基本模式进行编程，但这一次我们将会提升一定的难度，实现元素拖拉拽的效果。</p>
+<a id="more"></a>
+<p>使用过流程图或是图形绘制软件的同学都见到过这样的场景对于矩形拖拉拽的场景：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/010-rect-drag.gif" alt="010-rect-drag"></p>
+<p>本文将以上述的场景为需求，结合画布编程的基本模式来复现一个类似的效果。本文的代码已经提交至GitHub仓库，在<strong>仓库根目录/02_drag目录</strong>中。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/canvas-is-everything/tree/main/02_drag">canvas-is-everything/02_drag at main · w4ngzhen/canvas-is-everything (github.com)</a></p>
+<h1 id="状态"><a href="#状态" class="headerlink" title="状态"></a>状态</h1><p>我们首先分析这个场景下的状态有哪些。鼠标在矩形元素上按下后，鼠标可以拖动矩形元素，鼠标松开后，矩形不再跟随鼠标移动。那么对于UI来说，最基本的就是矩形的位置和大小，同时我们还需要一个状态来表示矩形元素是否被选中：</p>
+<ul>
+<li>矩形位置position</li>
+<li>矩形大小size</li>
+<li>矩形是否被选中selected</li>
+</ul>
+<h1 id="输入与更新"><a href="#输入与更新" class="headerlink" title="输入与更新"></a>输入与更新</h1><p>在这个场景中，更新点主要在于当鼠标点击在元素上时，矩形selected会修改为true；当鼠标移动的时候，只要<strong>有元素被选中且鼠标的左键处于点击</strong>的状态，那么就会修改矩形元素的position。而造成更新的原因就是鼠标的行为输入（点击以及移动）。</p>
+<h1 id="渲染"><a href="#渲染" class="headerlink" title="渲染"></a>渲染</h1><p>实际上，在该场景下，渲染是最简单的部分，根据上一篇文章的介绍，我们只需要canvas的context不断的画矩形即可。</p>
+<h1 id="流程梳理"><a href="#流程梳理" class="headerlink" title="流程梳理"></a>流程梳理</h1><p>让我们再次对流程进行梳理。初始情况下，鼠标在画布上移动进而产生移动事件。我们引入一个辅助变量<code>lastMousePosition</code>（默认值为null），来表示<strong>上一次</strong>鼠标移动事件的所在位置。在鼠标移动事件触发中，我们得到此刻鼠标的位置，并与上一次鼠标位置做向量差，进而得到位移差<code>offset</code>。对于<code>offset</code>我们将其应用在矩形的移动上。此外，当鼠标<strong>按下</strong>的时候，我们判断是否选中矩形，进而将矩形的selected置为true或false。当鼠标<strong>抬起</strong>的时候，我们直接设置矩形selected为false即可。</p>
+<h1 id="基础拖拽代码编写与分析"><a href="#基础拖拽代码编写与分析" class="headerlink" title="基础拖拽代码编写与分析"></a>基础拖拽代码编写与分析</h1><h2 id="1）工具方法"><a href="#1）工具方法" class="headerlink" title="1）工具方法"></a>1）工具方法</h2><p>定义常用的工具方法：</p>
+<ul>
+<li><p>获取鼠标在canvas上的位置。</p>
+</li>
+<li><p>检查某个点是否位于某个矩形中。</p>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1 定义常用工具方法</span></span><br><span class="line"><span class="keyword">const</span> utils = &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 工具方法：获取鼠标在画布上的position</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  getMousePositionInCanvas: <span class="function">(<span class="params">event, canvasEle</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 移动事件对象，从中解构clientX和clientY</span></span><br><span class="line">    <span class="keyword">let</span> &#123;clientX, clientY&#125; = event;</span><br><span class="line">    <span class="comment">// 解构canvas的boundingClientRect中的left和top</span></span><br><span class="line">    <span class="keyword">let</span> &#123;left, top&#125; = canvasEle.getBoundingClientRect();</span><br><span class="line">    <span class="comment">// 计算得到鼠标在canvas上的坐标</span></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      x: clientX - left,</span><br><span class="line">      y: clientY - top</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 工具方法：检查点point是否在矩形内</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  isPointInRect: <span class="function">(<span class="params">rect, point</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> &#123;<span class="attr">x</span>: rectX, <span class="attr">y</span>: rectY, width, height&#125; = rect;</span><br><span class="line">    <span class="keyword">let</span> &#123;<span class="attr">x</span>: pX, <span class="attr">y</span>: pY&#125; = point;</span><br><span class="line">    <span class="keyword">return</span> (rectX &lt;= pX &amp;&amp; pX &lt;= rectX + width) &amp;&amp; (rectY &lt;= pY &amp;&amp; pY &lt;= rectY + height);</span><br><span class="line">  &#125;,</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="2）状态定义"><a href="#2）状态定义" class="headerlink" title="2）状态定义"></a>2）状态定义</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 2 定义状态</span></span><br><span class="line"><span class="keyword">let</span> rect = &#123;</span><br><span class="line">  x: <span class="number">10</span>,</span><br><span class="line">  y: <span class="number">10</span>,</span><br><span class="line">  width: <span class="number">80</span>,</span><br><span class="line">  height: <span class="number">60</span>,</span><br><span class="line">  selected: <span class="literal">false</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>根据前文，在矩形一般的属性上位置和大小上，我们还新增了属性<code>selected</code>，用于表示矩形是否被选中。</p>
+<h2 id="3）获取Canvas元素对象"><a href="#3）获取Canvas元素对象" class="headerlink" title="3）获取Canvas元素对象"></a>3）获取Canvas元素对象</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 3 获取canvas元素，准备在步骤</span></span><br><span class="line"><span class="keyword">let</span> canvasEle = <span class="built_in">document</span>.querySelector(<span class="string">&#x27;#myCanvas&#x27;</span>);</span><br></pre></td></tr></table></figure>
+<p>调用API，获取Canvas元素对象，用于后续的事件监听。</p>
+<h2 id="4）鼠标按下事件"><a href="#4）鼠标按下事件" class="headerlink" title="4）鼠标按下事件"></a>4）鼠标按下事件</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 4 鼠标按下事件</span></span><br><span class="line">canvasEle.addEventListener(<span class="string">&#x27;mousedown&#x27;</span>, <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 获取鼠标按下时位置</span></span><br><span class="line">  <span class="keyword">let</span> &#123;x, y&#125; = utils.getMousePositionInCanvas(event, canvasEle);</span><br><span class="line">  <span class="comment">// 矩形是否被选中取决于点击时候的鼠标是否在矩形内部</span></span><br><span class="line">  rect.selected = utils.isPointInRect(rect, &#123;x, y&#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>获取当前鼠标按下的位置，并通过工具函数来判断是否需要将矩形选中（selected置为true/false）。</p>
+<h2 id="5）鼠标移动处理"><a href="#5）鼠标移动处理" class="headerlink" title="5）鼠标移动处理"></a>5）鼠标移动处理</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 5 鼠标移动处理</span></span><br><span class="line"><span class="comment">// 5.1 定义辅助变量，记录每一次移动的位置</span></span><br><span class="line"><span class="keyword">let</span> mousePosition = <span class="literal">null</span>;</span><br><span class="line">canvasEle.addEventListener(<span class="string">&#x27;mousemove&#x27;</span>, <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.2 记录上一次的鼠标位置</span></span><br><span class="line">  <span class="keyword">let</span> lastMousePosition = mousePosition;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.3 更新当前鼠标位置</span></span><br><span class="line">  mousePosition = utils.getMousePositionInCanvas(event, canvasEle);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.4 判断是否鼠标左键点击且有矩形被选中</span></span><br><span class="line">  <span class="comment">// https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons</span></span><br><span class="line">  <span class="keyword">let</span> buttons = event.buttons;</span><br><span class="line">  <span class="keyword">if</span> (!(buttons === <span class="number">1</span> &amp;&amp; rect.selected)) &#123;</span><br><span class="line">    <span class="comment">// 不满足则不处理</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.5 获取鼠标偏移</span></span><br><span class="line">  <span class="keyword">let</span> offset;</span><br><span class="line">  <span class="keyword">if</span> (lastMousePosition === <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 首次记录，偏移dx和dy为0</span></span><br><span class="line">    offset = &#123;</span><br><span class="line">      dx: <span class="number">0</span>,</span><br><span class="line">      dy: <span class="number">0</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 曾经已经记录了位置，则偏移则为当前位置和上一次位置做向量差</span></span><br><span class="line">    offset = &#123;</span><br><span class="line">      dx: mousePosition.x - lastMousePosition.x,</span><br><span class="line">      dy: mousePosition.y - lastMousePosition.y</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.6 改动rect位置</span></span><br><span class="line">  rect.x = rect.x + offset.dx;</span><br><span class="line">  rect.y = rect.y + offset.dy;</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>这一部分的代码略长。但是逻辑并不难理解。</p>
+<p><strong>5.1 定义辅助变量<code>mousePosition</code>。</strong>使用该变量记录鼠标在每一次移动过程中的位置。</p>
+<p><strong>5.2 记录临时变量<code>lastMousePosition</code>。</strong>将上一次事件记录的<code>mousePosition</code>赋给该变量，用于后续进行偏移offset计算。</p>
+<p><strong>5.3 更新<code>mousePosition</code>。</strong></p>
+<p><strong>5.4 判断是否鼠标左键点击且有矩形被选中。</strong>在鼠标移动的过程中，我们是可以通过事件对象中的<code>button</code>或<code>buttons</code>属性的数值来判断当前鼠标的点击情况（<a target="_blank" rel="noopener" href="https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/buttons">MDN</a>）。当<code>buttons</code>或<code>button</code>为1的时候，表示移动的过程中<strong>鼠标左键</strong>是按下的状态。通过判断鼠标左键是否被按下来表示是否处于拖拽中，但是拖拽并不意味就选中了矩形在拖拽，还需要确定当前的矩形是否选中，所以需要（<code>buttons === 1</code>和<code>rect.selected === true</code>）两个条件共同决定。</p>
+<p><strong>5.5 获取鼠标偏移。</strong>这一部分需要解释一下什么是鼠标偏移（offset）。在鼠标移动的每时每刻都会有一个位置，我们利用<code>mousePosition</code>记录了该位置。然后利用<code>lastMousePosition</code>和<code>mousePosition</code>，我们将此刻的位置和上一次位置的x和y对应进行差（向量差），进而得到鼠标一小段的偏移量。但需要注意的是，如果是首次的移动事件，那么上一次的位置是<code>lastMousePosition</code>是null，那么我们认为这个偏移0。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/020-mouse-offset-desc.jpg" alt="020-mouse-offset-desc"></p>
+<p><strong>5.6 改动矩形位置。</strong>将鼠标偏移值应用到矩形的位置上，让矩形也位移对应的距离。</p>
+<p>在鼠标移动的处理中，我们完成了由鼠标移动offset作为输入，修改了被点中的矩形的位置。</p>
+<h2 id="6）鼠标按键抬起事件"><a href="#6）鼠标按键抬起事件" class="headerlink" title="6）鼠标按键抬起事件"></a>6）鼠标按键抬起事件</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 6 鼠标抬起事件</span></span><br><span class="line">canvasEle.addEventListener(<span class="string">&#x27;mouseup&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 鼠标抬起时，矩形就未被选中了</span></span><br><span class="line">  rect.selected = <span class="literal">false</span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>鼠标按键的抬起后，我们认为不再需要对矩形进行推拽，所以将矩形的selected置为false。</p>
+<h2 id="7）渲染处理"><a href="#7）渲染处理" class="headerlink" title="7）渲染处理"></a>7）渲染处理</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 7 渲染</span></span><br><span class="line"><span class="comment">// 7.1 从Canvas元素上获取context</span></span><br><span class="line"><span class="keyword">let</span> ctx = canvasEle.getContext(<span class="string">&#x27;2d&#x27;</span>);</span><br><span class="line">(<span class="function"><span class="keyword">function</span> <span class="title">doRender</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  requestAnimationFrame(<span class="function">() =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 7.2 处理渲染</span></span><br><span class="line">    (<span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="comment">// 先清空画布</span></span><br><span class="line">      ctx.clearRect(<span class="number">0</span>, <span class="number">0</span>, canvasEle.width, canvasEle.height);</span><br><span class="line">      <span class="comment">// 暂存当前ctx的状态</span></span><br><span class="line">      ctx.save();</span><br><span class="line">      <span class="comment">// 设置画笔颜色：黑色</span></span><br><span class="line">      ctx.strokeStyle = rect.selected ? <span class="string">&#x27;#F00&#x27;</span> : <span class="string">&#x27;#000&#x27;</span>;</span><br><span class="line">      <span class="comment">// 矩形所在位置画一个黑色框的矩形</span></span><br><span class="line">      ctx.strokeRect(rect.x - <span class="number">0.5</span>, rect.y - <span class="number">0.5</span>, rect.width, rect.height);</span><br><span class="line">      <span class="comment">// 恢复ctx的状态</span></span><br><span class="line">      ctx.restore();</span><br><span class="line">    &#125;)();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 7.3 递归调用</span></span><br><span class="line">    doRender();</span><br><span class="line"></span><br><span class="line">  &#125;);</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+<p>渲染部分的代码，总的来说就是三个要点：</p>
+<ol>
+<li>获取Canvas元素的context对象。</li>
+<li>使用<code>requestAnimationFrame</code>API并构造递归结构来让浏览器调度渲染流程。</li>
+<li>在渲染流程编写画布操作的代码（清空、绘制）。</li>
+</ol>
+<h2 id="拖拽效果演示"><a href="#拖拽效果演示" class="headerlink" title="拖拽效果演示"></a>拖拽效果演示</h2><p>至此，我们已经实现了元素拖动的样例，效果如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/030-drag-show-case.gif" alt="030-drag-show-case"></p>
+<p>对于当前效果的完整代码在<strong>项目根目录/02_drag目录</strong>中，对应git提交为：<code>02_drag: 01_基础效果</code>。</p>
+<h1 id="效果提升"><a href="#效果提升" class="headerlink" title="效果提升"></a>效果提升</h1><p>对于上述效果，其实还是不完美的。因为当鼠标悬浮在矩形上的时候，并没有任何UI上的信息，点击的矩形进行拖拽的时候，鼠标指针也是普通的。于是我们优化代码，将鼠标悬浮的呈现的效果以及拖拽时候的鼠标指针效果做出来。</p>
+<p>我们设定，当鼠标悬浮在矩形上的时候，矩形会改变对应的颜色为带有50%透明的红色（<code>rgba(255, 0, 0, 0.5)</code>，并且鼠标的指针修改为<code>pointer</code>。那么首先需要给矩形加上我们在第一章中提到的属性<code>hover</code>：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> rect = &#123;</span><br><span class="line">  x: <span class="number">10</span>,</span><br><span class="line">  y: <span class="number">10</span>,</span><br><span class="line">  width: <span class="number">80</span>,</span><br><span class="line">  height: <span class="number">60</span>,</span><br><span class="line">  selected: <span class="literal">false</span>,</span><br><span class="line">  <span class="comment">// hover效果</span></span><br><span class="line">  hover: <span class="literal">false</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>在渲染中，我们不再像上一节中进行简单的处理，而是需要对selected、hover以及一般状态都进行考虑。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">// 7.2 处理渲染</span></span><br><span class="line"> (<span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">     </span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">// 被点击选中：正红色，指针为 &#x27;move&#x27;</span></span><br><span class="line">   <span class="comment">// 悬浮：带50%透明的正红色，指针为 &#x27;pointer&#x27;</span></span><br><span class="line">   <span class="comment">// 普通下为黑色，指针为 &#x27;default&#x27;</span></span><br><span class="line">   <span class="keyword">if</span> (rect.selected) &#123;</span><br><span class="line">     ctx.strokeStyle = <span class="string">&#x27;#FF0000&#x27;</span>;</span><br><span class="line">     canvasEle.style.cursor = <span class="string">&#x27;move&#x27;</span>;</span><br><span class="line">   &#125; <span class="keyword">else</span> <span class="keyword">if</span> (rect.hover) &#123;</span><br><span class="line">     ctx.strokeStyle = <span class="string">&#x27;rgba(255, 0, 0, 0.5)&#x27;</span>;</span><br><span class="line">     canvasEle.style.cursor = <span class="string">&#x27;pointer&#x27;</span>;</span><br><span class="line">   &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">     ctx.strokeStyle = <span class="string">&#x27;#000&#x27;</span>;</span><br><span class="line">     canvasEle.style.cursor = <span class="string">&#x27;default&#x27;</span>;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line">     </span><br><span class="line"> &#125;)();</span><br></pre></td></tr></table></figure>
+<p>接下来就是在鼠标移动事件中，修改hover：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">canvasEle.addEventListener(<span class="string">&#x27;mousemove&#x27;</span>, <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.2 记录上一次的鼠标位置</span></span><br><span class="line">  <span class="comment">// ... ...</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.3 更新当前鼠标位置</span></span><br><span class="line">  mousePosition = utils.getMousePositionInCanvas(event, canvasEle);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.3.1 判断鼠标是否悬浮在矩形</span></span><br><span class="line">  rect.hover = utils.isPointInRect(rect, mousePosition);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5.4 判断是否鼠标左键点击且有矩形被选中</span></span><br><span class="line">  <span class="comment">// ... ...</span></span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h1 id="整体演示"><a href="#整体演示" class="headerlink" title="整体演示"></a>整体演示</h1><p>至此，我们丰富了我们的拖拽样例，结果如下：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/w4ngzhen/CDN/images/post/2021-11-22/040-drag-show-case-perfect.gif" alt="040-drag-show-case-perfect"></p>
+<h1 id="代码仓库与说明"><a href="#代码仓库与说明" class="headerlink" title="代码仓库与说明"></a>代码仓库与说明</h1><p>本文所在的代码仓库地址为：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/canvas-is-everything/tree/main/02_drag">canvas-is-everything/02_drag at main · w4ngzhen/canvas-is-everything (github.com)</a></p>
+<p>两次提交：</p>
+<ol>
+<li>02<em>drag: 01</em>基础效果（优化前）</li>
+<li>02<em>drag: 02</em>悬浮与点击效果提升（优化后）</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/h5/" rel="tag"># h5</a>
+              <a href="/tags/canvas/" rel="tag"># canvas</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/11/2021-11-11-%E7%94%BB%E5%B8%83%E5%B0%B1%E6%98%AF%E4%B8%80%E5%88%87%EF%BC%88%E4%B8%80%EF%BC%89%E2%80%94%20%E7%94%BB%E5%B8%83%E7%BC%96%E7%A8%8B%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A8%A1%E5%BC%8F/" rel="prev" title="画布就是一切（一）— 画布编程的基本模式">
+      <i class="fa fa-chevron-left"></i> 画布就是一切（一）— 画布编程的基本模式
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%8A%B6%E6%80%81"><span class="nav-number">1.</span> <span class="nav-text">状态</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BE%93%E5%85%A5%E4%B8%8E%E6%9B%B4%E6%96%B0"><span class="nav-number">2.</span> <span class="nav-text">输入与更新</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93"><span class="nav-number">3.</span> <span class="nav-text">渲染</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E6%A2%B3%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">流程梳理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%8B%96%E6%8B%BD%E4%BB%A3%E7%A0%81%E7%BC%96%E5%86%99%E4%B8%8E%E5%88%86%E6%9E%90"><span class="nav-number">5.</span> <span class="nav-text">基础拖拽代码编写与分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1%EF%BC%89%E5%B7%A5%E5%85%B7%E6%96%B9%E6%B3%95"><span class="nav-number">5.1.</span> <span class="nav-text">1）工具方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2%EF%BC%89%E7%8A%B6%E6%80%81%E5%AE%9A%E4%B9%89"><span class="nav-number">5.2.</span> <span class="nav-text">2）状态定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3%EF%BC%89%E8%8E%B7%E5%8F%96Canvas%E5%85%83%E7%B4%A0%E5%AF%B9%E8%B1%A1"><span class="nav-number">5.3.</span> <span class="nav-text">3）获取Canvas元素对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4%EF%BC%89%E9%BC%A0%E6%A0%87%E6%8C%89%E4%B8%8B%E4%BA%8B%E4%BB%B6"><span class="nav-number">5.4.</span> <span class="nav-text">4）鼠标按下事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5%EF%BC%89%E9%BC%A0%E6%A0%87%E7%A7%BB%E5%8A%A8%E5%A4%84%E7%90%86"><span class="nav-number">5.5.</span> <span class="nav-text">5）鼠标移动处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6%EF%BC%89%E9%BC%A0%E6%A0%87%E6%8C%89%E9%94%AE%E6%8A%AC%E8%B5%B7%E4%BA%8B%E4%BB%B6"><span class="nav-number">5.6.</span> <span class="nav-text">6）鼠标按键抬起事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7%EF%BC%89%E6%B8%B2%E6%9F%93%E5%A4%84%E7%90%86"><span class="nav-number">5.7.</span> <span class="nav-text">7）渲染处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8B%96%E6%8B%BD%E6%95%88%E6%9E%9C%E6%BC%94%E7%A4%BA"><span class="nav-number">5.8.</span> <span class="nav-text">拖拽效果演示</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E6%8F%90%E5%8D%87"><span class="nav-number">6.</span> <span class="nav-text">效果提升</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E6%BC%94%E7%A4%BA"><span class="nav-number">7.</span> <span class="nav-text">整体演示</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E4%BB%93%E5%BA%93%E4%B8%8E%E8%AF%B4%E6%98%8E"><span class="nav-number">8.</span> <span class="nav-text">代码仓库与说明</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">69</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
