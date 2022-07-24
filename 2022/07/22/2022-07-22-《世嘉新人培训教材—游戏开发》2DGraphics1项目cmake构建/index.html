@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="《世嘉新人培训教材—游戏开发》作为经典的游戏开发教程，提供了相关样例代码供我们进行开发使用。但是该样例是基于VS进行编写构建的，而本人日常喜欢CLion进行C&#x2F;C++开发，于是准备使用cmake重新组织该书籍的样例项目：2DGraphics1中的NimotsuKunBox和drawPixels。当然，这个过程不仅是移植，也是对cmake组织项目一个深入的实践。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《世嘉新人培训教材—游戏开发》2DGraphics1项目cmake构建">
+<meta property="og:url" content="http://compilemind.com/2022/07/22/2022-07-22-%E3%80%8A%E4%B8%96%E5%98%89%E6%96%B0%E4%BA%BA%E5%9F%B9%E8%AE%AD%E6%95%99%E6%9D%90%E2%80%94%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E3%80%8B2DGraphics1%E9%A1%B9%E7%9B%AEcmake%E6%9E%84%E5%BB%BA/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="《世嘉新人培训教材—游戏开发》作为经典的游戏开发教程，提供了相关样例代码供我们进行开发使用。但是该样例是基于VS进行编写构建的，而本人日常喜欢CLion进行C&#x2F;C++开发，于是准备使用cmake重新组织该书籍的样例项目：2DGraphics1中的NimotsuKunBox和drawPixels。当然，这个过程不仅是移植，也是对cmake组织项目一个深入的实践。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/010-root.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/020-root-src.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/030-root-src-GameLibs.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/040-gamelib-use-modules.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/050-NimotsuKunBox-show.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/060-drawPixels-show.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/070-NimotsuKunBox-modified01.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/080-subsystem-windows.png">
+<meta property="article:published_time" content="2022-07-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-07-24T02:47:24.424Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="game">
+<meta property="article:tag" content="sega">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/010-root.png">
+
+<link rel="canonical" href="http://compilemind.com/2022/07/22/2022-07-22-%E3%80%8A%E4%B8%96%E5%98%89%E6%96%B0%E4%BA%BA%E5%9F%B9%E8%AE%AD%E6%95%99%E6%9D%90%E2%80%94%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E3%80%8B2DGraphics1%E9%A1%B9%E7%9B%AEcmake%E6%9E%84%E5%BB%BA/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>《世嘉新人培训教材—游戏开发》2DGraphics1项目cmake构建 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/07/22/2022-07-22-%E3%80%8A%E4%B8%96%E5%98%89%E6%96%B0%E4%BA%BA%E5%9F%B9%E8%AE%AD%E6%95%99%E6%9D%90%E2%80%94%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E3%80%8B2DGraphics1%E9%A1%B9%E7%9B%AEcmake%E6%9E%84%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          《世嘉新人培训教材—游戏开发》2DGraphics1项目cmake构建
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-07-22 00:00:00" itemprop="dateCreated datePublished" datetime="2022-07-22T00:00:00+08:00">2022-07-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-07-24 10:47:24" itemprop="dateModified" datetime="2022-07-24T10:47:24+08:00">2022-07-24</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>《世嘉新人培训教材—游戏开发》作为经典的游戏开发教程，提供了相关样例代码供我们进行开发使用。但是该样例是基于VS进行编写构建的，而本人日常喜欢CLion进行C/C++开发，于是准备使用cmake重新组织该书籍的样例项目：2DGraphics1中的NimotsuKunBox和drawPixels。当然，这个过程不仅是移植，也是对cmake组织项目一个深入的实践。</p>
+<a id="more"></a>
+<h1 id="对现有样例项目的认识与构建"><a href="#对现有样例项目的认识与构建" class="headerlink" title="对现有样例项目的认识与构建"></a>对现有样例项目的认识与构建</h1><h2 id="样例代码结构"><a href="#样例代码结构" class="headerlink" title="样例代码结构"></a>样例代码结构</h2><p>在进行cmake迁移前，有必要对现有的VS体系的代码结构进行了解。</p>
+<h3 id="GameLib（样例根目录）"><a href="#GameLib（样例根目录）" class="headerlink" title="GameLib（样例根目录）"></a>GameLib（样例根目录）</h3><p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/010-root.png" alt="010-root"></p>
+<p>该目录下主要存放了：</p>
+<ol>
+<li><p><strong>各个样例会使用的工具静态库/头文件</strong>；</p>
+</li>
+<li><p><strong>src</strong>：样例源码；</p>
+</li>
+<li><p><strong>tools</strong>：工具二进制程序。</p>
+</li>
+</ol>
+<h3 id="GameLib-src目录"><a href="#GameLib-src目录" class="headerlink" title="GameLib/src目录"></a>GameLib/src目录</h3><p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/020-root-src.png" alt="020-root-src"></p>
+<p>该目录下主要存放：</p>
+<ol>
+<li><p><strong>各种数字+下划线开头的文件夹</strong>：书中使用到的各种样例工程；</p>
+</li>
+<li><p><strong>GameLibs文件夹</strong>：生成GameLib根目录中的静态库/头文件的源码。</p>
+</li>
+</ol>
+<h3 id="GameLib-src-GameLibs目录"><a href="#GameLib-src-GameLibs目录" class="headerlink" title="GameLib/src/GameLibs目录"></a>GameLib/src/GameLibs目录</h3><p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/030-root-src-GameLibs.png" alt="030-root-src-GameLibs"></p>
+<p>该目录主要存放：</p>
+<ol>
+<li><strong>GameLib根目录下各个被样例项目使用的静态库/头文件的源码</strong>；</li>
+<li><strong>Modules</strong>：其他静态库项目的依赖静态库。</li>
+</ol>
+<h2 id="使用VS构建样例项目静态库"><a href="#使用VS构建样例项目静态库" class="headerlink" title="使用VS构建样例项目静态库"></a>使用VS构建样例项目静态库</h2><p>在GameLib下，本书的译者已经帮我们编写了一个基本的指南：</p>
+<blockquote>
+<p>编译顺序<br>在系统环境变量中添加 GAME_LIB_DIR 值为源码工程的根目录<br>注意要重启visual studio</p>
+<p>①先编译类库的Modules<br>src\GameLibs\Modules\Modules.sln</p>
+<p>②再编译各个小功能的类库<br>比如 src\GameLibs\2DActionGame\GameLib.sln</p>
+<p>③最后编译游戏本身<br>比如 src\01_FirstGame\FirstGame.sln</p>
+<p>为什么要按照这样的顺序呢？请看下面这个例子<br>譬如对src\02_2DGraphics1\2DGraphics1.sln 来说，<br>首先用vs打开它，右键点击 drawPixels查看属性<br>在链接器 的附加库目录一栏可以看到  $(GAME_LIB_DIR)\2DGraphics1\lib;%(AdditionalLibraryDirectories)<br>这意味着它需要在2DGraphics1\lib中查找某些类库，<br>具体要用什么类库呢？可以点击 链接器 -&gt; 输入 ，看到附加依赖项中有 GameLib_d.lib;%(AdditionalDependencies)</p>
+<p>如何才能生成这个 GameLib_d.lib呢?<br>打开 src\GameLibs\2DGraphics1\GameLib.sln 编译即可<br>但是，通过右键Framework属性， 查看库管理器 的附加依赖项可以看到 Modules_d.lib<br>这就要求必须先编译好 Modules工程<br>于是打开 src\GameLibs\Modules\Modules.sln 编译即可。</p>
+</blockquote>
+<p>这里有两个关键点需要牢记：</p>
+<ol>
+<li>需要配置环境变量<code>GAME_LIB_DIR</code>，原因在于后续即将编译的各个样例，都会使用<code>$(GAME_LIB_DIR)</code>然后找到对应的类库；</li>
+<li>编译有一个顺序：先核心静态库：Modules；然后各个样例需要的GameLib；最后是样例。</li>
+</ol>
+<h3 id="编译核心的Modules"><a href="#编译核心的Modules" class="headerlink" title="编译核心的Modules"></a>编译核心的Modules</h3><p>加载<code>$(GAME_LIB_DIR)\src\GameLibs\Modules\Modules.sln</code>进行构建</p>
+<p>使用vs编译后会生成<code>$(GAME_LIB_DIR)\src\GameLibs\Modules\lib\Modules_d.lib</code>（<code>_d</code>代表Debug的静态库）</p>
+<h3 id="编译各独立样例需要的GameLib"><a href="#编译各独立样例需要的GameLib" class="headerlink" title="编译各独立样例需要的GameLib"></a>编译各独立样例需要的GameLib</h3><p>在本文中，我们的目标是构建2DGrphics1-NimotsuKunBox项目，所以我们加载2DGrphics1的GameLib：<code>$(GAME_LIB_DIR)\src\GameLibs\2DGraphics1\GameLib.sln</code>进行构建，通过配置也能看到的确需要<code>Modules_d.lib</code>：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/040-gamelib-use-modules.png" alt="040-gamelib-use-modules"></p>
+<p>该项目构建完成后，会生成：<code>$(GAME_LIB_DIR)\2DGraphics1\lib\GameLib_d.lib</code>，并且会将<code>GameLib_d.lib</code>静态库以及相关头文件都复制到<code>$(GAME_LIB_DIR)\2DGraphics1\中</code>，：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">$(GAME_LIB_DIR)\2DGraphics1\</span><br><span class="line">├─include</span><br><span class="line">│  └─GameLib</span><br><span class="line">│      │  Framework.h</span><br><span class="line">│      │</span><br><span class="line">│      └─Base</span><br><span class="line">│          DebugStream.h</span><br><span class="line">│</span><br><span class="line">└─lib</span><br><span class="line">        Framework_d.idb</span><br><span class="line">        Framework_d.pdb</span><br><span class="line">        GameLib_d.lib（lib库）</span><br><span class="line">        GameLib_d.pdb</span><br><span class="line">        Modules_d.pdb</span><br></pre></td></tr></table></figure>
+<p>目前为止，我们生成了如下的两静态库以及头文件：</p>
+<ol>
+<li><code>$(GAME_LIB_DIR)\src\GameLibs\Modules\lib\Modules_d.lib</code></li>
+<li><code>$(GAME_LIB_DIR)\2DGraphics1\lib\GameLib_d.lib</code></li>
+<li><code>$(GAME_LIB_DIR)\2DGraphics1\include（头文件）</code></li>
+</ol>
+<p><strong>当然，因为我们的<code>GameLib_d.lib</code>是使用<code>Modules_d.lib</code>进行构建的，已经将<code>Modules_d.lib</code>链接到了<code>GameLib_d.lib</code>内部了，所以接下来我们的cmake项目不再需要<code>Modules_d.lib</code>了。</strong></p>
+<h3 id="演示2DGraphics1-NimotsuKunBox和drawPixels项目"><a href="#演示2DGraphics1-NimotsuKunBox和drawPixels项目" class="headerlink" title="演示2DGraphics1-NimotsuKunBox和drawPixels项目"></a>演示2DGraphics1-NimotsuKunBox和drawPixels项目</h3><p>使用VS打开<code>$(GAME_LIB_DIR)\src\02_2DGraphics1\2DGraphics1.sln&quot;</code>解决方案，该解决方案中有如下的5个样例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">NimotsuKunBox</span><br><span class="line">NimotsuKunBoxWithTermination</span><br><span class="line">NimotsuKunTextOnly</span><br><span class="line">NimotuKunDot</span><br><span class="line">drawPixels</span><br></pre></td></tr></table></figure>
+<p>将NimotsuKunBox项目作为启动项目，然后运行可以看到如下的界面：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/050-NimotsuKunBox-show.png" alt="050-NimotsuKunBox-show"></p>
+<p>将drawPixels作为启动项，运行可看到如下效果：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/060-drawPixels-show.png" alt="060-drawPixels-show"></p>
+<p>接下来，我们将使用cmake来移植这两个项目。</p>
+<h1 id="使用cmake搭建2DGraphics1项目"><a href="#使用cmake搭建2DGraphics1项目" class="headerlink" title="使用cmake搭建2DGraphics1项目"></a>使用cmake搭建2DGraphics1项目</h1><p>在经过前戏后，我们终于编译出了2DGraphics1所需要的<code>GameLib_d.lib</code>静态库以及相关的头文件，并且，我们还构建了2DGraphics1样例解决方案中的NimotsuKunBox和drawPixels项目。接下来我们将创建一个cmake项目，移植该样例中的两个项目。</p>
+<h2 id="搭建初始项目"><a href="#搭建初始项目" class="headerlink" title="搭建初始项目"></a>搭建初始项目</h2><p>首先，我们建立一个文件夹2DGraphics1_cmake，在该文件夹中，我们再创建两个文件夹：NimotsuKunBox和：drawPixels，并且这两个文件夹中分别各自创建一个main.cpp文件和CMakeLists.txt，内容如下：</p>
+<p>2DGraphics1_cmake/NimotsuKunBox：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 2DGraphics1_cmake/NimotsuKunBox/main.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;hello, NimotsuKunBox&quot;</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CMAKE_MINIMUM_REQUIRED</span>(VERSION <span class="number">3.22</span>)</span><br><span class="line"><span class="keyword">PROJECT</span>(NimotsuKunBox)</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(NimotsuKunBox main.cpp)</span><br></pre></td></tr></table></figure>
+<p>2DGraphics1_cmake/drawPixels：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 2DGraphics1_cmake/drawPixels/main.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">std</span>::<span class="built_in">cout</span> &lt;&lt; <span class="string">&quot;hello, drawPixels&quot;</span> &lt;&lt; <span class="built_in">std</span>::<span class="built_in">endl</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CMAKE_MINIMUM_REQUIRED</span>(VERSION <span class="number">3.22</span>)</span><br><span class="line"><span class="keyword">PROJECT</span>(drawPixels)</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(drawPixels main.cpp)</span><br></pre></td></tr></table></figure>
+<p>接着，我们在2DGraphics1_cmake中创建一个CMakeLists.txt来统一管理NimotsuKunBox和drawPixels这两个cmake项目，内容如下：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CMAKE_MINIMUM_REQUIRED</span>(VERSION <span class="number">3.22</span>)</span><br><span class="line"><span class="keyword">PROJECT</span>(<span class="number">2</span>DGraphics1_cmake)</span><br><span class="line"></span><br><span class="line"><span class="keyword">SET</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># cmake子项目，子项目的名称就是子目录下的CMakeLists.txt中的PROJECT一致的名称</span></span><br><span class="line"><span class="keyword">ADD_SUBDIRECTORY</span>(NimotsuKunBox)</span><br><span class="line"><span class="keyword">ADD_SUBDIRECTORY</span>(drawPixels)</span><br></pre></td></tr></table></figure>
+<p>于是，当前整体目录结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">2DGraphics1_cmake</span><br><span class="line">├─ CMakeLists.txt</span><br><span class="line">├─ NimotsuKunBox</span><br><span class="line">│    ├─ CMakeLists.txt</span><br><span class="line">│    └─ main.cpp</span><br><span class="line">└─ drawPixels</span><br><span class="line">     ├─ CMakeLists.txt</span><br><span class="line">     └─ main.cpp</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>cmake实践点：子项目管理</p>
+<p>父级CMakeLists.txt可以通过ADD_SUBDIRECTORY来添加子CMake项目。这里有一篇特别详细的博文<a target="_blank" rel="noopener" href="https://www.cnblogs.com/juzaizai/p/15069693.html">CMake基础 第13节 构建子项目 - 橘崽崽啊 - 博客园 (cnblogs.com)</a></p>
+</blockquote>
+<h2 id="头文件与静态库添加"><a href="#头文件与静态库添加" class="headerlink" title="头文件与静态库添加"></a>头文件与静态库添加</h2><p>在前面我们已经编译出了<code>GameLib_d.lib</code>，并且把头文件已经复制到了指定目录。现在，我们在项目根目录中创建一个<code>@lib</code>文件夹，专门放置静态库和头文件，目录状态如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">2DGraphics1_cmake</span><br><span class="line">├─ CMakeLists.txt</span><br><span class="line">├─ NimotsuKunBox</span><br><span class="line">│    └─ &#x2F;&#x2F; ... ...</span><br><span class="line">├─ drawPixels</span><br><span class="line">│    └─ &#x2F;&#x2F; ... ...</span><br><span class="line">└─ @lib  &#x2F;&#x2F; &#x3D;&gt; 存放要使用的静态库和头文件</span><br><span class="line">    ├─ include</span><br><span class="line">    │    └─ GameLib</span><br><span class="line">    │           ├─ Base</span><br><span class="line">    │           │    └─ DebugStream.h</span><br><span class="line">    │           └─ Framework.h</span><br><span class="line">    └─ lib</span><br><span class="line">           ├─ Framework_d.idb</span><br><span class="line">           ├─ Framework_d.pdb</span><br><span class="line">           ├─ GameLib_d.lib</span><br><span class="line">           ├─ GameLib_d.pdb</span><br><span class="line">           └─ Modules_d.pdb</span><br></pre></td></tr></table></figure>
+<h2 id="配置NimotsuKunBox项目"><a href="#配置NimotsuKunBox项目" class="headerlink" title="配置NimotsuKunBox项目"></a>配置NimotsuKunBox项目</h2><p>为了让NimotsuKunBox项目中的能够使用到根目录下的静态库和头文件，我们需要配置NimotsuKunBox/CMakeLists.txt，添加头文件和静态库：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">  SET(CMAKE_CXX_STANDARD 11)</span><br><span class="line"> </span><br><span class="line"><span class="addition">+ MESSAGE(&quot;Current CMakeLists.txt dir:\n$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;&quot;)</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line"><span class="addition">+ # 配置头文件查找路径</span></span><br><span class="line"><span class="addition">+ INCLUDE_DIRECTORIES($&#123;CMAKE_CURRENT_SOURCE_DIR&#125;/../@lib/include)</span></span><br><span class="line"><span class="addition">+ # 配置链接库文件查找路径</span></span><br><span class="line"><span class="addition">+ LINK_DIRECTORIES($&#123;CMAKE_CURRENT_SOURCE_DIR&#125;/../@lib/lib)</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line">  ADD_EXECUTABLE(NimotsuKunBox main.cpp)</span><br><span class="line"><span class="addition">+</span></span><br><span class="line"><span class="addition">+ # 实际链接</span></span><br><span class="line"><span class="addition">+ TARGET_LINK_LIBRARIES(NimotsuKunBox GameLib_d.lib)</span></span><br></pre></td></tr></table></figure>
+<p>之后，我们将在VS中能够运行的NimotsuKunBox项目代码拷贝到当前的main.cpp中，由于篇幅的关系，就不贴出代码本身了，给一个整体的修改：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/070-NimotsuKunBox-modified01.png" alt="070-NimotsuKunBox-modified01"></p>
+<h3 id="编译问题"><a href="#编译问题" class="headerlink" title="编译问题"></a>编译问题</h3><p>当我们尝试运行该项目的时候，发现至少有以下几个问题：</p>
+<p><strong>问题1：在CLion+msvc编译器下，编码字符报错：warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失。</strong></p>
+<p>该问题原因在于CLion中的文件是默认使用的UTF-8编码，而msvc在不指定的情况默认以当前代码页（936）编码方式读取文件（<em>代码页936（Codepage 936）是Microsoft的简体中文字符集标准，是东亚语文的四种双字节字符集（DBCS）之一。其最初版本和GB 2312一模一样，但在推出Windows 95时扩展成GBK</em>）。</p>
+<p>在CMake中想要给msvc指定文件编码方式，需要在CMakeLists.txt配置如下内容：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">... ...</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置编译器以指定编码读取代码源文件</span></span><br><span class="line"><span class="keyword">ADD_COMPILE_OPTIONS</span>(<span class="string">&quot;$&lt;$&lt;C_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;</span>)</span><br><span class="line"><span class="keyword">ADD_COMPILE_OPTIONS</span>(<span class="string">&quot;$&lt;$&lt;CXX_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">MESSAGE</span>(<span class="string">&quot;Current CMakeLists.txt dir:\n$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;&quot;</span>)</span><br><span class="line">... ...</span><br></pre></td></tr></table></figure>
+<p><strong>问题2：GameLib_d.lib(MemoryManager.obj) : error LNK2038: 检测到“RuntimeLibrary”的不匹配项: 值“MTd_StaticDebug”不匹配值“MDd_DynamicDebug”(main.cpp.obj 中)</strong></p>
+<p>这一类报错通常比较普遍，简单来讲就是：GameLib_d.lib这个库是一个静态库带Debug（MTd_StaticDebug），但是我们的项目链接步骤是以动态库的方式链接这些库文件。对于这个问题，有两种方式来解决，一种就是重新编译GameLib为一个dll（动态链接库）；另一种则是修改当前项目的链接方式为静态库链接。当然，简便起见，我们修改项目的链接形式为静态库链接形式：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"> ... ...</span><br><span class="line"> SET(CMAKE_CXX_STANDARD 11)</span><br><span class="line"> ADD_COMPILE_OPTIONS(&quot;$&lt;$&lt;C_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;)</span><br><span class="line"> ADD_COMPILE_OPTIONS(&quot;$&lt;$&lt;CXX_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;)</span><br><span class="line"> </span><br><span class="line"><span class="addition">+# 设置策略CMP0091为NEW，新策略</span></span><br><span class="line"><span class="addition">+if (POLICY CMP0091)</span></span><br><span class="line"><span class="addition">+    CMAKE_POLICY(SET CMP0091 NEW)</span></span><br><span class="line"><span class="addition">+endif (POLICY CMP0091)</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line"> MESSAGE(&quot;Current CMakeLists.txt dir:\n$&#123;CMAKE_CURRENT_SOURCE_DIR&#125;&quot;)</span><br><span class="line"> </span><br><span class="line"> LINK_DIRECTORIES($&#123;CMAKE_CURRENT_SOURCE_DIR&#125;/../@lib/lib)</span><br><span class="line"> </span><br><span class="line"> ADD_EXECUTABLE(NimotsuKunBox main.cpp)</span><br><span class="line"> </span><br><span class="line"><span class="addition">+# 设置MT/MTd</span></span><br><span class="line"><span class="addition">+SET_PROPERTY(</span></span><br><span class="line"><span class="addition">+        TARGET NimotsuKunBox</span></span><br><span class="line"><span class="addition">+        PROPERTY MSVC_RUNTIME_LIBRARY &quot;MultiThreaded$&lt;$&lt;CONFIG:Debug&gt;:Debug&gt;&quot;)</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line"> # 实际链接</span><br><span class="line"> TARGET_LINK_LIBRARIES(NimotsuKunBox GameLib_d.lib)</span><br></pre></td></tr></table></figure>
+<p>关于这块配置的细节，可以参考这篇文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/Copperxcx/article/details/123084367">CMake设置MSVC工程MT/MTd/MD/MDd_Copperxcx的博客-CSDN博客_cmake mt</a></p>
+<p><strong>问题3：error LNK2019: 无法解析的外部符号 _main，函数 “int __cdecl invoke_main(void)” (?invoke_main@@YAHXZ) 中引用了该符号</strong></p>
+<p>稍有C/C++开发经验的开发者看到这个报错其实心里还是有底的，应该是没有提供main函数作为函数的入口。但是对于我们的项目，细心的读者发现似乎样例代码中确实是没有提供main入口函数的。那么，为什么vs项目能够正确运行起来呢？观察vs中的项目属性—连接器—系统，会发现子系统（SubSystem）的值是：<code>/SUBSYSTEM:WINDOWS</code></p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-07-22-sega-game-dev/080-subsystem-windows.png" alt="070-subsystem-windows"></p>
+<p>在cmake项目中，我们可以按照如下的方式进行配置：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 设置MT/MTd</span><br><span class="line">SET_PROPERTY(</span><br><span class="line">        TARGET NimotsuKunBox</span><br><span class="line">        PROPERTY MSVC_RUNTIME_LIBRARY &quot;MultiThreaded$&lt;$&lt;CONFIG:Debug&gt;:Debug&gt;&quot;)</span><br><span class="line"></span><br><span class="line"><span class="addition">+ # 配置 &quot;/SUBSYSTEM:WINDOWS&quot;</span></span><br><span class="line"><span class="addition">+ TARGET_LINK_OPTIONS(NimotsuKunBox PRIVATE &quot;/SUBSYSTEM:WINDOWS&quot;)</span></span><br><span class="line"></span><br><span class="line"># 实际链接</span><br><span class="line">TARGET_LINK_LIBRARIES(NimotsuKunBox GameLib_d.lib)</span><br></pre></td></tr></table></figure>
+<p>实际上，配置成了<code>/SUBSYSTEM:WINDOWS</code>之后也是需要有一个入口函数的，<strong>这个入口函数其实是在Modules那个项目里面定义好了的</strong>，具体可以搜索Modules项目中的<code>int APIENTRY _tWinMain</code>函数实现：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> APIENTRY _tWinMain(HINSTANCE hInstance,</span><br><span class="line">                     HINSTANCE hPrevInstance,</span><br><span class="line">                     LPTSTR    lpCmdLine,</span><br><span class="line">                     <span class="keyword">int</span>       nCmdShow)</span><br></pre></td></tr></table></figure>
+<p>上述问题处理完成后，我们通过项目编译</p>
+<h2 id="配置drawPixels项目"><a href="#配置drawPixels项目" class="headerlink" title="配置drawPixels项目"></a>配置drawPixels项目</h2><p>实际上，配置drawPixels项目的CMakeLists.txt和NimotsuKunBox的CMake配置结构上没有区别，只是需要把相关的项目名字等换位drawPixels即可。最终运行的效果和之前的vs下是一致的~</p>
+<h1 id="附录：项目地址"><a href="#附录：项目地址" class="headerlink" title="附录：项目地址"></a>附录：项目地址</h1><p>本cmake移植的项目地址在：<a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/2DGraphics1_cmake">w4ngzhen/2DGraphics1_cmake (github.com)</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/game/" rel="tag"># game</a>
+              <a href="/tags/sega/" rel="tag"># sega</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/27/2022-05-27-%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAreact+ts%E7%BB%84%E4%BB%B6%E5%BA%93%EF%BC%88%E5%B0%81%E8%A3%85antd%EF%BC%89/" rel="prev" title="从零搭建react+ts组件库（封装antd）">
+      <i class="fa fa-chevron-left"></i> 从零搭建react+ts组件库（封装antd）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E7%8E%B0%E6%9C%89%E6%A0%B7%E4%BE%8B%E9%A1%B9%E7%9B%AE%E7%9A%84%E8%AE%A4%E8%AF%86%E4%B8%8E%E6%9E%84%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">对现有样例项目的认识与构建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%B7%E4%BE%8B%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84"><span class="nav-number">1.1.</span> <span class="nav-text">样例代码结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GameLib%EF%BC%88%E6%A0%B7%E4%BE%8B%E6%A0%B9%E7%9B%AE%E5%BD%95%EF%BC%89"><span class="nav-number">1.1.1.</span> <span class="nav-text">GameLib（样例根目录）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GameLib-src%E7%9B%AE%E5%BD%95"><span class="nav-number">1.1.2.</span> <span class="nav-text">GameLib&#x2F;src目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GameLib-src-GameLibs%E7%9B%AE%E5%BD%95"><span class="nav-number">1.1.3.</span> <span class="nav-text">GameLib&#x2F;src&#x2F;GameLibs目录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8VS%E6%9E%84%E5%BB%BA%E6%A0%B7%E4%BE%8B%E9%A1%B9%E7%9B%AE%E9%9D%99%E6%80%81%E5%BA%93"><span class="nav-number">1.2.</span> <span class="nav-text">使用VS构建样例项目静态库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E6%A0%B8%E5%BF%83%E7%9A%84Modules"><span class="nav-number">1.2.1.</span> <span class="nav-text">编译核心的Modules</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%90%84%E7%8B%AC%E7%AB%8B%E6%A0%B7%E4%BE%8B%E9%9C%80%E8%A6%81%E7%9A%84GameLib"><span class="nav-number">1.2.2.</span> <span class="nav-text">编译各独立样例需要的GameLib</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%94%E7%A4%BA2DGraphics1-NimotsuKunBox%E5%92%8CdrawPixels%E9%A1%B9%E7%9B%AE"><span class="nav-number">1.2.3.</span> <span class="nav-text">演示2DGraphics1-NimotsuKunBox和drawPixels项目</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8cmake%E6%90%AD%E5%BB%BA2DGraphics1%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.</span> <span class="nav-text">使用cmake搭建2DGraphics1项目</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E5%88%9D%E5%A7%8B%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.1.</span> <span class="nav-text">搭建初始项目</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%B4%E6%96%87%E4%BB%B6%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E6%B7%BB%E5%8A%A0"><span class="nav-number">2.2.</span> <span class="nav-text">头文件与静态库添加</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AENimotsuKunBox%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.3.</span> <span class="nav-text">配置NimotsuKunBox项目</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.1.</span> <span class="nav-text">编译问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEdrawPixels%E9%A1%B9%E7%9B%AE"><span class="nav-number">2.4.</span> <span class="nav-text">配置drawPixels项目</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%84%E5%BD%95%EF%BC%9A%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80"><span class="nav-number">3.</span> <span class="nav-text">附录：项目地址</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">64</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

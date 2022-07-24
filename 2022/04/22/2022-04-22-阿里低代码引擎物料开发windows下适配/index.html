@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="阿里低代码引擎物料开发windows下路径问题临时处理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="阿里低代码引擎物料开发windows下路径问题临时处理">
+<meta property="og:url" content="http://compilemind.com/2022/04/22/2022-04-22-%E9%98%BF%E9%87%8C%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%BC%95%E6%93%8E%E7%89%A9%E6%96%99%E5%BC%80%E5%8F%91windows%E4%B8%8B%E9%80%82%E9%85%8D/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="阿里低代码引擎物料开发windows下路径问题临时处理">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-04-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-07-24T03:02:07.519Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="ali">
+<meta property="article:tag" content="lowcode">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://compilemind.com/2022/04/22/2022-04-22-%E9%98%BF%E9%87%8C%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%BC%95%E6%93%8E%E7%89%A9%E6%96%99%E5%BC%80%E5%8F%91windows%E4%B8%8B%E9%80%82%E9%85%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>阿里低代码引擎物料开发windows下路径问题临时处理 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/04/22/2022-04-22-%E9%98%BF%E9%87%8C%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%BC%95%E6%93%8E%E7%89%A9%E6%96%99%E5%BC%80%E5%8F%91windows%E4%B8%8B%E9%80%82%E9%85%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          阿里低代码引擎物料开发windows下路径问题临时处理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-04-22 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-22T00:00:00+08:00">2022-04-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-07-24 11:02:07" itemprop="dateModified" datetime="2022-07-24T11:02:07+08:00">2022-07-24</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>阿里低代码引擎物料开发windows下路径问题临时处理</p>
+<a id="more"></a>
+<p>使用阿里低代码进行物料开发过程中，官方文档推荐使用macOS、Linux或者windows下的WSL，其原因在于<strong>物料开发脚手架</strong>在对开发组件进行物料相关内容打包的时候会将路径字符串写入到生成文件中，这个过程会使用<code>@alifd/build-plugin-lowcode</code>插件里面的脚本代码进行。而如果直接使用的windows开发，会发现生成过程会报类似如下错误：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(undefined) .&#x2F;.tmp&#x2F;view.js</span><br><span class="line">Module not found: Can&#39;t resolve &#39;D:Projecsmy-materials&#39; 巴拉巴拉</span><br></pre></td></tr></table></figure>
+<p>仔细分析可以看出，在对应.tmp/view.js里面，路径写的是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">import xxx from &#39;D:\Projects\my-materials\meta.js&#39;</span><br><span class="line">&#x2F;&#x2F; 这个地方实际应该是：</span><br><span class="line">import xxx from &#39;D:\\Projects\\my-mterials\\meta.js&#39;</span><br><span class="line">&#x2F;&#x2F; 由于在JS，单个\是转义符，所以D:\Projects中的\P实际上被转义了。</span><br></pre></td></tr></table></figure>
+<p>根据最新的@alifd/build-plugin-lowcode的0.3.0-beta.1，还是有同样的问。如果在windows下，通过path.join拿到路径本身没有问题，例如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">path.join(&#39;A&#39;, &#39;B&#39;) &#x3D;&gt; &#39;D:\A\B&#39;</span><br></pre></td></tr></table></figure>
+<p>这个路径在程序使用上没有问题，但是生成.tmp里面的文件的时候，把路径字符串写入到文件后，文件中的文本实际上是一段转义字符串。所以需要在写入文件的时候，把对应的文本进行<code>\</code>替换为<code>\\</code>。<br>我这边的处理方法是：<br>对@alifd/build-plugin-lowcode\index.js进行改造，适配windows路径。<br>具体方案为：</p>
+<ol>
+<li>增加 const os = require(‘os’);</li>
+<li>在<code>function getEntry(rootDir, entryPath)</code>之前加一个方法normalizePathTextForWindows：<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">normalizePathTextForWindows</span>(<span class="params">pathText</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (os.platform() === <span class="string">&#x27;win32&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> pathText.replace(<span class="regexp">/\\/g</span>, <span class="string">&#x27;\\\\&#x27;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> pathText;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>修改getEntry和getScssEntry方法：<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">function getEntry(rootDir, entryPath, needNormalizeForWindows) &#123;</span><br><span class="line">  if (entryPath &amp;&amp; fse.existsSync(path.resolve(rootDir, entryPath))) &#123;</span><br><span class="line"><span class="deletion">-    return path.resolve(rootDir, entryPath)</span></span><br><span class="line"><span class="addition">+    return needNormalizeForWindows ? normalizePathTextForWindows(path.resolve(rootDir, entryPath)) : path.resolve(rootDir, entryPath);</span></span><br><span class="line">  &#125;</span><br><span class="line">  for (let i = 0; i &lt; defaultEntryPaths.length; i++) &#123;</span><br><span class="line">    const p = path.resolve(rootDir, defaultEntryPaths[i]);</span><br><span class="line">    if (fse.existsSync(p)) &#123;</span><br><span class="line"><span class="deletion">-      return p;</span></span><br><span class="line"><span class="addition">+      return needNormalizeForWindows ? normalizePathTextForWindows(p) : p;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return &#x27;&#x27;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function getScssEntry(rootDir, needNormalizeForWindows) &#123;</span><br><span class="line">  for (let i = 0; i &lt; defaultScssEntryPaths.length; i++) &#123;</span><br><span class="line">    const p = path.resolve(rootDir, defaultScssEntryPaths[i]);</span><br><span class="line">    if (fse.existsSync(p)) &#123;</span><br><span class="line"><span class="deletion">-      return p;</span></span><br><span class="line"><span class="addition">+      return needNormalizeForWindows ? normalizePathTextForWindows(p) : p</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  return &#x27;&#x27;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>找到getEntry和getScssEntry调用点：<br>getEntry第一个调用点：<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">  INIT_STATE = true;</span><br><span class="line">  if (!PARSED_NPM_NAME) &#123;</span><br><span class="line">    PARSED_NPM_NAME = parseNpmName(package.name);</span><br><span class="line">  &#125;</span><br><span class="line"><span class="deletion">-  const entry = getEntry(rootDir, entryPath);</span></span><br><span class="line"><span class="addition">+  const entry = getEntry(rootDir, entryPath, false); </span></span><br><span class="line">// 这里要设置为false，因为下面使用entry的地方并不是要用路径字符串，所以不能normalize</span><br></pre></td></tr></table></figure>
+getEntry的第二个调用点传true：<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">    componentViewsExportStr = _componentViews</span><br><span class="line">      .map((component) =&gt; &#123;</span><br><span class="line">        return `const $&#123;component&#125; = getRealComponent($&#123;component&#125;Data, &#x27;$&#123;component&#125;&#x27;);\nexport &#123; $&#123;component&#125; &#125;;`;</span><br><span class="line">      &#125;)</span><br><span class="line">      .join(&#x27;\n&#x27;);</span><br><span class="line"><span class="deletion">-    componentViewsExportStr += `\nexport &#123; default &#125; from &#x27;$&#123;getEntry(rootDir, entryPath)&#125;&#x27;;`;</span></span><br><span class="line"><span class="addition">+   componentViewsExportStr += `\nexport &#123; default &#125; from &#x27;$&#123;getEntry(rootDir, entryPath, true)&#125;&#x27;;`;</span></span><br><span class="line">    componentViewsImportStr = _componentViews</span><br><span class="line">      .map((component) =&gt; &#123;</span><br><span class="line">        const componentNameFolder = camel2KebabComponentName(component);</span><br><span class="line">        const viewJsPath = path.resolve(rootDir, `$&#123;lowcodeDir&#125;/$&#123;componentNameFolder&#125;/view`);</span><br><span class="line">        return `import * as $&#123;component&#125;Data from &#x27;$&#123;viewJsPath&#125;&#x27;`;</span><br><span class="line">      &#125;)</span><br><span class="line">      .join(&#x27;\n&#x27;);</span><br></pre></td></tr></table></figure>
+getEntry的第三个调用点和getScss的唯一调用点：<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="addition">+  const scssEntry = getScssEntry(rootDir, true);</span></span><br><span class="line"><span class="deletion">-  const scssEntry = getScssEntry(rootDir);</span></span><br><span class="line">  const viewPath = generateEntry(&#123;</span><br><span class="line">    template: &#x27;view.js&#x27;,</span><br><span class="line">    filename: &#x27;view.js&#x27;,</span><br><span class="line">    rootDir,</span><br><span class="line">    params: &#123;</span><br><span class="line"><span class="deletion">-      entryPath: getEntry(rootDir, entryPath),</span></span><br><span class="line"><span class="addition">+      entryPath: getEntry(rootDir, entryPath, true),</span></span><br><span class="line">      scssImport: scssEntry ? `import &#x27;$&#123;scssEntry&#125;&#x27;` : &#x27;&#x27;,</span><br><span class="line">      componentViews,</span><br><span class="line">      componentViewsExportStr,</span><br><span class="line">      componentViewsImportStr,</span><br><span class="line">      library,</span><br><span class="line">      execCompile,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>相关讨论在：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/alibaba/lowcode-engine/issues/301">windows10 系统下 .tmp 目录内的meta.js 等文件中的路径转义符错误 · Issue #301 · alibaba/lowcode-engine (github.com)</a></p>
+<p>希望阿里可以花点时间修复吧～</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ali/" rel="tag"># ali</a>
+              <a href="/tags/lowcode/" rel="tag"># lowcode</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/22/2021-11-22-%E7%94%BB%E5%B8%83%E5%B0%B1%E6%98%AF%E4%B8%80%E5%88%87%EF%BC%88%E4%BA%8C%EF%BC%89%20%E2%80%94%20%E5%AE%9E%E7%8E%B0%E5%85%83%E7%B4%A0%E6%8B%96%E6%8B%89%E6%8B%BD/" rel="prev" title="画布就是一切（二） — 实现元素拖拉拽">
+      <i class="fa fa-chevron-left"></i> 画布就是一切（二） — 实现元素拖拉拽
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/27/2022-05-27-%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAreact+ts%E7%BB%84%E4%BB%B6%E5%BA%93%EF%BC%88%E5%B0%81%E8%A3%85antd%EF%BC%89/" rel="next" title="从零搭建react+ts组件库（封装antd）">
+      从零搭建react+ts组件库（封装antd） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">72</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">64</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
