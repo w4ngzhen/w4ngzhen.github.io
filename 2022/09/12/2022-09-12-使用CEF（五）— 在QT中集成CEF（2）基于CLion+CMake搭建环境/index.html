@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="在前文《使用CEF（四）— 在QT中集成CEF（1）：基本集成》中，我们使用VS+QT的插件搭建了一个基于QT+CEF的项目。时过境迁，笔者目前用的最多的就是CLion+CMake搭建C&#x2F;C++项目，并且CLion提供了对C&#x2F;C++强大的开发环境。此外，也想将CMake搭建QT项目作为一次实践，故由此文。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用CEF（五）— 在QT中集成CEF（2）基于CLion+CMake搭建环境">
+<meta property="og:url" content="http://compilemind.com/2022/09/12/2022-09-12-%E4%BD%BF%E7%94%A8CEF%EF%BC%88%E4%BA%94%EF%BC%89%E2%80%94%20%E5%9C%A8QT%E4%B8%AD%E9%9B%86%E6%88%90CEF%EF%BC%882%EF%BC%89%E5%9F%BA%E4%BA%8ECLion+CMake%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="在前文《使用CEF（四）— 在QT中集成CEF（1）：基本集成》中，我们使用VS+QT的插件搭建了一个基于QT+CEF的项目。时过境迁，笔者目前用的最多的就是CLion+CMake搭建C&#x2F;C++项目，并且CLion提供了对C&#x2F;C++强大的开发环境。此外，也想将CMake搭建QT项目作为一次实践，故由此文。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/010-autogen-in-cmake.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/020-autogen-obj-in-cmake.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/030-dumpbin-mocs-obj.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/040-dumpbin-libcef_dll_wrapper.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/050-debug-string-error.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/060-string-error-detail.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/070-show.gif">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/080-git-commits.png">
+<meta property="article:published_time" content="2022-09-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-09-12T06:55:26.429Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="cef">
+<meta property="article:tag" content="qt">
+<meta property="article:tag" content="cmake">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/010-autogen-in-cmake.png">
+
+<link rel="canonical" href="http://compilemind.com/2022/09/12/2022-09-12-%E4%BD%BF%E7%94%A8CEF%EF%BC%88%E4%BA%94%EF%BC%89%E2%80%94%20%E5%9C%A8QT%E4%B8%AD%E9%9B%86%E6%88%90CEF%EF%BC%882%EF%BC%89%E5%9F%BA%E4%BA%8ECLion+CMake%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>使用CEF（五）— 在QT中集成CEF（2）基于CLion+CMake搭建环境 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/09/12/2022-09-12-%E4%BD%BF%E7%94%A8CEF%EF%BC%88%E4%BA%94%EF%BC%89%E2%80%94%20%E5%9C%A8QT%E4%B8%AD%E9%9B%86%E6%88%90CEF%EF%BC%882%EF%BC%89%E5%9F%BA%E4%BA%8ECLion+CMake%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用CEF（五）— 在QT中集成CEF（2）基于CLion+CMake搭建环境
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-09-12 00:00:00 / Modified: 14:55:26" itemprop="dateCreated datePublished" datetime="2022-09-12T00:00:00+08:00">2022-09-12</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在前文《使用CEF（四）— 在QT中集成CEF（1）：基本集成》中，我们使用VS+QT的插件搭建了一个基于QT+CEF的项目。时过境迁，笔者目前用的最多的就是CLion+CMake搭建C/C++项目，并且CLion提供了对C/C++强大的开发环境。此外，也想将CMake搭建QT项目作为一次实践，故由此文。</p>
+<a id="more"></a>
+<h1 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h1><ul>
+<li>QT 5.14.2</li>
+<li>CEF 105.3.33以及对应版本wrapper（<strong>特别注意，wrapper以动态库（MD）版本进行编译</strong>。为了方便更多的开发者了解如何编译，我做了一个<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1GV4y1u7KM">视频</a>，视频是MT版本，请读者自行修改配置。）</li>
+<li>CMake 3.24-rc5</li>
+<li>VS2019</li>
+</ul>
+<h1 id="工程搭建"><a href="#工程搭建" class="headerlink" title="工程搭建"></a>工程搭建</h1><p>创建<code>QtCefCMakeDemo</code>文件夹，将基础环境提到的CEF的wrapper编译产物（<code>libcef_dll_wrapper</code>）+CEF相关库文件（<code>libcef</code>）、资源文件（<code>*.pak</code>）放置于<code>QtCefCMakeDemo/CefFiles</code>中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">QtCefCMakeDemo</span><br><span class="line"> └─ CefFiles</span><br><span class="line">    ├─bin</span><br><span class="line">    │  ├─Debug</span><br><span class="line">    │  │  │  ...</span><br><span class="line">    │  │  │  libcef.dll</span><br><span class="line">    │  │  │  libcef.lib</span><br><span class="line">    │  │  │  libcef_dll_wrapper.lib</span><br><span class="line">    │  │  │  ...</span><br><span class="line">    │  │  │</span><br><span class="line">    │  │  └─swiftshader</span><br><span class="line">    │  │          ...</span><br><span class="line">    │  │</span><br><span class="line">    │  └─Release</span><br><span class="line">    │      │  ...</span><br><span class="line">    │      │  libcef.dll</span><br><span class="line">    │      │  libcef.lib</span><br><span class="line">    │      │  libcef_dll_wrapper.lib</span><br><span class="line">    │      │  ...</span><br><span class="line">    │      │  </span><br><span class="line">    │      └─swiftshader</span><br><span class="line">    │              ...</span><br><span class="line">    │</span><br><span class="line">    ├─include</span><br><span class="line">    │  各种.h头文件</span><br><span class="line">    │  ...</span><br><span class="line">    └─Resources</span><br><span class="line">        │  cef.pak</span><br><span class="line">        │  ..</span><br><span class="line">        └─locales</span><br><span class="line">                ...</span><br><span class="line">                zh-CN.pak</span><br><span class="line">                zh-TW.pak</span><br></pre></td></tr></table></figure>
+<p>并且在<code>QtCefCMakeDemo</code>目录下创建一个<code>src</code>目录，用以存放cpp代码。将咱们在《在QT中集成CEF（1）》中编写的相关代码存放于该目录下（<a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/QtCefDemo/tree/main/QtCefDemo">QtCefDemo/QtCefDemo at main · w4ngzhen/QtCefDemo (github.com)</a>）：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">QtCefCMakeDemo</span><br><span class="line"> ├─ CefFiles</span><br><span class="line"> └─ src</span><br><span class="line">      app.manifest</span><br><span class="line">      main.cpp</span><br><span class="line">      qtcefwindow.cpp</span><br><span class="line">      qtcefwindow.h</span><br><span class="line">      qtcefwindow.qrc</span><br><span class="line">      qtcefwindow.ui</span><br><span class="line">      simple_app.cpp</span><br><span class="line">      simple_app.h</span><br><span class="line">      simple_handler.cpp</span><br><span class="line">      simple_handler.h</span><br><span class="line">      stdafx.cpp</span><br><span class="line">      stdafx.h</span><br><span class="line">  ... ...</span><br></pre></td></tr></table></figure>
+<p><strong>请注意，这份代码已经已经有些许过时了，该份代码是基于cef_binary_87.1.13版本，而我们本文是基于cef_binary_105.3.33。所以使用新的cef、cef wrapper，但使用旧的应用层代码，势必会有问题。但是我们目前先不处理，后文会逐一列举并修改。</strong></p>
+<h2 id="CMakeLists-txt"><a href="#CMakeLists-txt" class="headerlink" title="CMakeLists.txt"></a>CMakeLists.txt</h2><p>使用CMake来搭建QT+CEF项目，最核心的就是CMakeLists.txt文件内容：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CMAKE_MINIMUM_REQUIRED</span>(VERSION <span class="number">3.5</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">PROJECT</span>(QtCefCMakeDemo LANGUAGES CXX)</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_BUILD_TYPE DEBUG)</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_CXX_STANDARD <span class="number">11</span>)</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_CXX_STANDARD_REQUIRED <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_INCLUDE_CURRENT_DIR <span class="keyword">ON</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 【QT】CMAKE_PREFIX_PATH 实际值为本地安装的QT中的对应编译环境的目录</span></span><br><span class="line"><span class="keyword">SET</span>(CMAKE_PREFIX_PATH <span class="string">&quot;D:\\Programs\\Qt\\Qt5.14.2\\5.14.2\\msvc2017_64&quot;</span>)</span><br><span class="line"><span class="comment"># 配置了上述后，可以通过find_package来查找QT相关的cmake文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 【QT】UIC、MOC、RCC启用</span></span><br><span class="line"><span class="comment"># 引入的QT模块则会对.ui文件、.qtc文件以及QT中的元信息机制自动进行处理</span></span><br><span class="line"><span class="keyword">SET</span>(CMAKE_AUTOUIC <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_AUTOMOC <span class="keyword">ON</span>)</span><br><span class="line"><span class="keyword">SET</span>(CMAKE_AUTORCC <span class="keyword">ON</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 【QT】通过FIND_PACKAGE，CMake会查找QT相关模块cmake文件，</span></span><br><span class="line"><span class="comment"># 这些cmake文件自动处理了头文件的查找等，</span></span><br><span class="line"><span class="comment"># 不需要像配置CEF的头文件查找一样来配置QT的头文件引入</span></span><br><span class="line"><span class="keyword">FIND_PACKAGE</span>(Qt5 COMPONENTS Widgets REQUIRED)</span><br><span class="line"><span class="comment"># 【CEF】CEF相关头文件的引入</span></span><br><span class="line"><span class="keyword">INCLUDE_DIRECTORIES</span>(<span class="string">&quot;$&#123;CMAKE_SOURCE_DIR&#125;/CefFiles&quot;</span>)</span><br><span class="line"><span class="keyword">INCLUDE_DIRECTORIES</span>(<span class="string">&quot;$&#123;CMAKE_SOURCE_DIR&#125;/CefFiles/include&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加项目所有的文件：</span></span><br><span class="line"><span class="comment"># 头文件、源文件、ui文件、qrc资源文件</span></span><br><span class="line"><span class="comment"># 特别的，在Windows下VS下，还需要manifest文件，并且该文件在cmake3.4以后就能够自动是被并被引入</span></span><br><span class="line"><span class="keyword">ADD_EXECUTABLE</span>(qt-cef</span><br><span class="line">        WIN32</span><br><span class="line">        src/qtcefwindow.h</span><br><span class="line">        src/simple_app.h</span><br><span class="line">        src/simple_handler.h</span><br><span class="line">        src/main.cpp</span><br><span class="line">        src/qtcefwindow.cpp</span><br><span class="line">        src/simple_app.cpp</span><br><span class="line">        src/simple_handler.cpp</span><br><span class="line">        src/qtcefwindow.ui</span><br><span class="line">        src/qtcefwindow.qrc</span><br><span class="line">        src/app.manifest</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line"><span class="comment"># QT库链接</span></span><br><span class="line"><span class="keyword">TARGET_LINK_LIBRARIES</span>(qt-cef</span><br><span class="line">        PRIVATE</span><br><span class="line">        <span class="comment"># 【QT】QT库链接</span></span><br><span class="line">        Qt5::Widgets</span><br><span class="line">        <span class="comment"># 【CEF】cef相关库链接</span></span><br><span class="line">        <span class="string">&quot;$&#123;CMAKE_SOURCE_DIR&#125;/CefFiles/bin/Debug/libcef.lib&quot;</span></span><br><span class="line">        <span class="string">&quot;$&#123;CMAKE_SOURCE_DIR&#125;/CefFiles/bin/Debug/libcef_dll_wrapper.lib&quot;</span></span><br><span class="line">        )</span><br></pre></td></tr></table></figure>
+<p>CMake的基础配置请各位读者自行了解。关于QT的配置，我都在CMakeLists.txt中以<code>【QT】</code>标识出；关于CEF的配置部分，我都在配置文件中以<code>【CEF】</code>标识出。</p>
+<h1 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h1><p>此时，我们尝试编译整个项目的时候，会发现有一些编译/链接的错误，相关的错误大多数来源于CEF的头文件升级，接下来我将一一列举并处理。</p>
+<h2 id="error-C3646-“OVERRIDE”-未知重写说明符"><a href="#error-C3646-“OVERRIDE”-未知重写说明符" class="headerlink" title="error C3646: “OVERRIDE”: 未知重写说明符"></a>error C3646: “OVERRIDE”: 未知重写说明符</h2><p>出现点：simple_app.h、simple_handler.h</p>
+<p>原因以及解决方案：实际上在87版本中这个<code>OVERRIDE</code>是一个宏，指代的就是关键字：<code>override</code>，不过在105版本中已经不存在了，所以手动修改为c++标准关键词即可。所以解决方案就是将所有出现<code>OVERRIDE</code>的地方改为关键词<code>override</code>。</p>
+<h2 id="error-C2039-“Bind”-不是-“base”-的成员"><a href="#error-C2039-“Bind”-不是-“base”-的成员" class="headerlink" title="error C2039: “Bind”: 不是 “base” 的成员"></a>error C2039: “Bind”: 不是 “base” 的成员</h2><p>出现点：simple_handler.cpp</p>
+<p>原因以及解决方案：cef团队移除了该API（<a target="_blank" rel="noopener" href="https://github.com/chromiumembedded/cef/commit/07bc800f0080f62e0d299d3e1a878510085bebc3">Remove deprecated base::Bind APIs (see issue #3140)</a>），而是要求使用BindOnce，且该BindOnce所在定义的头文件由原来的<code>#include &quot;include/base/cef_bind.h&quot;</code>变为<code>#include &quot;include/base/cef_callback.h&quot;</code>。所以解决方案就是将头文件<code>include/base/cef_bind.h</code>改为引入<code>include/base/cef_callback.h</code>，且将base::Bind改为base::BindOnce。</p>
+<h2 id="warning-C4819-该文件包含不能在当前代码页-936-中表示的字符。请将该文件保存为-Unicode-格式以防止数据丢失"><a href="#warning-C4819-该文件包含不能在当前代码页-936-中表示的字符。请将该文件保存为-Unicode-格式以防止数据丢失" class="headerlink" title="warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失"></a>warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失</h2><p>出现点：只要不是UTF-8 with BOM的文件，都可能出现这个警告</p>
+<p>原因以及解决方案：CLion 默认使用 UTF-8 编码，MSVC 除非明确指定否则就使用 UTF-8 with BOM 或者当前代码页（详情可以参考这篇博文：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Chary/p/13608011.html">解决 CLion + MSVC 下的字符编码问题)</a>），所以在CMakeLists.txt中，<strong>在ADD_EXECUTABLE之前加上</strong>：</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 解决warning C4819</span></span><br><span class="line"><span class="keyword">ADD_COMPILE_OPTIONS</span>(<span class="string">&quot;$&lt;$&lt;C_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;</span>)</span><br><span class="line"><span class="keyword">ADD_COMPILE_OPTIONS</span>(<span class="string">&quot;$&lt;$&lt;CXX_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="error-C2664-“void-CefWindowInfo-SetAsChild-HWND-const-CefRect-amp-”-无法将参数-2-从“RECT”转换为“const-CefRect-amp-”"><a href="#error-C2664-“void-CefWindowInfo-SetAsChild-HWND-const-CefRect-amp-”-无法将参数-2-从“RECT”转换为“const-CefRect-amp-”" class="headerlink" title="error C2664: “void CefWindowInfo::SetAsChild(HWND,const CefRect &amp;)”: 无法将参数 2 从“RECT”转换为“const CefRect &amp;”"></a>error C2664: “void CefWindowInfo::SetAsChild(HWND,const CefRect &amp;)”: 无法将参数 2 从“RECT”转换为“const CefRect &amp;”</h2><p>出现点：qtcefwindow.cpp</p>
+<p>原因以及解决方案：void CefWindowInfo::SetAsChild(HWND parent, const CefRect &amp;windowBounds)，第二个参数类型由原来的windef.h中定义的RECT结构体，调整为<code>CefRect</code>类，即：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="deletion">-    RECT win_rect;</span></span><br><span class="line">     QRect rect = this-&gt;geometry();</span><br><span class="line"><span class="deletion">-    win_rect.left = rect.left();</span></span><br><span class="line"><span class="deletion">-    win_rect.right = rect.right();</span></span><br><span class="line"><span class="deletion">-    win_rect.top = rect.top();</span></span><br><span class="line"><span class="deletion">-    win_rect.bottom = rect.bottom();</span></span><br><span class="line"><span class="addition">+// CEF引入CefRect，而不是windef.h中的RECT</span></span><br><span class="line"><span class="addition">+    CefRect win_rect(</span></span><br><span class="line"><span class="addition">+            rect.left(),</span></span><br><span class="line"><span class="addition">+            rect.top(),</span></span><br><span class="line"><span class="addition">+            rect.left() + rect.width() * devicePixelRatio(),</span></span><br><span class="line"><span class="addition">+            rect.top() + rect.height() * devicePixelRatio());</span></span><br></pre></td></tr></table></figure>
+<h2 id="libcef-dll-wrapper-lib-libcef-dll-wrapper-obj-error-LNK2038-检测到“-ITERATOR-DEBUG-LEVEL”的不匹配项-值“0”不匹配值“2”-mocs-compilation-cpp-obj-中"><a href="#libcef-dll-wrapper-lib-libcef-dll-wrapper-obj-error-LNK2038-检测到“-ITERATOR-DEBUG-LEVEL”的不匹配项-值“0”不匹配值“2”-mocs-compilation-cpp-obj-中" class="headerlink" title="libcef_dll_wrapper.lib(libcef_dll_wrapper.obj) : error LNK2038: 检测到“_ITERATOR_DEBUG_LEVEL”的不匹配项: 值“0”不匹配值“2”(mocs_compilation.cpp.obj 中)"></a>libcef_dll_wrapper.lib(libcef_dll_wrapper.obj) : error LNK2038: 检测到“_ITERATOR_DEBUG_LEVEL”的不匹配项: 值“0”不匹配值“2”(mocs_compilation.cpp.obj 中)</h2><p>出现点：链接阶段错误</p>
+<p>原因以及解决方案：针对该问题，首先通过网上搜寻的博文了解到是：<code>当前工程是Debug版本，而引用的库文件时Release版本</code>。排查libcef_dll_wrapper.lib，确实使用的Debug版本。从报错了解到与<code>mocs_compilation.cpp.obj</code>的<code>_ITERATOR_DEBUG_LEVEL</code>不一致。但是，这个<code>mocs_compilation.cpp.obj</code>是通过咱们项目生成的，是QT的MetaObject元对象机制下，MOC参与代码生成、编译输出的，其自动生成的代码在<code>cmake-build-debug</code>目录下的<code>qt-cef_autogen</code>中：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/010-autogen-in-cmake.png" alt="010-autogen-in-cmake"></p>
+<p>该cpp编译单元编译后的产物在<code>项目根目录/cmake-build-debug/CMakeFiles/qt-cef.dir/qt-cef_autogen</code>下：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/020-autogen-obj-in-cmake.png" alt="020-autogen-obj-in-cmake"></p>
+<p>使用VS的工具（ <a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/visualstudio/ide/reference/command-prompt-powershell?view=vs-2022">适用于开发人员的命令行 shell 和提示 - Visual Studio (Windows) | Microsoft Docs</a>）中的<strong>dumpbin.exe</strong>工具（<a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/cpp/build/reference/dumpbin-reference?view=msvc-170">DUMPBIN 参考 | Microsoft Docs</a>），可以查看库文件的<code>_ITERATOR_DEBUG_LEVEL</code>值。操作方式为：</p>
+<ol>
+<li>找到VS开发者工具，方式有几种，主要有：1、<a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/visualstudio/ide/reference/command-prompt-powershell?view=vs-2022#start-from-windows-menu">从 Windows 菜单中启动</a>；2、<a target="_blank" rel="noopener" href="https://docs.microsoft.com/zh-cn/visualstudio/ide/reference/command-prompt-powershell?view=vs-2022#start-from-file-browser">从文件菜单启动</a>；</li>
+<li>启动后进入命令行，执行命令：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dumpbin /directives <span class="string">&quot;库文件路径&quot;</span></span><br></pre></td></tr></table></figure>
+<p>mocs_compilation.cpp.obj的_ITERATOR_DEBUG_LEVEL值</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/030-dumpbin-mocs-obj.png" alt="030-dumpbin-mocs-obj"></p>
+<p>libcef_dll_wrapper.lib中一些obj的_ITERATOR_DEBUG_LEVEL值：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/040-dumpbin-libcef_dll_wrapper.png" alt="040-dumpbin-libcef_dll_wrapper"></p>
+<p>可以看出，两份库代码确实是不一样的。由于libcef_dll_wrapper.lib我们已经完成了编译，这里我们不考虑重新编译该lib库，而是通过配置CMake，让生成的mocs_compilation.cpp.obj等obj的_ITERATOR_DEBUG_LEVEL值为0，来匹配libcef_dll_wrapper.lib。所以，解决方案就是在CMakeLists.txt中，添加配置（<a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/54246427/how-to-add-iterator-debug-level-to-cmake">c++ - How to add _ITERATOR_DEBUG_LEVEL to CMake? - Stack Overflow</a>）：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 解决warning C4819，需要在ADD_EXECUTABLE前加上</span><br><span class="line">ADD_COMPILE_OPTIONS(&quot;$&lt;$&lt;C_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;)</span><br><span class="line">ADD_COMPILE_OPTIONS(&quot;$&lt;$&lt;CXX_COMPILER_ID:MSVC&gt;:/utf-8&gt;&quot;)</span><br><span class="line"><span class="addition">+# 控制项目所有编译单元_ITERATOR_DEBUG_LEVEL的值，</span></span><br><span class="line"><span class="addition">+# 这里设置为和libcef_dll_wrapper.lib中的obj一致。</span></span><br><span class="line"><span class="addition">+ADD_COMPILE_DEFINITIONS($&lt;$&lt;CONFIG:Debug&gt;:_ITERATOR_DEBUG_LEVEL=0&gt;)</span></span><br><span class="line"></span><br><span class="line"># 【QT】CMAKE_PREFIX_PATH 实际值为本地安装的QT中的对应编译环境的目录</span><br><span class="line">SET(CMAKE_PREFIX_PATH &quot;D:\\Programs\\Qt\\Qt5.14.2\\5.14.2\\msvc2017_64&quot;)</span><br></pre></td></tr></table></figure>
+<p>不出意外，此时我们已经处理了所有的编译和链接过程中的问题。控制台会显示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;[ Build | qt-cef | Debug ]&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;</span><br><span class="line">D:\Programs\ToolBoxApp\apps\CLion\ch-0\222.3739.54\bin\cmake\win\bin\cmake.exe --build D:\Projects\cpp-projects\qt-projects\qt-cef\QtCefCMakeDemo\cmake-build-debug --target qt-cef -j 12</span><br><span class="line">[1&#x2F;8] Automatic MOC and UIC for target qt-cef</span><br><span class="line">[2&#x2F;8] Building CXX object CMakeFiles\qt-cef.dir\qt-cef_autogen\UVLADIE3JM\qrc_qtcefwindow.cpp.obj</span><br><span class="line">[3&#x2F;8] Building CXX object CMakeFiles\qt-cef.dir\src\simple_app.cpp.obj</span><br><span class="line">[4&#x2F;8] Building CXX object CMakeFiles\qt-cef.dir\src\simple_handler.cpp.obj</span><br><span class="line">[5&#x2F;8] Building CXX object CMakeFiles\qt-cef.dir\qt-cef_autogen\mocs_compilation.cpp.obj</span><br><span class="line">[6&#x2F;8] Building CXX object CMakeFiles\qt-cef.dir\src\qtcefwindow.cpp.obj</span><br><span class="line">[7&#x2F;8] Building CXX object CMakeFiles\qt-cef.dir\src\main.cpp.obj</span><br><span class="line">[8&#x2F;8] Linking CXX executable qt-cef.exe</span><br><span class="line"></span><br><span class="line">Build finished</span><br></pre></td></tr></table></figure>
+<p>但是在运行的过程中理论山还会出现两个问题：</p>
+<h2 id="Process-finished-with-exit-code-1073740791-0xC0000409"><a href="#Process-finished-with-exit-code-1073740791-0xC0000409" class="headerlink" title="Process finished with exit code -1073740791 (0xC0000409)"></a>Process finished with exit code -1073740791 (0xC0000409)</h2><p>出现这个问题的时候，使用CLion的Debug模式进行，会看到错误调用栈：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/050-debug-string-error.png" alt="050-debug-string-error"></p>
+<p>经过问题排查，主要原因点：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/060-string-error-detail.png" alt="060-string-error-detail"></p>
+<p>在qtcefwindow构造函数中调用<code>CefBrowserHost::CreateBrowser</code>API，会传入初始要打开的页面地址，然而QString.toStdString得到string有问题（后续排查具体原因）。解决方案就是直接使用std::string变量即可：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">     // 以下是将 SimpleHandler 与窗体进行关联的代码</span><br><span class="line">     CefWindowInfo cef_wnd_info;</span><br><span class="line"><span class="deletion">-    QString str_url = &quot;https://www.cnblogs.com/w4ngzhen&quot;;</span></span><br><span class="line"><span class="addition">+    std::string str_url = &quot;https://www.cnblogs.com/w4ngzhen&quot;;</span></span><br><span class="line">     QRect rect = this-&gt;geometry();</span><br><span class="line">     CefRect win_rect(</span><br><span class="line">             rect.left(),</span><br><span class="line">@@ -25,7 +25,7 @@ QtCefWindow::QtCefWindow(QWidget* parent)</span><br><span class="line">     simple_handler_ = CefRefPtr&lt;SimpleHandler&gt;(new SimpleHandler());</span><br><span class="line">     CefBrowserHost::CreateBrowser(cef_wnd_info,</span><br><span class="line">         simple_handler_,</span><br><span class="line"><span class="deletion">-        str_url.toStdString(),</span></span><br><span class="line"><span class="addition">+        str_url,</span></span><br><span class="line">         cef_browser_settings,</span><br><span class="line">         nullptr,</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="“Invalid-COM-thread-model-change”-或-运行后异常退出报错Exception-0x80000003-encountered-at-address-0x7ffbc43e9f3c"><a href="#“Invalid-COM-thread-model-change”-或-运行后异常退出报错Exception-0x80000003-encountered-at-address-0x7ffbc43e9f3c" class="headerlink" title="“Invalid COM thread model change” 或 运行后异常退出报错Exception 0x80000003 encountered at address 0x7ffbc43e9f3c"></a>“Invalid COM thread model change” 或 运行后异常退出报错Exception 0x80000003 encountered at address 0x7ffbc43e9f3c</h2><p>解决掉上述问题以后，笔者的环境下还会出现两种类似的问题：</p>
+<ol>
+<li>“Invalid COM thread model change”（实际上有些同学机器上，这个问题先于上面的字符串问题）</li>
+<li>运行后异常退出报错Exception 0x80000003 encountered at address 0x7ffbc43e9f3c</li>
+</ol>
+<p>这两种情况都是一个解决方案。问题点在于，QT的事件循环在多个进程（浏览器进程、渲染进程）均被初始化。实际上只需要在浏览器进程即可。解决方案就是将main.cpp中的init_for_cef提取到最前：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="deletion">-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 解决高DPI下，界面比例问题</span></span><br><span class="line"><span class="deletion">-    QApplication a(argc, argv);</span></span><br><span class="line"><span class="addition">+    // 将init_qt_cef提取到QApplication初始化之前</span></span><br><span class="line"><span class="addition">+    // 对于CEF多进程架构模型</span></span><br><span class="line"><span class="addition">+    // 因为【渲染进程】启动后，init_qt_cef中执行的CefExecuteProcess会阻塞住，</span></span><br><span class="line"><span class="addition">+    // 如果在此之前启动了QT的事件循环，那么会导致QT出现异常</span></span><br><span class="line"><span class="addition">+    // 所以，我们将init_qt_cef提前到QApplication初始化之前，</span></span><br><span class="line"><span class="addition">+    // 保证无论是浏览器进程还是渲染进程启动，都会进入init_qt_cef，但渲染进程会在里面阻塞，</span></span><br><span class="line"><span class="addition">+    // 不会进入后续的QT应用初始化</span></span><br><span class="line">     const int result = init_qt_cef(argc, argv);</span><br><span class="line">     if (result &gt;= 0)</span><br><span class="line">     &#123;</span><br><span class="line">         return result;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line"><span class="addition">+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);  // 解决高DPI下，界面比例问题</span></span><br><span class="line"><span class="addition">+    QApplication a(argc, argv);</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line">     QtCefWindow w;</span><br><span class="line">     w.show();</span><br><span class="line">     a.exec();</span><br></pre></td></tr></table></figure>
+<p>对于CEF多进程架构模型，因为<strong>渲染进程</strong>启动后，init_qt_cef中执行的CefExecuteProcess会阻塞住，如果在此之前启动了QT的事件循环，那么会导致QT出现异常。 所以，我们将init_qt_cef提前到QApplication初始化之前，保证无论是<strong>浏览器进程</strong>还是<strong>渲染进程</strong>启动后，都会进入init_qt_cef，但渲染进程会在里面阻塞，不会进入后续的QT应用初始化。</p>
+<h1 id="效果演示与代码库"><a href="#效果演示与代码库" class="headerlink" title="效果演示与代码库"></a>效果演示与代码库</h1><p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/070-show.gif" alt="070-show"></p>
+<p>与本文相关的代码已经提交至Github，且按照整个文章的编写流程进行提交：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/QtCefCmakeDemo">w4ngzhen/QtCefCmakeDemo (github.com)</a></p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-12/080-git-commits.png" alt="080-git-commits"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cef/" rel="tag"># cef</a>
+              <a href="/tags/qt/" rel="tag"># qt</a>
+              <a href="/tags/cmake/" rel="tag"># cmake</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/08/14/2022-08-14-TypeScript%E4%B8%8EBabel%E3%80%81webpack%E7%9A%84%E5%85%B3%E7%B3%BB%E4%BB%A5%E5%8F%8AIDE%E5%AF%B9TS%E7%9A%84%E7%B1%BB%E5%9E%8B%E6%A3%80%E6%9F%A5/" rel="prev" title="TypeScript与Babel、webpack的关系以及IDE对TS的类型检查">
+      <i class="fa fa-chevron-left"></i> TypeScript与Babel、webpack的关系以及IDE对TS的类型检查
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E7%8E%AF%E5%A2%83"><span class="nav-number">1.</span> <span class="nav-text">基础环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E6%90%AD%E5%BB%BA"><span class="nav-number">2.</span> <span class="nav-text">工程搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CMakeLists-txt"><span class="nav-number">2.1.</span> <span class="nav-text">CMakeLists.txt</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">异常处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#error-C3646-%E2%80%9COVERRIDE%E2%80%9D-%E6%9C%AA%E7%9F%A5%E9%87%8D%E5%86%99%E8%AF%B4%E6%98%8E%E7%AC%A6"><span class="nav-number">3.1.</span> <span class="nav-text">error C3646: “OVERRIDE”: 未知重写说明符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#error-C2039-%E2%80%9CBind%E2%80%9D-%E4%B8%8D%E6%98%AF-%E2%80%9Cbase%E2%80%9D-%E7%9A%84%E6%88%90%E5%91%98"><span class="nav-number">3.2.</span> <span class="nav-text">error C2039: “Bind”: 不是 “base” 的成员</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#warning-C4819-%E8%AF%A5%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB%E4%B8%8D%E8%83%BD%E5%9C%A8%E5%BD%93%E5%89%8D%E4%BB%A3%E7%A0%81%E9%A1%B5-936-%E4%B8%AD%E8%A1%A8%E7%A4%BA%E7%9A%84%E5%AD%97%E7%AC%A6%E3%80%82%E8%AF%B7%E5%B0%86%E8%AF%A5%E6%96%87%E4%BB%B6%E4%BF%9D%E5%AD%98%E4%B8%BA-Unicode-%E6%A0%BC%E5%BC%8F%E4%BB%A5%E9%98%B2%E6%AD%A2%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1"><span class="nav-number">3.3.</span> <span class="nav-text">warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#error-C2664-%E2%80%9Cvoid-CefWindowInfo-SetAsChild-HWND-const-CefRect-amp-%E2%80%9D-%E6%97%A0%E6%B3%95%E5%B0%86%E5%8F%82%E6%95%B0-2-%E4%BB%8E%E2%80%9CRECT%E2%80%9D%E8%BD%AC%E6%8D%A2%E4%B8%BA%E2%80%9Cconst-CefRect-amp-%E2%80%9D"><span class="nav-number">3.4.</span> <span class="nav-text">error C2664: “void CefWindowInfo::SetAsChild(HWND,const CefRect &amp;)”: 无法将参数 2 从“RECT”转换为“const CefRect &amp;”</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#libcef-dll-wrapper-lib-libcef-dll-wrapper-obj-error-LNK2038-%E6%A3%80%E6%B5%8B%E5%88%B0%E2%80%9C-ITERATOR-DEBUG-LEVEL%E2%80%9D%E7%9A%84%E4%B8%8D%E5%8C%B9%E9%85%8D%E9%A1%B9-%E5%80%BC%E2%80%9C0%E2%80%9D%E4%B8%8D%E5%8C%B9%E9%85%8D%E5%80%BC%E2%80%9C2%E2%80%9D-mocs-compilation-cpp-obj-%E4%B8%AD"><span class="nav-number">3.5.</span> <span class="nav-text">libcef_dll_wrapper.lib(libcef_dll_wrapper.obj) : error LNK2038: 检测到“_ITERATOR_DEBUG_LEVEL”的不匹配项: 值“0”不匹配值“2”(mocs_compilation.cpp.obj 中)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Process-finished-with-exit-code-1073740791-0xC0000409"><span class="nav-number">3.6.</span> <span class="nav-text">Process finished with exit code -1073740791 (0xC0000409)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%80%9CInvalid-COM-thread-model-change%E2%80%9D-%E6%88%96-%E8%BF%90%E8%A1%8C%E5%90%8E%E5%BC%82%E5%B8%B8%E9%80%80%E5%87%BA%E6%8A%A5%E9%94%99Exception-0x80000003-encountered-at-address-0x7ffbc43e9f3c"><span class="nav-number">3.7.</span> <span class="nav-text">“Invalid COM thread model change” 或 运行后异常退出报错Exception 0x80000003 encountered at address 0x7ffbc43e9f3c</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E6%BC%94%E7%A4%BA%E4%B8%8E%E4%BB%A3%E7%A0%81%E5%BA%93"><span class="nav-number">4.</span> <span class="nav-text">效果演示与代码库</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

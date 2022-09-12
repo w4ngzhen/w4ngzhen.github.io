@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="在上一篇《从零搭建react+ts组件库（一）项目搭建与封装antd组件》介绍了使用webpack来搭建一个基于antd的组件库的基本框架，但是作为一个组件库，实际上还有很多的都还未引入，本篇将会补充less模块化以及svg引入的基本方式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零搭建react+ts组件库（二）less模块化与svg引入配置">
+<meta property="og:url" content="http://compilemind.com/2022/08/11/2022-08-11-%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAreact+ts%E7%BB%84%E4%BB%B6%E5%BA%93%EF%BC%88%E4%BA%8C%EF%BC%89%E9%85%8D%E7%BD%AEless%E6%A8%A1%E5%9D%97%E8%AF%9D%E4%B8%8Esvg/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="在上一篇《从零搭建react+ts组件库（一）项目搭建与封装antd组件》介绍了使用webpack来搭建一个基于antd的组件库的基本框架，但是作为一个组件库，实际上还有很多的都还未引入，本篇将会补充less模块化以及svg引入的基本方式。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-08-11/010-less-module.gif">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-08-11/020-use-svg.png">
+<meta property="article:published_time" content="2022-08-10T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-09-12T07:06:30.595Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="react">
+<meta property="article:tag" content="ui">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-08-11/010-less-module.gif">
+
+<link rel="canonical" href="http://compilemind.com/2022/08/11/2022-08-11-%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAreact+ts%E7%BB%84%E4%BB%B6%E5%BA%93%EF%BC%88%E4%BA%8C%EF%BC%89%E9%85%8D%E7%BD%AEless%E6%A8%A1%E5%9D%97%E8%AF%9D%E4%B8%8Esvg/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>从零搭建react+ts组件库（二）less模块化与svg引入配置 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/08/11/2022-08-11-%E4%BB%8E%E9%9B%B6%E6%90%AD%E5%BB%BAreact+ts%E7%BB%84%E4%BB%B6%E5%BA%93%EF%BC%88%E4%BA%8C%EF%BC%89%E9%85%8D%E7%BD%AEless%E6%A8%A1%E5%9D%97%E8%AF%9D%E4%B8%8Esvg/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从零搭建react+ts组件库（二）less模块化与svg引入配置
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-08-11 00:00:00" itemprop="dateCreated datePublished" datetime="2022-08-11T00:00:00+08:00">2022-08-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-09-12 15:06:30" itemprop="dateModified" datetime="2022-09-12T15:06:30+08:00">2022-09-12</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在上一篇《从零搭建react+ts组件库（一）项目搭建与封装antd组件》介绍了使用webpack来搭建一个基于antd的组件库的基本框架，但是作为一个组件库，实际上还有很多的都还未引入，本篇将会补充less模块化以及svg引入的基本方式。</p>
+<a id="more"></a>
+<p>本文所有修改的代码分支为chapter02位于<a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/r-ui">w4ngzhen/r-ui (github.com)</a>仓库的<code>chapter02_less_and_svg</code>分支，该分支基于上一篇文章的<code>chapter01_init</code>分支而来（main分支总是显示最新的内容）。</p>
+<p>为了讲解如何进行less模块化配置以及如何引入svg作为组件库的一部分，我们设想这样一个需求：一个搜索输入框，左侧是一个svg的icon搜索图标，右侧是输入框。</p>
+<h1 id="组件规划"><a href="#组件规划" class="headerlink" title="组件规划"></a>组件规划</h1><p>首先考虑组件具备的属性，作为一个简单的搜索框，我们至少有3个属性：</p>
+<ol>
+<li>输入框初始默认值（defaultValue）</li>
+<li>占位提示信息（placeholder）</li>
+<li>输入改变事件（onChange）</li>
+</ol>
+<p>对于UI结构来说，我们可以使用一个div作为整体包裹，然后左侧是图标的区域（使用一个div），右侧是输入框（input）。</p>
+<p>综上，我们的初始代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">import * as React from &quot;react&quot;;</span><br><span class="line"></span><br><span class="line">interface SearchInputProps &#123;</span><br><span class="line">    defaultValue?: string;</span><br><span class="line">    placeholder?: string;</span><br><span class="line">    onChange?: (value: string, e: React.ChangeEvent&lt;HTMLInputElement&gt;) &#x3D;&gt; void;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">const SearchInput: React.FC&lt;SearchInputProps&gt; &#x3D; (props) &#x3D;&gt; &#123;</span><br><span class="line">    const &#123;</span><br><span class="line">        defaultValue,</span><br><span class="line">        placeholder,</span><br><span class="line">        onChange,</span><br><span class="line">    &#125; &#x3D; props;</span><br><span class="line"></span><br><span class="line">    const inputOnChange: React.ChangeEventHandler&lt;HTMLInputElement&gt;</span><br><span class="line">        &#x3D; (e: React.ChangeEvent&lt;HTMLInputElement&gt;) &#x3D;&gt; &#123;</span><br><span class="line">        if (onChange) &#123;</span><br><span class="line">            onChange(e.target.value, e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return (</span><br><span class="line">        &#x2F;&#x2F; 包裹</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">            &#123;&#x2F;*存放icon*&#x2F;&#125;</span><br><span class="line">            &lt;div&gt;&lt;&#x2F;div&gt;</span><br><span class="line">            &#123;&#x2F;* 输入框*&#x2F;&#125;</span><br><span class="line">            &lt;input defaultValue&#x3D;&#123;defaultValue&#125;</span><br><span class="line">                   placeholder&#x3D;&#123;placeholder&#125;</span><br><span class="line">                   onChange&#x3D;&#123;inputOnChange&#125;&gt;&lt;&#x2F;input&gt;</span><br><span class="line">        &lt;&#x2F;div&gt;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="less样式模块化配置"><a href="#less样式模块化配置" class="headerlink" title="less样式模块化配置"></a>less样式模块化配置</h1><p>首先我们编写less样式文件，当然，对于该文件我们不赘述实现。</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">@input-size:</span> <span class="number">32px</span>;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.centerAll</span>() &#123;</span><br><span class="line">  <span class="attribute">display</span>: flex;</span><br><span class="line">  <span class="attribute">flex-direction</span>: row;</span><br><span class="line">  <span class="attribute">justify-content</span>: center;</span><br><span class="line">  <span class="attribute">align-items</span>: center;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.searchInputWrap</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="attribute">width</span>: <span class="number">100%</span>;</span><br><span class="line">  <span class="attribute">height</span>: <span class="variable">@input-size</span>;</span><br><span class="line"></span><br><span class="line">  <span class="attribute">background-color</span>: <span class="number">#f4f4f4</span>;</span><br><span class="line">  <span class="attribute">border-radius</span>: <span class="number">5px</span>;</span><br><span class="line"></span><br><span class="line">  <span class="selector-class">.centerAll</span>();</span><br><span class="line"></span><br><span class="line">  <span class="selector-class">.searchInputIconBox</span> &#123;</span><br><span class="line">    <span class="attribute">width</span>: <span class="variable">@input-size</span>;</span><br><span class="line">    <span class="attribute">height</span>: <span class="variable">@input-size</span>;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">background-color</span>: transparent;</span><br><span class="line">    <span class="selector-class">.centerAll</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="selector-class">.searchInput</span> &#123;</span><br><span class="line">    <span class="attribute">width</span>: calc(<span class="number">100%</span> - <span class="variable">@input-size</span>);</span><br><span class="line">    <span class="attribute">height</span>: <span class="number">100%</span>;</span><br><span class="line">    <span class="attribute">border</span>: none;</span><br><span class="line">    <span class="attribute">outline</span>: none;</span><br><span class="line">    <span class="attribute">background-color</span>: transparent;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="selector-class">.searchInput</span><span class="selector-pseudo">:focus</span> &#123;</span><br><span class="line">    <span class="attribute">border</span>: none;</span><br><span class="line">    <span class="attribute">outline</span>: none;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>修改组件代码，改动如下：</p>
+<ol>
+<li>以模块化的方式引入less文件</li>
+</ol>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> import * as React from &quot;react&quot;;</span><br><span class="line"><span class="addition">+import styles from &#x27;./index.module.less&#x27;;</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>针对每个元素配置其less样式，采用<code>styles.xxx</code>方式使用</li>
+</ol>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">     return (</span><br><span class="line">         // 包裹</span><br><span class="line"><span class="deletion">-        &lt;div&gt;</span></span><br><span class="line"><span class="addition">+        &lt;div className=&#123;styles.searchInputWrap&#125;&gt;</span></span><br><span class="line">             &#123;/*存放icon*/&#125;</span><br><span class="line"><span class="deletion">-            &lt;div&gt;&lt;/div&gt;</span></span><br><span class="line"><span class="addition">+            &lt;div className=&#123;styles.searchInputIconBox&#125;&gt;&lt;/div&gt;</span></span><br><span class="line">             &#123;/* 输入框*/&#125;</span><br><span class="line"><span class="deletion">-            &lt;input defaultValue=&#123;defaultValue&#125;</span></span><br><span class="line"><span class="addition">+            &lt;input className=&#123;styles.searchInput&#125;</span></span><br><span class="line"><span class="addition">+                   defaultValue=&#123;defaultValue&#125;</span></span><br><span class="line">                    placeholder=&#123;placeholder&#125;</span><br><span class="line">                    onChange=&#123;inputOnChange&#125;&gt;&lt;/input&gt;</span><br><span class="line">         &lt;/div&gt;</span><br><span class="line">     )</span><br></pre></td></tr></table></figure>
+<p>webpack对于css-loader需要进行简单的配置：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">           &#123;</span><br><span class="line">             loader: MiniCssExtractPlugin.loader,</span><br><span class="line">           &#125;,</span><br><span class="line"><span class="deletion">-          &#x27;css-loader&#x27;,</span></span><br><span class="line"><span class="addition">+          &#123;</span></span><br><span class="line"><span class="addition">+            loader: &quot;css-loader&quot;,</span></span><br><span class="line"><span class="addition">+            options: &#123;</span></span><br><span class="line"><span class="addition">+              modules: true</span></span><br><span class="line"><span class="addition">+            &#125;</span></span><br><span class="line"><span class="addition">+          &#125;,</span></span><br><span class="line">           &#x27;less-loader&#x27;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>对于该处的配置，详细可以查看关于css-loader的文档<a target="_blank" rel="noopener" href="https://github.com/webpack-contrib/css-loader">webpack-contrib/css-loader: CSS Loader (github.com)</a></p>
+<p>此时，如果有同学在使用IDEA会发现有编译报错。有同学会发现，我们的项目里面没有直接安装typescript，那么为什么IDEA能够检测到我们代码呢？实际上这是IDEA自带的ts在进行类型检测，<strong>仅仅是类型检查</strong>，实际上编译过程我们是调用的babel-loader+preset/typescript这条链路来完成的，所以并不影响编译后的内容。当然，为了能够进行正确的类型检查，我们在项目根目录下添加tsconfig.json：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;compilerOptions&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;noEmit&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">&quot;esModuleInterop&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">&quot;jsx&quot;</span>: <span class="string">&quot;react&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;include&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;src&quot;</span>,</span><br><span class="line">    <span class="string">&quot;./src/external.d.ts&quot;</span></span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中，<code>&quot;noEmit&quot;: true</code>表明由ts进行类型检查，但是不编译文件。include中的<code>./src/external.d.ts</code>中的内容如下：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// less模块声明</span></span><br><span class="line"><span class="keyword">declare</span> <span class="keyword">module</span> &#x27;*.<span class="keyword">module</span>.less&#x27; &#123;</span><br><span class="line">    <span class="keyword">const</span> content: &#123; [className: <span class="built_in">string</span>]: <span class="built_in">string</span> &#125;;</span><br><span class="line">    <span class="keyword">export</span> = content;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>也就是说，希望IDEA的内置ts读取tsconfig.json，并添加关于import<code>*.module.less</code>时候得到的模块的类型定义。这样，IDEA的ts类型检查在这句话的时候就不会报错了：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> styles <span class="keyword">from</span> <span class="string">&#x27;./index.module.less&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>总结一下，想要在ts+babel-loader项目中使用样式模块化。</p>
+<p>在类型检查阶段，需要：</p>
+<ol>
+<li>单独配置tsconfig.json</li>
+<li>编写d.ts，并被tsconfig.json配置包含在类型定义查找的范围（inlcude）</li>
+</ol>
+<p>在编译阶段，需要只需要配置css-loader的module为true即可。</p>
+<p>这一块我会再写一篇文章来单独讲解webpack+ts+babel的方案。</p>
+<h2 id="效果演示"><a href="#效果演示" class="headerlink" title="效果演示"></a>效果演示</h2><p>编写样例html：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>r-ui example<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://unpkg.com/react@17/umd/react.development.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://unpkg.com/react-dom@17/umd/react-dom.development.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;r-ui.umd.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">&quot;r-ui.umd.css&quot;</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;example&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="comment">// window上存在rui，是因为我们将组件包导出为了umd包，取名为rui</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">const</span> button = React.createElement(rui.SearchInput, &#123;</span></span><br><span class="line"><span class="javascript">    placeholder: <span class="string">&#x27;占位符&#x27;</span>,</span></span><br><span class="line"><span class="javascript">    defaultValue: <span class="string">&#x27;hello, world&#x27;</span>,</span></span><br><span class="line"><span class="javascript">    onChange: <span class="function">(<span class="params">value, e</span>) =&gt;</span> <span class="built_in">console</span>.log(value, e)</span></span><br><span class="line">  &#125;);</span><br><span class="line"><span class="javascript">  ReactDOM.render(button, <span class="built_in">document</span>.getElementById(<span class="string">&#x27;example&#x27;</span>));</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>编译r-ui后打开样例界面，可以看到如下效果：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-08-11/010-less-module.gif" alt="010-less-module"></p>
+<h1 id="svg引入配置"><a href="#svg引入配置" class="headerlink" title="svg引入配置"></a>svg引入配置</h1><p>实际上，react中想要使用svg有这很多种方式，像是直接编写react组件，并返回svg代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import * as React from &quot;react&quot;;</span><br><span class="line"></span><br><span class="line">const IconSearch &#x3D; () &#x3D;&gt; &#123;</span><br><span class="line">    return (</span><br><span class="line">        &lt;svg className&#x3D;&quot;icon&quot;</span><br><span class="line">             viewBox&#x3D;&quot;0 0 1024 1024&quot; version&#x3D;&quot;1.1&quot; xmlns&#x3D;&quot;http:&#x2F;&#x2F;www.w3.org&#x2F;2000&#x2F;svg&quot;</span><br><span class="line">             p-id&#x3D;&quot;4136&quot; width&#x3D;&quot;25&quot; height&#x3D;&quot;25&quot;&gt;</span><br><span class="line">            &lt;path</span><br><span class="line">                d&#x3D;&quot;M909.6 854.5L649.9 594.8C690.2 542.7 712 479 712 412c0-80.2-31.3-155.4-87.9-212.1-56.6-56.7-132-87.9-212.1-87.9s-155.5 31.3-212.1 87.9C143.2 256.5 112 331.8 112 412c0 80.1 31.3 155.5 87.9 212.1C256.5 680.8 331.8 712 412 712c67 0 130.6-21.8 182.7-62l259.7 259.6c3.2 3.2 8.4 3.2 11.6 0l43.6-43.5c3.2-3.2 3.2-8.4 0-11.6zM570.4 570.4C528 612.7 471.8 636 412 636s-116-23.3-158.4-65.6C211.3 528 188 471.8 188 412s23.3-116.1 65.6-158.4C296 211.3 352.2 188 412 188s116.1 23.2 158.4 65.6S636 352.2 636 412s-23.3 116.1-65.6 158.4z&quot;</span><br><span class="line">                p-id&#x3D;&quot;4137&quot;&gt;&lt;&#x2F;path&gt;</span><br><span class="line">        &lt;&#x2F;svg&gt;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种方式弊端在于，每次svg有修改的时候，都需要重新复制svg代码对代码文件进行修改，且很多svg的数据较为复杂，容易出错。</p>
+<h2 id="将svg作为react组件来使用"><a href="#将svg作为react组件来使用" class="headerlink" title="将svg作为react组件来使用"></a>将svg作为react组件来使用</h2><p>我们知道，对于webpack来说，可以将一切的东西都是为模块，对于任何import进来的，webpack都可以通过匹配的规则（rules）调用对应的loader来进行处理。</p>
+<p>那么，是否存在这样一种方式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">import IconSearch from &#39;path&#x2F;to&#x2F;search.svg&#39;</span><br><span class="line">&#x2F;&#x2F; IconSearch是一个React组件，可以在其他组件中使用</span><br></pre></td></tr></table></figure>
+<p>个人最常使用的方案是<code>svgr/webpack</code>（<a target="_blank" rel="noopener" href="https://react-svgr.com/docs/webpack/">Webpack - SVGR (react-svgr.com)</a>）</p>
+<p>只需要三个步骤的配置：</p>
+<ol>
+<li>引入@svgr/webpack</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yarn add -D @svgr&#x2F;webpack</span><br></pre></td></tr></table></figure>
+<ol>
+<li>配置webpack，处理svg</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  test: <span class="regexp">/\.svg$/</span>,</span><br><span class="line">  use: [<span class="string">&#x27;@svgr/webpack&#x27;</span>],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>external.d.ts配置（配置理由和上述less配置一样，为了达到类型检查）</li>
+</ol>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// svg类型</span></span><br><span class="line"><span class="keyword">declare</span> <span class="keyword">module</span> &#x27;*.svg&#x27; &#123;</span><br><span class="line">    <span class="keyword">const</span> content: React.FunctionComponent&lt;React.SVGAttributes&lt;React.ReactSVGElement&gt;&gt;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">default</span> content</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完成配置以后，我们就可以通过import XXX from ‘path/to/xxx.svg’，来使用SVG组件了：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"> import * as React from &quot;react&quot;;</span><br><span class="line"> import styles from &#x27;./index.module.less&#x27;;</span><br><span class="line"><span class="addition">+import IconSearch from &quot;../../assets/svg/search.svg&quot;;</span></span><br><span class="line"> </span><br><span class="line"> interface SearchInputProps &#123;</span><br><span class="line">     defaultValue?: string;</span><br><span class="line">     // ... ...</span><br><span class="line">         // 包裹</span><br><span class="line">         &lt;div className=&#123;styles.searchInputWrap&#125;&gt;</span><br><span class="line">             &#123;/*存放icon*/&#125;</span><br><span class="line"><span class="deletion">-            &lt;div className=&#123;styles.searchInputIconBox&#125;&gt;&lt;/div&gt;</span></span><br><span class="line"><span class="addition">+            &lt;div className=&#123;styles.searchInputIconBox&#125;&gt;</span></span><br><span class="line"><span class="addition">+                &lt;IconSearch width=&#123;18&#125; height=&#123;18&#125;/&gt;</span></span><br><span class="line"><span class="addition">+            &lt;/div&gt;</span></span><br><span class="line">             &#123;/* 输入框*/&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="效果演示-1"><a href="#效果演示-1" class="headerlink" title="效果演示"></a>效果演示</h2><p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-08-11/020-use-svg.png" alt="020-use-svg"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/react/" rel="tag"># react</a>
+              <a href="/tags/ui/" rel="tag"># ui</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/07/22/2022-07-22-%E3%80%8A%E4%B8%96%E5%98%89%E6%96%B0%E4%BA%BA%E5%9F%B9%E8%AE%AD%E6%95%99%E6%9D%90%E2%80%94%E6%B8%B8%E6%88%8F%E5%BC%80%E5%8F%91%E3%80%8B2DGraphics1%E9%A1%B9%E7%9B%AEcmake%E6%9E%84%E5%BB%BA/" rel="prev" title="《世嘉新人培训教材—游戏开发》2DGraphics1项目cmake构建">
+      <i class="fa fa-chevron-left"></i> 《世嘉新人培训教材—游戏开发》2DGraphics1项目cmake构建
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/08/14/2022-08-14-TypeScript%E4%B8%8EBabel%E3%80%81webpack%E7%9A%84%E5%85%B3%E7%B3%BB%E4%BB%A5%E5%8F%8AIDE%E5%AF%B9TS%E7%9A%84%E7%B1%BB%E5%9E%8B%E6%A3%80%E6%9F%A5/" rel="next" title="TypeScript与Babel、webpack的关系以及IDE对TS的类型检查">
+      TypeScript与Babel、webpack的关系以及IDE对TS的类型检查 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E8%A7%84%E5%88%92"><span class="nav-number">1.</span> <span class="nav-text">组件规划</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less%E6%A0%B7%E5%BC%8F%E6%A8%A1%E5%9D%97%E5%8C%96%E9%85%8D%E7%BD%AE"><span class="nav-number">2.</span> <span class="nav-text">less样式模块化配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E6%BC%94%E7%A4%BA"><span class="nav-number">2.1.</span> <span class="nav-text">效果演示</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#svg%E5%BC%95%E5%85%A5%E9%85%8D%E7%BD%AE"><span class="nav-number">3.</span> <span class="nav-text">svg引入配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%86svg%E4%BD%9C%E4%B8%BAreact%E7%BB%84%E4%BB%B6%E6%9D%A5%E4%BD%BF%E7%94%A8"><span class="nav-number">3.1.</span> <span class="nav-text">将svg作为react组件来使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E6%BC%94%E7%A4%BA-1"><span class="nav-number">3.2.</span> <span class="nav-text">效果演示</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">75</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">68</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
