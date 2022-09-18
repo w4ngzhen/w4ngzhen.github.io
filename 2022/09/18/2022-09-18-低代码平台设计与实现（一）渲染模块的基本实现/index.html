@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"compilemind.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+  </script>
+
+  <meta name="description" content="这两年低代码平台的话题愈来愈火，一眼望去全是关于低代码开发的概念，鲜有关于低代码平台的设计实现。本文将以实际的代码入手，逐步介绍如何打造一款低开的平台。 低开概念我们不再赘述，但对于低开的前端来说，至少要有以下3个要素：  使用能被更多用户（甚至不是开发人员）容易接受的DSL（领域特定语言），用以描述页面结构以及相关UI上下文。 内部具有渲染引擎，用以渲染DSL JSON到实际页面元素。 提供设计">
+<meta property="og:type" content="article">
+<meta property="og:title" content="低代码平台前端的设计与实现（一） 渲染模块的基本实现">
+<meta property="og:url" content="http://compilemind.com/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="CompileMind">
+<meta property="og:description" content="这两年低代码平台的话题愈来愈火，一眼望去全是关于低代码开发的概念，鲜有关于低代码平台的设计实现。本文将以实际的代码入手，逐步介绍如何打造一款低开的平台。 低开概念我们不再赘述，但对于低开的前端来说，至少要有以下3个要素：  使用能被更多用户（甚至不是开发人员）容易接受的DSL（领域特定语言），用以描述页面结构以及相关UI上下文。 内部具有渲染引擎，用以渲染DSL JSON到实际页面元素。 提供设计">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/010-TypeRenderer-flow.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/020-RenderEngine-handle-flow-v1.png">
+<meta property="og:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/030-simple-example-show.gif">
+<meta property="article:published_time" content="2022-09-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-09-18T10:37:01.024Z">
+<meta property="article:author" content="w4ngzhen">
+<meta property="article:tag" content="low-code">
+<meta property="article:tag" content="render">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/010-TypeRenderer-flow.png">
+
+<link rel="canonical" href="http://compilemind.com/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>低代码平台前端的设计与实现（一） 渲染模块的基本实现 | CompileMind</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CompileMind</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>About</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>Tags</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="w4ngzhen">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CompileMind">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          低代码平台前端的设计与实现（一） 渲染模块的基本实现
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2022-09-18 00:00:00 / Modified: 18:37:01" itemprop="dateCreated datePublished" datetime="2022-09-18T00:00:00+08:00">2022-09-18</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>这两年低代码平台的话题愈来愈火，一眼望去全是关于低代码开发的概念，鲜有关于低代码平台的设计实现。本文将以实际的代码入手，逐步介绍如何打造一款低开的平台。</p>
+<p>低开概念我们不再赘述，但对于低开的前端来说，至少要有以下3个要素：</p>
+<ol>
+<li>使用能被更多用户（甚至不是开发人员）容易接受的DSL（领域特定语言），用以描述页面结构以及相关UI上下文。</li>
+<li>内部具有渲染引擎，用以渲染DSL JSON到实际页面元素。</li>
+<li>提供设计器（Designer）支持以拖拉拽方式来快速处理DSL，方便用户快速完成页面设计。</li>
+</ol>
+<p>本文我们首先着眼于如何进行渲染，后面的文章我们再详细介绍设计器的实现思路。</p>
+<h1 id="DSL"><a href="#DSL" class="headerlink" title="DSL"></a>DSL</h1><p>对于页面UI来说，我们总是可以将界面通过树状结构进行描述：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 页面</span><br><span class="line">    1-1. 标题</span><br><span class="line">       1-1-1. 文字</span><br><span class="line">    1-2. 内容面板</span><br><span class="line">       1-2-1. 一个输入框</span><br></pre></td></tr></table></figure>
+<p>如果采用xml来描述，可以是如下的形式：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">page</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>标题文字<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">content</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">input</span>&gt;</span><span class="tag">&lt;/<span class="name">input</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">content</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">page</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>当然，xml作为DSL有以下的两个问题：</p>
+<ol>
+<li>内容存在<strong>较大的信息冗余</strong>（page标签、title标签，都有重复的字符）。</li>
+<li>前端需要<strong>引入单独处理xml的库</strong>。</li>
+</ol>
+<p>自然，我们很容易想到另一个数据描述方案：JSON。使用JSON来描述上述的页面，我们可以如下设计：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;page&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;children&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;title&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;value&quot;</span>: <span class="string">&quot;标题文字&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;content&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;children&quot;</span>: [</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;input&quot;</span></span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>初看JSON可能觉得内容比起xml更多，但是在前端我们拥有原生处理JSON的能力，这一点就很体现优势。</p>
+<p>回顾一下JSON的方案，我们首先定义一个基本的数据结构：元素节点（<code>ElementNode</code>），它至少有如下的内容：</p>
+<ol>
+<li><strong>type</strong>属性：表明当前节点所属的类型。</li>
+<li><strong>children</strong>属性：一个数组，存放所有的子节点。</li>
+<li><strong>额外</strong>属性：额外剩余的属性，可以应用到当前type，产生作用。</li>
+</ol>
+<p>例如，对于一个页面（<code>page</code>），该页面有一个属性配置背景色（<code>backgroundColor</code>），该页面中有一个按钮（<code>button</code>），并且该按钮有一个属性配置按钮的尺寸（<code>size</code>），此外还有一个输入框（<code>input</code>）。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;page&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;backgroundColor&quot;</span>: <span class="string">&quot;pink&quot;</span>, <span class="comment">// page的 backgroundColor 配置</span></span><br><span class="line">    <span class="attr">&quot;children&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;button&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;size&quot;</span>: <span class="string">&quot;blue&quot;</span> <span class="comment">// button的size配置</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;input&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在我们的平台中，我们定义如下的结构：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">interface</span> ElementNode &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Element 唯一类型type</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">type</span>: <span class="built_in">string</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 组件的各种属性：</span></span><br><span class="line"><span class="comment">     * 扩展的、UI的</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    [props: <span class="built_in">string</span>]: <span class="built_in">string</span> | <span class="built_in">number</span> | <span class="built_in">any</span></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Element 的所有子元素</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    children?: ElementNode[]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="构建与渲染"><a href="#构建与渲染" class="headerlink" title="构建与渲染"></a>构建与渲染</h1><p>上文定义了我们低开平台的DSL，但是数据如果没有渲染在界面上，是没有任何意义的。我们必须要有渲染引擎支持将JSON转换为web页面的内容。</p>
+<h2 id="类型渲染器（TypeRenderer）"><a href="#类型渲染器（TypeRenderer）" class="headerlink" title="类型渲染器（TypeRenderer）"></a>类型渲染器（TypeRenderer）</h2><p>首先我们需要定义基本的渲染器：<code>TypeRenderer</code>。其作用是和<code>ElementNode.type</code>相绑定，一个type对应一个renderer。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">import &#123;ReactNode&#125; from &quot;react&quot;;</span><br><span class="line">import &#123;ElementNode&#125; from &quot;.&#x2F;ElementNode&quot;;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * 渲染器渲染上下文，至少包含ElementNode的相关数据</span><br><span class="line"> *&#x2F;</span><br><span class="line">export interface TypeRendererContext &#123;</span><br><span class="line">    elementNode: Omit&lt;ElementNode, &#39;&#39;&gt;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * 绑定Type的渲染器</span><br><span class="line"> *&#x2F;</span><br><span class="line">export interface TypeRenderer &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 根据ElementNode上下文信息，得到JXS.Element，供React渲染</span><br><span class="line">     * @param rendererContext 渲染器接受的数据上下文</span><br><span class="line">     * @param childrenReactNode 已经完成渲染的子节点的ReactNode</span><br><span class="line">     *&#x2F;</span><br><span class="line">    render(</span><br><span class="line">        rendererContext: TypeRendererContext,</span><br><span class="line">        childrenReactNode?: ReactNode[],</span><br><span class="line">    ): JSX.Element;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * TypeRenderer构造函数类型</span><br><span class="line"> *&#x2F;</span><br><span class="line">export type TypeRendererConstructor &#x3D; new (args: any) &#x3D;&gt; TypeRenderer;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这里的<code>TypeRenderer</code>只是接口抽象，具体的实现，是需要根据type来创建对应的renderer实例。</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/010-TypeRenderer-flow.png" alt="010-TypeRenderer-flow"></p>
+<p>这里我们先简单实现page、button和input：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; type &#x3D; &#39;page&#39;的renderer，使用div作为实际组件</span><br><span class="line">export class PageRenderer implements TypeRenderer &#123;</span><br><span class="line"></span><br><span class="line">    render(rendererContext: TypeRendererContext,</span><br><span class="line">           childrenReactNode?: ReactNode[]): JSX.Element &#123;</span><br><span class="line">        const style: CSSProperties &#x3D; &#123;</span><br><span class="line">            width: &#39;100%&#39;,</span><br><span class="line">            height: &#39;100%&#39;,</span><br><span class="line">            padding: &#39;10px&#39;</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F; 对于type &#x3D; &#39;page&#39;，就是用一个div进行渲染</span><br><span class="line">        &#x2F;&#x2F; 注意，对于容器类组件，始终需要将传入的子元素放到对应的位置，控制子元素的展示</span><br><span class="line">        return (</span><br><span class="line">            &lt;div style&#x3D;&#123;style&#125;&gt;</span><br><span class="line">                &#123;childrenReactNode&#125;</span><br><span class="line">            &lt;&#x2F;div&gt;</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; type &#x3D; &#39;button&#39;的renderer，使用antd的Button作为实际组件</span><br><span class="line">export class ButtonRenderer implements TypeRenderer &#123;</span><br><span class="line"></span><br><span class="line">    render(rendererContext: TypeRendererContext,</span><br><span class="line">           childrenReactNode?: ReactNode[]): JSX.Element &#123;</span><br><span class="line">        const &#123;elementNode &#x3D; &#123;&#125;&#125; &#x3D; rendererContext;</span><br><span class="line">        const &#123;text &#x3D; &#39;button&#39;&#125; &#x3D; elementNode;</span><br><span class="line">        return (</span><br><span class="line">            &lt;Button</span><br><span class="line">                type&#x3D;&#39;primary&#39;&gt;</span><br><span class="line">                &#123;text&#125;</span><br><span class="line">            &lt;&#x2F;Button&gt;</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; type &#x3D; &#39;input&#39;的renderer，使用antd的Input作为实际组件</span><br><span class="line">export class InputRenderer implements TypeRenderer &#123;</span><br><span class="line">    render(rendererContext: TypeRendererContext,</span><br><span class="line">           childrenReactNode?: ReactNode[]): JSX.Element &#123;</span><br><span class="line">        return (</span><br><span class="line">            &lt;Input&#x2F;&gt;</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实际上，每个renderer具体返回的组件，都可以任意根据要求进行定制开发，后续我们会深入介绍这一块的内容。但需要再次强调，正如上面<code>PageRenderer</code>中的注释一样，<strong>对于容器类组件，需要将<code>childrenReactNode</code>放到对应的节点位置，才能正常渲染所有的子元素。</strong></p>
+<p>实现了renderer以后，为了方便管理，我们使用一个所谓的TypeRendererManager（渲染器管理器）来管理我们定义的所有的TypeRenderer：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;TypeRenderer, TypeRendererConstructor&#125; <span class="keyword">from</span> <span class="string">&quot;./TypeRenderer&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;PageRenderer&#125; <span class="keyword">from</span> <span class="string">&quot;./impl/PageRenderer&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;ButtonRenderer&#125; <span class="keyword">from</span> <span class="string">&quot;./impl/ButtonRenderer&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;InputRenderer&#125; <span class="keyword">from</span> <span class="string">&quot;./impl/InputRenderer&quot;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * TypeRenderer管理器</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> TypeRendererManager &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 单实例</span></span><br><span class="line"><span class="comment">     * @private</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> instance: TypeRendererManager;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 内存单例获取</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">static</span> getInstance(): TypeRendererManager &#123;</span><br><span class="line">        <span class="keyword">if</span> (!TypeRendererManager.instance) &#123;</span><br><span class="line">            TypeRendererManager.instance = <span class="keyword">new</span> TypeRendererManager();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> TypeRendererManager.instance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 单例，构造函数private控制</span></span><br><span class="line"><span class="comment">     * @private</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 这里记录了目前所有的TypeRenderer映射，</span></span><br><span class="line"><span class="comment">     * 后续可以优化为程序进行扫描实现，不过是后话了</span></span><br><span class="line"><span class="comment">     * @private</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> typeRendererConstructors: Record&lt;<span class="built_in">string</span>, TypeRendererConstructor&gt; = &#123;</span><br><span class="line">        page: PageRenderer,</span><br><span class="line">        button: ButtonRenderer,</span><br><span class="line">        input: InputRenderer</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 根据元素类型得到对应渲染器</span></span><br><span class="line"><span class="comment">     * @param elementType</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    getTypeRenderer(elementType: <span class="built_in">string</span>): TypeRenderer &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">this</span>.typeRendererConstructors.hasOwnProperty(elementType)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">&#x27;找不到处理&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 采用ES6的Reflect反射来处理对象创建，供后续扩展优化</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Reflect</span>.construct(<span class="built_in">this</span>.typeRendererConstructors[elementType], [])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    TypeRendererManager</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="渲染引擎（RenderEngine）"><a href="#渲染引擎（RenderEngine）" class="headerlink" title="渲染引擎（RenderEngine）"></a>渲染引擎（RenderEngine）</h2><p>接下来是实现我们的渲染引擎（<code>RenderEngine</code>，叫引擎高大上）。</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;ElementNode&#125; <span class="keyword">from</span> <span class="string">&quot;./ElementNode&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;TypeRendererManager&#125; <span class="keyword">from</span> <span class="string">&quot;./TypeRendererManager&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 渲染引擎</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> RenderEngine &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 构建：通过传入ElementNode信息，得到该节点对应供React渲染的ReactNode</span></span><br><span class="line"><span class="comment">     * @param rootEleNode</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    build(rootEleNode: ElementNode): JSX.Element | <span class="literal">undefined</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.innerBuild(rootEleNode);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 构建：通过传入ElementNode信息，得到该节点对应供React渲染的ReactNode</span></span><br><span class="line"><span class="comment">     * @param rootEleNode</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> innerBuild(rootEleNode: ElementNode): JSX.Element | <span class="literal">undefined</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!rootEleNode) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">undefined</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">const</span> &#123;<span class="keyword">type</span>, children&#125; = rootEleNode;</span><br><span class="line">        <span class="comment">// 通过 typeRendererManager 来统一查找对应ElementType的Renderer</span></span><br><span class="line">        <span class="keyword">const</span> typeRenderer = TypeRendererManager.getInstance().getTypeRenderer(<span class="keyword">type</span>);</span><br><span class="line">        <span class="keyword">if</span> (!typeRenderer) &#123;</span><br><span class="line">            <span class="built_in">console</span>.warn(<span class="string">`找不到type=&quot;<span class="subst">$&#123;<span class="keyword">type</span>&#125;</span>&quot;的renderer`</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">undefined</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 递归调用自身，获取子元素处理后的ReactNode</span></span><br><span class="line">        <span class="keyword">const</span> childrenReactNode =</span><br><span class="line">            (children || []).map(<span class="function">(<span class="params">childEleNode</span>) =&gt;</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="built_in">this</span>.innerBuild(childEleNode)</span><br><span class="line">            &#125;);</span><br><span class="line">        <span class="keyword">const</span> reactNode = typeRenderer.render(</span><br><span class="line">            &#123;elementNode: rootEleNode&#125;,</span><br><span class="line">            childrenReactNode</span><br><span class="line">        )</span><br><span class="line">        <span class="keyword">return</span> reactNode;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>目前的代码并不复杂，流程如下：</p>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/020-RenderEngine-handle-flow-v1.png" alt="020-RenderEngine-handle-flow-v1"></p>
+<p>需要注意，这个Engine的公共API是build，由外部调用，仅需要传入根节点ElementNode即可得到整个节点数的UI组件树。但是为了后续我们优化内部的API结构，我们内部使用innerBuild作为内部处理的实际方法。</p>
+<h2 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h2><p>建立一个样例项目，编写一个简单的样例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">const renderEngine &#x3D; new RenderEngine();</span><br><span class="line"></span><br><span class="line">export function SimpleExample() &#123;</span><br><span class="line">    const [elementNodeJson, setElementNodeJson] &#x3D; useState(JSON.stringify(&#123;</span><br><span class="line">        &quot;type&quot;: &quot;page&quot;,</span><br><span class="line">        &quot;backgroundColor&quot;: &quot;pink&quot;, &#x2F;&#x2F; page的 backgroundColor 配置</span><br><span class="line">        &quot;children&quot;: [</span><br><span class="line">            &#123;</span><br><span class="line">                &quot;type&quot;: &quot;button&quot;,</span><br><span class="line">                &quot;size&quot;: &quot;blue&quot; &#x2F;&#x2F; button的size配置</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line">                &quot;type&quot;: &quot;input&quot;</span><br><span class="line">            &#125;</span><br><span class="line">        ]</span><br><span class="line">    &#125;, null, 2))</span><br><span class="line"></span><br><span class="line">    const onChange &#x3D; (e: ChangeEvent&lt;HTMLTextAreaElement&gt;) &#x3D;&gt; &#123;</span><br><span class="line">        const value &#x3D; e.target.value;</span><br><span class="line">        setElementNodeJson(value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    let reactNode;</span><br><span class="line">    try &#123;</span><br><span class="line">        const eleNode &#x3D; JSON.parse(elementNodeJson);</span><br><span class="line">        reactNode &#x3D; renderEngine.build(eleNode);</span><br><span class="line">    &#125; catch (e) &#123;</span><br><span class="line">        &#x2F;&#x2F; 序列化出异常，返回JSON格式出错</span><br><span class="line">        reactNode &#x3D; &lt;div&gt;JSON格式出错&lt;&#x2F;div&gt;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return (</span><br><span class="line">        &lt;div style&#x3D;&#123;&#123;width: &#39;100%&#39;, height: &#39;100%&#39;, padding: &#39;10px&#39;&#125;&#125;&gt;</span><br><span class="line">            &lt;div style&#x3D;&#123;&#123;width: &#39;100%&#39;, height: &#39;calc(50%)&#39;&#125;&#125;&gt;</span><br><span class="line">                &lt;Input.TextArea</span><br><span class="line">                    autoSize&#x3D;&#123;&#123; minRows: 2, maxRows: 10 &#125;&#125;</span><br><span class="line">                    value&#x3D;&#123;elementNodeJson&#125; onChange&#x3D;&#123;onChange&#125;&#x2F;&gt;</span><br><span class="line">            &lt;&#x2F;div&gt;</span><br><span class="line">            &lt;div style&#x3D;&#123;&#123;width: &#39;100%&#39;, height: &#39;calc(50%)&#39;, border: &#39;1px solid gray&#39;&#125;&#125;&gt;</span><br><span class="line">                &#123;reactNode&#125;</span><br><span class="line">            &lt;&#x2F;div&gt;</span><br><span class="line">        &lt;&#x2F;div&gt;</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://src-1252109805.cos.ap-chengdu.myqcloud.com/images/post/2022-09-18/030-simple-example-show.gif" alt="030-simple-example-show"></p>
+<h2 id="设计优化"><a href="#设计优化" class="headerlink" title="设计优化"></a>设计优化</h2><h3 id="路径设计"><a href="#路径设计" class="headerlink" title="路径设计"></a>路径设计</h3><p>目前为止，我们已经设计了一个简单的渲染引擎。但是还有两个需要解决的问题：</p>
+<ol>
+<li>循环创建的ReactNode数组没有添加key，会导致渲染性能问题。</li>
+<li>渲染的过程中，无法定位当前ElementNode的所在位置。</li>
+</ol>
+<p>我们先讨论问题2。对于该问题具体是指：<strong>TypeRenderer.render方法接受的入参可以知道当前ElementNode节点自身的信息，但是却无法知道ElementNode所在的位置具体处于整体ElementNode的哪个位置。</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;page&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;children&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;panel&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;children&quot;</span>: [</span><br><span class="line">                &#123;    </span><br><span class="line">                    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;input&quot;</span></span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line">                    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;button&quot;</span>,</span><br><span class="line">                &#125;</span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;    </span><br><span class="line">            <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;input&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于上述的每一个type，都应当有其标志其唯一的一个key。可以知道，每一个元素的路径是唯一的：</p>
+<ul>
+<li>page：/page</li>
+<li>panel：/page/panel@0</li>
+<li>第一个input：/page/panel@0/input@0。page下面有个panel（面板）元素，位于page的子节点第0号位置（基于0作为起始）。panel下面有个input元素，位于panel的子节点第0号位置。</li>
+<li>button：/page/panel@0/button@1</li>
+<li>第二个input：/page/input@1</li>
+</ul>
+<p>也就是说，路径由<code>&#39;/&#39;</code>拼接，每一级路径由<code>&#39;@&#39;</code>分割type和index，type表明该节点类型，index表明该节点处于上一级节点（也就是父级节点）的children数组的位置（基于0起始）。</p>
+<p>那么，如何生成这样一个路径信息呢？逐级遍历ElementNode即可。其实遍历的这个动作，我们已经在之前渲染引擎的innerBuild地方进行过了（递归），现在只需要进行简单的修改方法：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// RenderEngine.ts代码</span><br><span class="line"><span class="deletion">-    private innerBuild(rootEleNode: ElementNode): JSX.Element | undefined &#123;</span></span><br><span class="line"><span class="addition">+    private innerBuild(rootEleNode: ElementNode, path: string): JSX.Element | undefined &#123;</span></span><br><span class="line">         if (!rootEleNode) &#123;</span><br><span class="line">             return undefined;</span><br><span class="line">         &#125;</span><br><span class="line">// ... ...</span><br><span class="line">         // 递归调用自身，获取子元素处理后的ReactNode</span><br><span class="line">         const childrenReactNode =</span><br><span class="line"><span class="deletion">-            (children || []).map((childEleNode) =&gt; &#123;</span></span><br><span class="line"><span class="deletion">-                return this.innerBuild(childEleNode)</span></span><br><span class="line"><span class="addition">+            (children || []).map((childEleNode, index) =&gt; &#123;</span></span><br><span class="line"><span class="addition">+                // 子元素路径：</span></span><br><span class="line"><span class="addition">+                // 父级路径（也就是当前path）+ &#x27;/&#x27; + 子元素类型 + 子元素所在索引</span></span><br><span class="line"><span class="addition">+                const childPath = `$&#123;path&#125;/$&#123;childEleNode.type&#125;@$&#123;index&#125;`;</span></span><br><span class="line"><span class="addition">+                return this.innerBuild(childEleNode, childPath)</span></span><br><span class="line">             &#125;);</span><br><span class="line">         const reactNode = typeRenderer.render(</span><br><span class="line">             &#123;elementNode: rootEleNode&#125;,</span><br><span class="line">// ... ...</span><br></pre></td></tr></table></figure>
+<p>首先，我们修改了innerBuild方法入参，增加了参数<code>path</code>，用以表示当前节点所在的路径；其次，在生成子元素ReactNode的地方，将<code>path</code>作为基准，根据上述规则<code>&quot;$&#123;elementType&#125;@$&#123;index&#125;&quot;</code>，来生成子元素节点的路径，并传入到的递归调用的innerBuild中。</p>
+<p>当然，build内部调用innerBuild的时候，需要构造一个起始节点的path，传入innerBuild。</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">// RenderEngine.ts代码</span><br><span class="line">     build(rootEleNode: ElementNode): JSX.Element | undefined &#123;</span><br><span class="line"><span class="deletion">-        return this.innerBuild(rootEleNode);</span></span><br><span class="line"><span class="addition">+        // 起始节点，需要构造一个起始path传入innerBuild</span></span><br><span class="line"><span class="addition">+        // 注意，根节点由于不属于某一个父级的子元素，所以不存在&#x27;@$&#123;index&#125;&#x27;</span></span><br><span class="line"><span class="addition">+        return this.innerBuild(rootEleNode, &#x27;/&#x27; + rootEleNode.type);</span></span><br><span class="line">     &#125;</span><br></pre></td></tr></table></figure>
+<p>另外，为了让每一个renderer能够获取到需要渲染的ElementNode的路径信息这个上下文，我们在TypeRendererContext中添加path属性：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> export interface TypeRendererContext &#123;</span><br><span class="line"><span class="addition">+    /**</span></span><br><span class="line"><span class="addition">+     * path：让每个TypeRenderer知道当前渲染的元素所在的路径</span></span><br><span class="line"><span class="addition">+     */</span></span><br><span class="line"><span class="addition">+    path: string;</span></span><br><span class="line">     elementNode: Omit&lt;ElementNode, &#x27;&#x27;&gt;;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p>同时，innerBuild中也要进行一定的修改，需要在调用<code>TypeRender.render</code>方法的时候把path传入：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">        // innerBuild函数</span><br><span class="line">        // ...</span><br><span class="line">        const reactNode = typeRenderer.render(</span><br><span class="line"><span class="deletion">-            &#123;elementNode: rootEleNode&#125;,</span></span><br><span class="line"><span class="addition">+            &#123;path: path, elementNode: rootEleNode&#125;,</span></span><br><span class="line">            childrenReactNode</span><br><span class="line">        )</span><br><span class="line">        // ...</span><br></pre></td></tr></table></figure>
+<p>这样一来，每个renderer的render方法里面，都可以从RenderContext中获取到当前实际渲染的ElementNode唯一具体路径path。在后续的优化中，我们就可以利用该path做一些事情了。</p>
+<p>现在，如何处理<strong>问题1：key值未填写</strong>的问题呢？其实，当我们解决了问题2以后，我们现在知道path是唯一的，那么我们可以将path作为每个元素的key，例如：</p>
+<p>Button渲染器：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">export class ButtonRenderer implements TypeRenderer &#123;</span><br><span class="line"></span><br><span class="line">     render(rendererContext: TypeRendererContext,</span><br><span class="line">            childrenReactNode?: ReactNode[]): JSX.Element &#123;</span><br><span class="line"><span class="deletion">-        const &#123;elementNode = &#123;&#125;&#125; = rendererContext;</span></span><br><span class="line"><span class="addition">+        const &#123;path, elementNode = &#123;&#125;&#125; = rendererContext;</span></span><br><span class="line">         const &#123;text = &#x27;button&#x27;&#125; = elementNode;</span><br><span class="line">         return (</span><br><span class="line">             &lt;Button</span><br><span class="line"><span class="addition">+                key=&#123;path&#125;</span></span><br><span class="line">                 type=&#x27;primary&#x27;&gt;</span><br><span class="line">                 &#123;text&#125;</span><br><span class="line">             &lt;/Button&gt;)</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Input渲染器：</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"> export class InputRenderer implements TypeRenderer&#123;</span><br><span class="line">     render(rendererContext: TypeRendererContext,</span><br><span class="line">            childrenReactNode?: ReactNode[]): JSX.Element &#123;</span><br><span class="line"><span class="addition">+        const &#123;path&#125; = rendererContext;</span></span><br><span class="line">         return (</span><br><span class="line"><span class="deletion">-            &lt;Input /&gt;</span></span><br><span class="line"><span class="addition">+            &lt;Input key=&#123;path&#125;/&gt;</span></span><br><span class="line">         )</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>我们只需要将所有的组件使用path作为key即可</strong>。</p>
+<h1 id="关于构建与渲染的总结"><a href="#关于构建与渲染的总结" class="headerlink" title="关于构建与渲染的总结"></a>关于构建与渲染的总结</h1><p>目前为止，我们设计了一套十分精简的渲染引擎，以一套基于antd组件的组件渲染器，通过接受JSON，渲染出对应结构的页面。该渲染器需要考虑，渲染时候元素的上下文，所以在遍历元素节点的时候，需要把相关的上下文进行封装并交给对应的渲染用于自行处理。当然，渲染部分还有很多很多的处理以及各种基本UI元素的创建还有很多的方法（譬如CDN挂载基础类型等），但是基于本系列，我们由浅入深逐步建立整个低代码平台。下篇文章，笔者将开始介绍设计器Designer的实现。</p>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><p>本章内容对应代码已经推送到github上</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/w4ngzhen/light-lc">w4ngzhen/light-lc (github.com)</a></p>
+<p>main分支与最新文章同步，chapterXX对应本系列的第几章，本文在分支chapter01上体现。</p>
+<p>且按照文章里各段介绍顺序完成了提交：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">modify: use &#39;path&#39; as key for component.</span><br><span class="line">0535765 modify: add path info for innerBuild.</span><br><span class="line">9d1007b add: SimpleExample.</span><br><span class="line">7658f83 add: root index.ts for exporting all types and instance.</span><br><span class="line">74f9089 add: RenderEngine for build UI component.</span><br><span class="line">3bc90cb add: TypeRendererManager for managing all TypeRenderer instance.</span><br><span class="line">42083f4 add: TypeRenderer and implements.</span><br><span class="line">be4d31f add: ElementNode 映射schema节点.</span><br><span class="line">d62f830 init config for project</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/low-code/" rel="tag"># low-code</a>
+              <a href="/tags/render/" rel="tag"># render</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/09/12/2022-09-12-%E4%BD%BF%E7%94%A8CEF%EF%BC%88%E4%BA%94%EF%BC%89%E2%80%94%20%E5%9C%A8QT%E4%B8%AD%E9%9B%86%E6%88%90CEF%EF%BC%882%EF%BC%89%E5%9F%BA%E4%BA%8ECLion+CMake%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83/" rel="prev" title="使用CEF（五）— 在QT中集成CEF（2）基于CLion+CMake搭建环境">
+      <i class="fa fa-chevron-left"></i> 使用CEF（五）— 在QT中集成CEF（2）基于CLion+CMake搭建环境
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#DSL"><span class="nav-number">1.</span> <span class="nav-text">DSL</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9E%84%E5%BB%BA%E4%B8%8E%E6%B8%B2%E6%9F%93"><span class="nav-number">2.</span> <span class="nav-text">构建与渲染</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%9E%8B%E6%B8%B2%E6%9F%93%E5%99%A8%EF%BC%88TypeRenderer%EF%BC%89"><span class="nav-number">2.1.</span> <span class="nav-text">类型渲染器（TypeRenderer）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93%E5%BC%95%E6%93%8E%EF%BC%88RenderEngine%EF%BC%89"><span class="nav-number">2.2.</span> <span class="nav-text">渲染引擎（RenderEngine）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%88%E6%9E%9C%E5%B1%95%E7%A4%BA"><span class="nav-number">2.3.</span> <span class="nav-text">效果展示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E4%BC%98%E5%8C%96"><span class="nav-number">2.4.</span> <span class="nav-text">设计优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%AF%E5%BE%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">2.4.1.</span> <span class="nav-text">路径设计</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E%E6%9E%84%E5%BB%BA%E4%B8%8E%E6%B8%B2%E6%9F%93%E7%9A%84%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">关于构建与渲染的总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">4.</span> <span class="nav-text">附录</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="w4ngzhen"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">w4ngzhen</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">76</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">70</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/w4ngzhen" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;w4ngzhen" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w4ngzhen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
