@@ -155,7 +155,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/">
+    <link itemprop="mainEntityOfPage" href="http://compilemind.com/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E5%89%8D%E7%AB%AF%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%9E%84%E5%BB%BA%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -169,7 +169,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">低代码平台前端的设计与实现（一）渲染模块的基本实现</a>
+            <a href="/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E5%89%8D%E7%AB%AF%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%9E%84%E5%BB%BA%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/" class="post-title-link" itemprop="url">低代码平台前端的设计与实现（一）构建模块的基本实现</a>
         </h2>
 
         <div class="post-meta">
@@ -178,10 +178,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-09-18 00:00:00 / Modified: 18:49:34" itemprop="dateCreated datePublished" datetime="2022-09-18T00:00:00+08:00">2022-09-18</time>
+              <time title="Created: 2022-09-18 00:00:00" itemprop="dateCreated datePublished" datetime="2022-09-18T00:00:00+08:00">2022-09-18</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-10-07 14:21:49" itemprop="dateModified" datetime="2022-10-07T14:21:49+08:00">2022-10-07</time>
+              </span>
 
           
 
@@ -197,7 +203,7 @@
           <p>这两年低代码平台的话题愈来愈火，一眼望去全是关于低代码开发的概念，鲜有关于低代码平台的设计实现。本文将以实际的代码入手，逐步介绍如何打造一款低开的平台。</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%B8%B2%E6%9F%93%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/#more" rel="contents">
+              <a class="btn" href="/2022/09/18/2022-09-18-%E4%BD%8E%E4%BB%A3%E7%A0%81%E5%B9%B3%E5%8F%B0%E5%89%8D%E7%AB%AF%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%EF%BC%88%E4%B8%80%EF%BC%89%E6%9E%84%E5%BB%BA%E6%A8%A1%E5%9D%97%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%AE%9E%E7%8E%B0/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>
